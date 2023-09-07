@@ -16,6 +16,7 @@ from pyowm import OWM
 # import torchvision
 # from stable_diffusion import DiffusionModel
 
+
 #cogs
 import game
 
