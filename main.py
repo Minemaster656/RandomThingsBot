@@ -272,5 +272,6 @@ async def keyboard_layout_switcher(ctx, text):
 async def loop():
     ...
 # bot.add_cog(Weather(bot))
+bot.add_cog(game.Game(bot))
 asyncio.run(loop())
 bot.run(token)
