@@ -1,5 +1,7 @@
 import sqlite3
 
+WPG_whitelist = [609348530498437140]
+
 conn = sqlite3.connect('data.db')
 cursor = conn.cursor()
 def writeUserToDB(user):
