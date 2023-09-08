@@ -108,6 +108,45 @@ class RP(commands.Cog):
                 await ctx.respond(
                     f"Вы не можете удалять страны. Попросите кого-нибудь из тех, кто может это сделать, например, <@{random.choice(publicCoreData.WPG_whitelist)}>")
 
+    @commands.slash_command(name="редактировать-впи-статы",description="Редактирует статы ВПИ государства")
+    async def editWPGStats(self, ctx,
+                           id : Option(str, description="ID государства", required=True)="None",
+                           field : Option(str, description="Поле редактирования", required=True,choices=[
+                               "деньги","популяция","согласие населения","территория","инфраструктура","медицина","образование",
+                               "защита","атака","топливо","космическое топливо","межзвёздное топливо","пустотное топливо","транспорт","индекс технологий"
+
+
+                           ])="None", value : Option(int, description="Значение на которое изменить (отрицательное для вычитания)", required=True)=0):
+        if ctx.author.id in publicCoreData.WPG_whitelist:
+            with ctx.typing():
+                column = ""
+                if field == "деньги":
+                    column="money"
+                elif field == "популяция":column="population"
+                elif field == "согласие населения":column="agreement"
+                elif field == "территория":column="area"
+                elif field == "инфраструктура":column="infrastructure"
+                elif field == "медицина":column="medicine"
+                elif field == "образование":column="eudication"
+                elif field == "защита":column="armor"
+                elif field == "атака":column="attack"
+                elif field == "топливо":column="fuel"
+                elif field == "космическое топливо":
+                    column = "fuel_space"
+                elif field == "межзвёздное топливо": column = "fuel_star"
+                elif field == "пустотное топливо": column = "fuel_void"
+                elif field == "транспорт":column="transport"
+                elif field == "индекс технологий":column="tech_index"
+                cursor.execute(f"UPDATE countries SET {column} = {column} + ? WHERE id = ?", (value, id))
+                conn.commit()
+                await ctx.respond(f"Значение ``{field}`` у государства ``{id}`` изменено на {value} едениц(у/ы).")
+
+
+
+
+        else:
+            await ctx.respond(f"Вы не можете удалять страны. Попросите кого-нибудь из тех, кто может это сделать, например, <@{random.choice(publicCoreData.WPG_whitelist)}>")
+
 
     @commands.slash_command(name="статы-впи",description="Статистика ВПИ государства")
     async def WPG_stats(self, ctx, id : Option(str, description="ID государства. Не вводите для списка", required=False)="list", size : Option(int, description="Масштабирование", required=False, choices=[1, 2, 3, 4, 5])=1):
