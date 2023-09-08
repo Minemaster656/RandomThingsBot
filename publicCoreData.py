@@ -34,5 +34,7 @@ def initTables():
     fuel_void      INTEGER DEFAULT (0),
     transport      INTEGER DEFAULT (0),
     tech_index     INTEGER DEFAULT (0),
-    tech           TEXT
+    tech           TEXT,
+    food           INTEGER DEFAULT (0),
+    materials      INTEGER DEFAULT (0) 
 )''')

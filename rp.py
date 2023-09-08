@@ -20,10 +20,17 @@ from PIL import Image, ImageFilter, ImageDraw, ImageOps
 
 
 class RP(commands.Cog):
+    # choicesEditWPG = []
+    cursor.execute('SELECT id FROM countries')
 
+    # Получение всех значений из результата запроса
+    result = cursor.fetchall()
 
+    # Преобразование значений в формат, который можно передать в `choices` аргумент
+    choicesEditWPG = [str(value[0]) for value in result]
     def __init__(self, bot):
         self.bot = bot
+
 
 
     @commands.slash_command(name="двадцатигранник",description="Бросить двадцатигранник удачи")
@@ -110,13 +117,14 @@ class RP(commands.Cog):
 
     @commands.slash_command(name="редактировать-впи-статы",description="Редактирует статы ВПИ государства")
     async def editWPGStats(self, ctx,
-                           id : Option(str, description="ID государства", required=True)="None",
+                           id : Option(str, description="ID государства",choices=choicesEditWPG, required=True)="None",
                            field : Option(str, description="Поле редактирования", required=True,choices=[
                                "деньги","популяция","согласие населения","территория","инфраструктура","медицина","образование",
-                               "защита","атака","топливо","космическое топливо","межзвёздное топливо","пустотное топливо","транспорт","индекс технологий"
+                               "защита","атака","топливо","космическое топливо","межзвёздное топливо","пустотное топливо","транспорт","индекс технологий", "еда","материалы"
 
 
-                           ])="None", value : Option(int, description="Значение на которое изменить (отрицательное для вычитания)", required=True)=0):
+                           ])="None", value : Option(int, description="Значение на которое изменить (отрицательное для вычитания)", required=True)=0, ephemeral : Option(bool, description="Видно лишь вам или нет", required=False)=False):
+
         if ctx.author.id in publicCoreData.WPG_whitelist:
             with ctx.typing():
                 column = ""
@@ -137,19 +145,22 @@ class RP(commands.Cog):
                 elif field == "пустотное топливо": column = "fuel_void"
                 elif field == "транспорт":column="transport"
                 elif field == "индекс технологий":column="tech_index"
+                elif field == "еда":column="food"
+                elif field == "материалы":column="materials"
                 cursor.execute(f"UPDATE countries SET {column} = {column} + ? WHERE id = ?", (value, id))
                 conn.commit()
-                await ctx.respond(f"Значение ``{field}`` у государства ``{id}`` изменено на {value} едениц(у/ы).")
+                await ctx.respond(f"Значение ``{field}`` у государства ``{id}`` изменено на {value} едениц(у/ы).", ephemeral=ephemeral)
 
 
 
 
         else:
-            await ctx.respond(f"Вы не можете удалять страны. Попросите кого-нибудь из тех, кто может это сделать, например, <@{random.choice(publicCoreData.WPG_whitelist)}>")
+            await ctx.respond(f"Вы не можете удалять страны. Попросите кого-нибудь из тех, кто может это сделать, например, <@{random.choice(publicCoreData.WPG_whitelist)}>", ephemeral=ephemeral)
 
-
+    choisesWPGButWithList = choicesEditWPG
+    choisesWPGButWithList.append("list")
     @commands.slash_command(name="статы-впи",description="Статистика ВПИ государства")
-    async def WPG_stats(self, ctx, id : Option(str, description="ID государства. Не вводите для списка", required=False)="list", size : Option(int, description="Масштабирование", required=False, choices=[1, 2, 3, 4, 5])=1):
+    async def WPG_stats(self, ctx, id : Option(str, description="ID государства. Не вводите для списка",choices=choisesWPGButWithList, required=False)="list", size : Option(int, description="Масштабирование", required=False, choices=[1, 2, 3, 4, 5])=1, ephemeral : Option(bool, description="Видно лишь вам или нет", required=False)=False):
         with ctx.typing():
 
 
@@ -170,20 +181,27 @@ class RP(commands.Cog):
                 embed.add_field(name="Список стран", value=f"{out}", inline=False)
                 embed.set_footer(text="Для статов страны введите эту же команду, но указав ID страны")
 
-                await ctx.respond(embed=embed)
+                await ctx.respond(embed=embed, ephemeral=ephemeral)
             else:
+                columns = 17
                 imageSizeY=200
-                imageSizeX=15*16+15*8+16+64
+                imageSizeX=columns*16+columns*8+16+64
                 image = Image.new('RGBA', (imageSizeX, imageSizeY), (0, 0, 0, 0))
-
+                bgTileSizeX=32
+                bgTileSizeY=32
                 cell0 = Image.open("graphics/cell.png")
                 # # cell0.convert("L")
                 # # cell1 = ImageOps.colorize(cell0, '#FF0000', '#000000')
                 # cell1 = Image.open("10x10.png")
                 # cells = [cell0, cell1]
+                backgrounds=[None, None, None, None, None]
+
                 cells = [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None]
                 for i in range(16):
                     cells[i]=Image.open(f"graphics/cell{i}.png")
+
+                for i in range(5):
+                    backgrounds[i]=Image.open(f"graphics/background{i+1}.png")
                 agreement = Image.open("graphics/agreement.png")
                 area = Image.open("graphics/area.png")
                 armor = Image.open("graphics/armor.png")
@@ -200,9 +218,12 @@ class RP(commands.Cog):
                 population = Image.open("graphics/population.png")
                 tech= Image.open("graphics/tech.png")
                 transport = Image.open("graphics/transport.png")
+                materials = Image.open("graphics/materials.png")
+                food = Image.open("graphics/food.png")
 
 
-                cursor.execute("SELECT money, population, agreement, area, infrastructure, medicine, eudication, attack, armor, fuel, fuel_space, fuel_star, fuel_void, transport, tech_index FROM countries WHERE id = ?", (id, ))
+
+                cursor.execute("SELECT money, population, agreement, area, infrastructure, medicine, eudication, attack, armor, fuel, fuel_space, fuel_star, fuel_void, transport, tech_index, materials, food FROM countries WHERE id = ?", (id, ))
                 result = cursor.fetchone()
                 if result:
                     _money = result[0]
@@ -220,7 +241,17 @@ class RP(commands.Cog):
                     _fuel_void = result[12]
                     _transport = result[13]
                     _tech_index = result[14]
+                    _materials = result[15]
+                    _food=result[16]
+                arrVal = 0
+                if _tech_index / 10 < 5:
+                    arrVal = int(_tech_index / 10)
+                else:
+                    arrVal=4
+                for y in range(int(imageSizeY/bgTileSizeY)):
+                    for x in range(int(imageSizeX/bgTileSizeX)):
 
+                        image.paste(backgrounds[arrVal], (x*bgTileSizeX, y*bgTileSizeY))
 
 
 
@@ -241,27 +272,30 @@ class RP(commands.Cog):
                 # drawBar(1, 11, money)
                 # drawBar(2, 9, money)
                 drawBar(1, _money, money)
-                drawBar(2, _population, population)
-                drawBar(3, _agreement, agreement)
-                drawBar(4, _area, area)
-                drawBar(5, _infrastructure, infrastructure)
-                drawBar(6, _medicine, medicine)
-                drawBar(7, _eudication, eudication)
-                drawBar(8, _attack, attack)
-                drawBar(9, _armor, armor)
-                drawBar(10, _fuel, fuel)
-                drawBar(11, _fuel_space, fuel_space)
-                drawBar(12, _fuel_star, fuel_star)
-                drawBar(13, _fuel_void, fuel_void)
-                drawBar(14, _transport, transport)
-                drawBar(15, _tech_index, tech)
+                drawBar(2, _materials, materials)
+                drawBar(3, _food, food)
+                drawBar(4, _population, population)
+                drawBar(5, _agreement, agreement)
+                drawBar(6, _area, area)
+                drawBar(7, _infrastructure, infrastructure)
+                drawBar(8, _medicine, medicine)
+                drawBar(9, _eudication, eudication)
+                drawBar(10, _attack, attack)
+                drawBar(11, _armor, armor)
+                drawBar(12, _fuel, fuel)
+                drawBar(13, _fuel_space, fuel_space)
+                drawBar(14, _fuel_star, fuel_star)
+                drawBar(15, _fuel_void, fuel_void)
+                drawBar(16, _transport, transport)
+                drawBar(17, _tech_index, tech)
+
                 if size>1:
                     image = image.resize((imageSizeX*size, imageSizeY*size), resample=Image.NEAREST)
                 image.save('image_buffer.png')
 
                 modified_image_path = 'image_buffer.png'
                 modified_image = discord.File(modified_image_path, filename='image_buffer.png')
-                await ctx.respond(file=modified_image)
+                await ctx.respond(file=modified_image, ephemeral=ephemeral)
                 # barPoints = 9
                 # await ctx.send(f"layersFull: {(barPoints//10)}, layersNotFull: {barPoints%10} при barPoints: {barPoints}")
                 # barPoints = 11
