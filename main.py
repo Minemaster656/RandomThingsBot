@@ -1,5 +1,6 @@
 import asyncio
 import os
+import time
 from datetime import datetime
 # -*- coding: utf-8 -*-
 import discord
@@ -20,18 +21,23 @@ from PIL import Image, ImageFilter, ImageDraw, ImageOps
 import requests
 from io import BytesIO
 
+import publicCoreData
+from coreData import *
 
 #cogs
 import game
+import rp
 import tests
 
 import coreData
+from publicCoreData import cursor
+from publicCoreData import conn
 
 whitelist = [609348530498437140, 617243612857761803]
 token = coreData.token_ds
 from discord.ext import commands
 import random
-
+startTimeCounter = time.time()
 intents = discord.Intents.default()  # Подключаем "Разрешения"
 intents.message_content = True
 intents.reactions = True
@@ -39,8 +45,8 @@ intents.reactions = True
 bot = commands.Bot(command_prefix='.', intents=intents)
 
 # Подключение к базе данных
-conn = sqlite3.connect('data.db')
-cursor = conn.cursor()
+# conn = sqlite3.connect('data.db')
+# cursor = conn.cursor()
 
 # def glitch(image):
 # # Дрожание изображения
@@ -109,7 +115,7 @@ async def ping(ctx):
 
 @bot.event
 async def on_ready():
-    print(f"Бот запущен как {bot.user}")
+    print(f"Бот запущен как {bot.user} за {time.time()-startTimeCounter} секунд.")
 @bot.event
 async def on_command_error(ctx, error):
     # if isinstance(error, commands.CommandError):
@@ -176,11 +182,32 @@ async def about(ctx, user: discord.Member = None):
         cursor.execute("SELECT * FROM users WHERE userid = ?", (userid,))
         result = cursor.fetchone()
 
-        async def send_user_info_embed(color, about, age, timezone):
+        async def send_user_info_embed(color, about, age, timezone,karma,luck):
+            def convertKarmaToEmoji(karma):
+                if karma < -1:
+                    return "⬛"
+                elif karma > 1:
+                    return "⬜"
+                else:
+                    return "🔲"
+            def convertLuckToEmoji(luck):
+                if luck < -10:
+                    return "⬛"
+                elif luck < -5: return "🟫"
+                elif luck <-3: return "🟥"
+                elif luck <-1: return "🟧"
+
+                elif luck >1: return "🟨"
+                elif luck >3: return "🟩"
+                elif luck >5: return "🟦"
+                elif luck >10: return "🟪"
+                else: return "⬜"
 
             embed = discord.Embed(title=user.display_name, description=user.name, color=discord.Colour.blue())
             embed.add_field(name="О себе", value="> *"+about+"*", inline=False)
             embed.add_field(name="Личные данные", value="- Возраст: "+age+"\n- Часовой пояс: UTC+"+timezone, inline=True)
+
+            embed.add_field(name="прочее",value=f"{convertKarmaToEmoji(karma)}{convertLuckToEmoji(luck)}",inline=False)
             embed.set_footer(text='Редактировтаь параметры - .редактировать <имяпараметра строчными буквами без пробелов и этих <> > \"значение\"')
             await ctx.send(embed=embed)
 
@@ -191,11 +218,15 @@ async def about(ctx, user: discord.Member = None):
             abt = "Задать поле 'О себе' можно командой `.редактировать осебе`" if result[2] is None else result[2]
             tmz = "UTC+?. Задать часовой пояс можно командой `.редактировать часовойпояс`. Укажите свой часовой пояс относительно Гринвича." if result[4] is None else str(result[4])
             age = "Задать поле 'Возраст' можно командой `.редактировать возраст`\nПожалуйста, ставьте только свой реальный возраст, не смотря на то, сколько вам лет." if result[3] is None else str(result[3])
-            await send_user_info_embed(clr, abt, age, tmz)
+            karma=result[6]
+            luck=result[7]
+            await send_user_info_embed(clr, abt, age, tmz,karma,luck)
         else:
             await ctx.send("Запись о пользователе не найдена. Добавление...")
-            cursor.execute("INSERT INTO users (userid, username) VALUES (?, ?)", (userid, user.name))
-            conn.commit()
+            # cursor.execute("INSERT INTO users (userid, username) VALUES (?, ?)", (userid, user.name))
+            # conn.commit()
+            publicCoreData.writeUserToDB(user)
+
             await send_user_info_embed("#5865F2", "Задать поле 'О себе' можно командой .редактировать осебе", "Задать поле 'Возраст' можно командой `.редактировать возраст`\nПожалуйста, ставьте только свой реальный возраст, не смотря на то, сколько вам лет.", "UTC+?. Задать часовой пояс можно командой `.редактировать часовойпояс`. Укажите свой часовой пояс относительно Гринвича.")
 
 @bot.command(aliases=["редактировать"])
@@ -259,35 +290,6 @@ async def keyboard_layout_switcher(ctx, text):
         else:
             result += char
     await ctx.respond(result, ephemeral=True)
-# @commands.command(aliasses=["шахматы"])
-# async def chessboard(ctx):
-#     async def get_image_from_url(url):
-#         response = requests.get(url)
-#         image = Image.open(BytesIO(response.content))
-#         return image
-#
-#     def create_chessboard(user_image):
-#         width, height = user_image.size
-#         chessboard = Image.new('RGBA', (width, height), (255, 255, 255, 0))
-#
-#         for x in range(0, width, width // 5):
-#             for y in range(0, height, height // 5):
-#                 if (x // (width // 5) + y // (height // 5)) % 2 == 0:
-#                     chessboard.paste(user_image, (x, y))
-#
-#         return chessboard
-#     # Получаем прикрепленное изображение от пользователя
-#     attachment = ctx.message.attachments[0]
-#     image_url = attachment.url
-#
-#     # Загружаем изображение пользователя
-#     user_image = await get_image_from_url(image_url)
-#
-#     # Создаем шахматную доску 5 на 5 с чередующимися пикселями
-#     chessboard = create_chessboard(user_image)
-#
-#     # Отправляем шахматную доску в качестве сообщения
-#     await ctx.send(file=discord.File(chessboard, 'chessboard.png'))
 
 
 @bot.slash_command(name="тест-работы-с-изображениями",description="обеме")
@@ -337,6 +339,8 @@ async def send_image(ctx):
     # jittered_image.save('image_buffer.png')
 
     # Отправляем изображение в качестве сообщения
+
+
     modified_image_path = 'image_buffer.png'
     modified_image = discord.File(modified_image_path, filename='image_buffer.png')
     await ctx.respond(file=modified_image)
@@ -403,6 +407,7 @@ bot.add_cog(game.Game(bot))
 #     if f.endswith(".py"):
 #         bot.load_extension("cogs." + f[:-3])
 bot.add_cog(tests.Tests(bot))
+bot.add_cog(rp.RP(bot))
 asyncio.run(loop())
 
 bot.run(token)
