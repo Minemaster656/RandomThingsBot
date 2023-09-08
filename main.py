@@ -1,4 +1,5 @@
 import asyncio
+import os
 from datetime import datetime
 # -*- coding: utf-8 -*-
 import discord
@@ -15,10 +16,14 @@ from pyowm import OWM
 # import torch
 # import torchvision
 # from stable_diffusion import DiffusionModel
+from PIL import Image, ImageFilter, ImageDraw, ImageOps
+import requests
+from io import BytesIO
 
 
 #cogs
 import game
+import tests
 
 import coreData
 
@@ -37,11 +42,40 @@ bot = commands.Bot(command_prefix='.', intents=intents)
 conn = sqlite3.connect('data.db')
 cursor = conn.cursor()
 
-
-def makeDSTimestamp(year, month, day, hour, minute, second, timezone, mode):
-    dt = datetime.datetime(year, month, day, hour, minute, second,
-                           tzinfo=datetime.timezone(datetime.timedelta(hours=timezone)))
-    return f"<t:{int(dt.timestamp())}:{mode[0]}>"
+# def glitch(image):
+# # Дрожание изображения
+#   image = image.transform((image.size[0], image.size[1]), Image.AFFINE,
+#                          (1, 0.01, 0, 0, 1, 0.01))
+#
+#   # Сжатие и расширение изображения
+#   # image = image.resize((int(image.size[0] * 0.9), int(image.size[1] * 0.9)),
+#   #                      Image.AFFINE, (1, 0.8, 0, 0, 1, 0.8))
+#
+#   # Добавление шума
+#   # image = image.add_noise(Image.GaussianBlur, sigma=0.5)
+#
+#   # Дублирование изображения
+#   image_left = image.copy()
+#   image_right = image.copy()
+#
+#   # Добавление голубого оттенка к левому изображению
+#   image_left = image_left.convert("L")
+#   image_left = image_left.point(lambda x: 255 if x > 128 else 0)
+#   image_left = image_left.convert("RGB")
+#
+#   # Добавление розового оттенка к правому изображению
+#   image_right = image_right.convert("L")
+#   image_right = image_right.point(lambda x: 255 - x)
+#   image_right = image_right.convert("RGB")
+#
+#   # Объединение изображений
+#   image = Image.merge("RGB", (image_left, image, image_right))
+#   return image
+#
+# def makeDSTimestamp(year, month, day, hour, minute, second, timezone, mode):
+#     dt = datetime.datetime(year, month, day, hour, minute, second,
+#                            tzinfo=datetime.timezone(datetime.timedelta(hours=timezone)))
+#     return f"<t:{int(dt.timestamp())}:{mode[0]}>"
 
 # class Weather(commands.Cog):
 #     def __init__(self, bot):
@@ -76,6 +110,11 @@ async def ping(ctx):
 @bot.event
 async def on_ready():
     print(f"Бот запущен как {bot.user}")
+@bot.event
+async def on_command_error(ctx, error):
+    # if isinstance(error, commands.CommandError):
+        # Отправляем сообщение об ошибке в канал, где была использована команда
+    await ctx.send(f'Произошла ошибка при выполнении команды: {error}')
 
 @bot.command(aliases=['rand', 'ранд', 'r', 'р', 'rnd', 'рнд', 'random', 'рандом'])
 async def random_int(ctx, arg1: int, arg2: int):
@@ -220,6 +259,92 @@ async def keyboard_layout_switcher(ctx, text):
         else:
             result += char
     await ctx.respond(result, ephemeral=True)
+# @commands.command(aliasses=["шахматы"])
+# async def chessboard(ctx):
+#     async def get_image_from_url(url):
+#         response = requests.get(url)
+#         image = Image.open(BytesIO(response.content))
+#         return image
+#
+#     def create_chessboard(user_image):
+#         width, height = user_image.size
+#         chessboard = Image.new('RGBA', (width, height), (255, 255, 255, 0))
+#
+#         for x in range(0, width, width // 5):
+#             for y in range(0, height, height // 5):
+#                 if (x // (width // 5) + y // (height // 5)) % 2 == 0:
+#                     chessboard.paste(user_image, (x, y))
+#
+#         return chessboard
+#     # Получаем прикрепленное изображение от пользователя
+#     attachment = ctx.message.attachments[0]
+#     image_url = attachment.url
+#
+#     # Загружаем изображение пользователя
+#     user_image = await get_image_from_url(image_url)
+#
+#     # Создаем шахматную доску 5 на 5 с чередующимися пикселями
+#     chessboard = create_chessboard(user_image)
+#
+#     # Отправляем шахматную доску в качестве сообщения
+#     await ctx.send(file=discord.File(chessboard, 'chessboard.png'))
+
+
+@bot.slash_command(name="тест-работы-с-изображениями",description="обеме")
+async def send_image(ctx):
+
+    # image = Image.open('10x10.png')
+
+    # Выполняем необходимые операции с изображением
+    # Например, изменение размера, обрезка, фильтры и т.д.
+    # image = image.resize((256, 256), resample=Image.NEAREST)
+
+    # Создаем пустое прозрачное изображение размером 300x200 пикселей
+    image = Image.new('RGBA', (300, 200), (0, 0, 0, 0))
+
+    # Открываем изображение квадратика
+    square_image = Image.open('10X10.png')
+    gray = Image.open("gray.png")
+    gray = gray.convert("L")
+    # Создаем объект ImageDraw для рисования
+    draw = ImageDraw.Draw(image)
+
+    # Определяем координаты верхнего левого и нижнего правого углов квадратика
+    x1 = 10
+    y1 = 10
+    x2 = x1 + 3
+    y2 = y1 + 3
+    for i in range(10):
+
+    # Рисуем квадратик поверх пустого изображения
+        if i %2==0:
+            cim = ImageOps.colorize(gray, '#FF0000', '#000000')
+            image.paste(cim, (i * 10, y1+10))
+        image.paste(square_image, (i*10, y1))
+
+
+
+
+    # jittered_image = image.filter(ImageFilter.GaussianBlur(radius=2))
+    # jittered_image = jittered_image.resize(image.size)
+    # jittered_image = Image.blend(image, jittered_image, alpha=0.5)
+
+    # image = glitch(image)
+
+    # Сохраняем измененное изображение
+
+    image.save('image_buffer.png')
+    # jittered_image.save('image_buffer.png')
+
+    # Отправляем изображение в качестве сообщения
+    modified_image_path = 'image_buffer.png'
+    modified_image = discord.File(modified_image_path, filename='image_buffer.png')
+    await ctx.respond(file=modified_image)
+
+
+
+
+
 
 
 # @commands.slash_command(name="мьют",description="Переключить мьют пользоваателя (роль)")
@@ -274,5 +399,10 @@ async def loop():
     ...
 # bot.add_cog(Weather(bot))
 bot.add_cog(game.Game(bot))
+# for f in os.listdir("./cogs"):
+#     if f.endswith(".py"):
+#         bot.load_extension("cogs." + f[:-3])
+bot.add_cog(tests.Tests(bot))
 asyncio.run(loop())
+
 bot.run(token)
