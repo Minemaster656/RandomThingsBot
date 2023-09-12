@@ -4,11 +4,13 @@ import matplotlib.pyplot as plt
 import discord
 from discord.ext import commands
 import perlin_noise
-from discord import Option
+from discord import Option, ButtonStyle
 from random import *
 from PIL import Image
 import requests
 from io import BytesIO
+
+from discord.ui import Button
 
 
 class Tests(commands.Cog):
@@ -44,6 +46,7 @@ class Tests(commands.Cog):
     #
     #     # Отправляем шахматную доску в качестве сообщения
     #     await ctx.send(file=discord.File(chessboard, 'chessboard.png'))
+
 
 
 

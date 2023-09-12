@@ -76,37 +76,37 @@ class Game(commands.Cog):
                         output_hgh = False
                         output_hum = False
                         output_tmp = False
-                        # if array[0][i, j]*scale<=0:#abs(array[i, j])*scale<0.5:
-                        #     out+="⬛"
-                        # else:
-                        #     out+="⬜"
                         if array0[i, j]*scale<=0:#abs(array[i, j])*scale<0.5:
-                            output_hgh=True
+                            out+="⬛"
                         else:
-                            output_hgh = False
-
-                        if array1[i, j]*scale<=0:#abs(array[i, j])*scale<0.5:
-                            ...
-                        else:
-                            output_hum=True
-
-                        if array2[i, j]*scale<=0:#abs(array[i, j])*scale<0.5:
-                            ...
-                        else:
-                            output_tmp=True
-
-                        if not output_hgh:
-                            out+= "🪨"
-                        else:
-                            if output_hum==True and output_tmp==True:
-                                out+="🌴"
-                            elif output_hum==True and output_tmp==False:
-                                out+="❄️"
-                            elif output_hum==False and output_tmp==True:
-                                out+="🏜️"
-                            #elif output_hum==False and output_tmp==False:
-                            else:
-                                out+="🧊"
+                            out+="⬜"
+                        # if array0[i, j]*scale<=0:#abs(array[i, j])*scale<0.5:
+                        #     output_hgh=True
+                        # else:
+                        #     output_hgh = False
+                        #
+                        # if array1[i, j]*scale<=0:#abs(array[i, j])*scale<0.5:
+                        #     ...
+                        # else:
+                        #     output_hum=True
+                        #
+                        # if array2[i, j]*scale<=0:#abs(array[i, j])*scale<0.5:
+                        #     ...
+                        # else:
+                        #     output_tmp=True
+                        #
+                        # if not output_hgh:
+                        #     out+= "🪨"
+                        # else:
+                        #     if output_hum==True and output_tmp==True:
+                        #         out+="🌴"
+                        #     elif output_hum==True and output_tmp==False:
+                        #         out+="❄️"
+                        #     elif output_hum==False and output_tmp==True:
+                        #         out+="🏜️"
+                        #     #elif output_hum==False and output_tmp==False:
+                        #     else:
+                        #         out+="🧊"
 
 
                         # abs(array[i, j])*100

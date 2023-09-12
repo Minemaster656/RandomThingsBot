@@ -6,13 +6,17 @@ from datetime import datetime
 import discord
 # from discord_components import DiscordComponents, Button
 import sqlite3
-from discord import Option
+from discord import Option, ButtonStyle
+
+# from discord_components import DiscordComponents, Button, ButtonStyle
 
 # from discord import Option
 import requests
 
 # from commands import *
 import sqlite3
+
+from discord.ui import Button
 from pyowm import OWM
 # import torch
 # import torchvision
@@ -21,10 +25,11 @@ from PIL import Image, ImageFilter, ImageDraw, ImageOps
 import requests
 from io import BytesIO
 
+import paginator
 import publicCoreData
 from coreData import *
 
-#cogs
+# cogs
 import game
 import rp
 import tests
@@ -37,12 +42,14 @@ whitelist = [609348530498437140, 617243612857761803]
 token = coreData.token_ds
 from discord.ext import commands
 import random
+
 startTimeCounter = time.time()
 intents = discord.Intents.default()  # Подключаем "Разрешения"
 intents.message_content = True
 intents.reactions = True
 # Задаём префикс и интенты
 bot = commands.Bot(command_prefix='.', intents=intents)
+
 
 # Подключение к базе данных
 # conn = sqlite3.connect('data.db')
@@ -113,14 +120,18 @@ bot = commands.Bot(command_prefix='.', intents=intents)
 async def ping(ctx):
     await ctx.send('pong')
 
+
 @bot.event
 async def on_ready():
-    print(f"Бот запущен как {bot.user} за {time.time()-startTimeCounter} секунд.")
+    print(f"Бот запущен как {bot.user} за {time.time() - startTimeCounter} секунд.")
+
+
 @bot.event
 async def on_command_error(ctx, error):
     # if isinstance(error, commands.CommandError):
-        # Отправляем сообщение об ошибке в канал, где была использована команда
+    # Отправляем сообщение об ошибке в канал, где была использована команда
     await ctx.send(f'Произошла ошибка при выполнении команды: {error}')
+
 
 @bot.command(aliases=['rand', 'ранд', 'r', 'р', 'rnd', 'рнд', 'random', 'рандом'])
 async def random_int(ctx, arg1: int, arg2: int):
@@ -145,20 +156,25 @@ rand, ранд, r, р, rnd, рнд, random, рандом - sends a random intege
 
 <@1126887522690142359> by @minemaster_''')
 
-@bot.slash_command(description="Список команд.",name="хелп") #guilds=[1076117733428711434]
+
+@bot.slash_command(description="Список команд.", name="хелп")  # guilds=[1076117733428711434]
 async def help(ctx):
-    await ctx.respond(f"Чел, используй /-команды\nА если невтерпёж то вот список:\nhelp, sendHelp, hlp, хелп, помощь, commands, команды\n"
-                      f"sendMsg, me, я, >"
-                      f"\nrand, ранд, r, р, rnd, рнд, random, рандом, random_int"
-                      f"\nping"
-                      f"\nВсё с преффиксом ."
-                      f"\nВ дальнейшем этот список может быть расширен, но всё же приоритетнее разработка /-комманд. Из их минусов - их долгая индексация и ввод в замен на простоту использования."
-                      )
-@bot.slash_command(description="Сообщение от лица бота.",name="бот")
+    await ctx.respond(
+        f"Чел, используй /-команды\nА если невтерпёж то вот список:\nhelp, sendHelp, hlp, хелп, помощь, commands, команды\n"
+        f"sendMsg, me, я, >"
+        f"\nrand, ранд, r, р, rnd, рнд, random, рандом, random_int"
+        f"\nping"
+        f"\nВсё с преффиксом ."
+        f"\nВ дальнейшем этот список может быть расширен, но всё же приоритетнее разработка /-комманд. Из их минусов - их долгая индексация и ввод в замен на простоту использования."
+        )
+
+
+@bot.slash_command(description="Сообщение от лица бота.", name="бот")
 async def me(ctx, text):
     if ctx.author.id in whitelist:
         if ctx.message.reference:
             await ctx.send(text)
+
 
 # @bot.command()
 # async def send_embed(ctx):
@@ -173,7 +189,8 @@ async def me(ctx, text):
 async def cmd_trigger_bruh(ctx):
     await ctx.send("bruh")
 
-@bot.command(aliases=["осебе","профиль","profile"])
+
+@bot.command(aliases=["осебе", "профиль", "profile"])
 async def about(ctx, user: discord.Member = None):
     async with ctx.typing():
         if user is None:
@@ -182,7 +199,7 @@ async def about(ctx, user: discord.Member = None):
         cursor.execute("SELECT * FROM users WHERE userid = ?", (userid,))
         result = cursor.fetchone()
 
-        async def send_user_info_embed(color, about, age, timezone,karma,luck):
+        async def send_user_info_embed(color, about, age, timezone, karma, luck):
             def convertKarmaToEmoji(karma):
                 if karma < -1:
                     return "⬛"
@@ -190,44 +207,64 @@ async def about(ctx, user: discord.Member = None):
                     return "⬜"
                 else:
                     return "🔲"
+
             def convertLuckToEmoji(luck):
                 if luck < -10:
                     return "⬛"
-                elif luck < -5: return "🟫"
-                elif luck <-3: return "🟥"
-                elif luck <-1: return "🟧"
+                elif luck < -5:
+                    return "🟫"
+                elif luck < -3:
+                    return "🟥"
+                elif luck < -1:
+                    return "🟧"
 
-                elif luck >1: return "🟨"
-                elif luck >3: return "🟩"
-                elif luck >5: return "🟦"
-                elif luck >10: return "🟪"
-                else: return "⬜"
+                elif luck > 1:
+                    return "🟨"
+                elif luck > 3:
+                    return "🟩"
+                elif luck > 5:
+                    return "🟦"
+                elif luck > 10:
+                    return "🟪"
+                else:
+                    return "⬜"
 
             embed = discord.Embed(title=user.display_name, description=user.name, color=discord.Colour.blue())
-            embed.add_field(name="О себе", value="> *"+about+"*", inline=False)
-            embed.add_field(name="Личные данные", value="- Возраст: "+age+"\n- Часовой пояс: UTC+"+timezone, inline=True)
+            embed.add_field(name="О себе", value="> *" + about + "*", inline=False)
+            embed.add_field(name="Личные данные", value="- Возраст: " + age + "\n- Часовой пояс: UTC+" + timezone,
+                            inline=True)
 
-            embed.add_field(name="прочее",value=f"{convertKarmaToEmoji(karma)}{convertLuckToEmoji(luck)}",inline=False)
-            embed.set_footer(text='Редактировтаь параметры - .редактировать <имяпараметра строчными буквами без пробелов и этих <> > \"значение\"')
+            embed.add_field(name="прочее", value=f"{convertKarmaToEmoji(karma)}{convertLuckToEmoji(luck)}",
+                            inline=False)
+            embed.set_footer(
+                text='Редактировтаь параметры - .редактировать <имяпараметра строчными буквами без пробелов и этих <> > \"значение\"')
             await ctx.send(embed=embed)
 
         if result:
             await ctx.send("Запись найдена")
-            #await send_user_info_embed("#5865F2" if result[5] is None else result[5], "Задать поле 'О себе' можно командой `.редактировать осебе`" if result[2] is None else result[2], "Задать поле 'Возраст' можно командой `.редактировать возраст`\nПожалуйста, ставьте только свой реальный возраст, не смотря на то, сколько вам лет." if result[3] is None else str(result[3]), "UTC+?. Задать часовой пояс можно командой `.редактировать часовойпояс`. Укажите свой часовой пояс относительно Гринвича." if result[4] is None else str(result[4]))
+
+
+
+
             clr = "#5865F2" if result[5] is None else result[5]
             abt = "Задать поле 'О себе' можно командой `.редактировать осебе`" if result[2] is None else result[2]
-            tmz = "UTC+?. Задать часовой пояс можно командой `.редактировать часовойпояс`. Укажите свой часовой пояс относительно Гринвича." if result[4] is None else str(result[4])
-            age = "Задать поле 'Возраст' можно командой `.редактировать возраст`\nПожалуйста, ставьте только свой реальный возраст, не смотря на то, сколько вам лет." if result[3] is None else str(result[3])
-            karma=result[6]
-            luck=result[7]
-            await send_user_info_embed(clr, abt, age, tmz,karma,luck)
+            tmz = "UTC+?. Задать часовой пояс можно командой `.редактировать часовойпояс`. Укажите свой часовой пояс относительно Гринвича." if \
+            result[4] is None else str(result[4])
+            age = "Задать поле 'Возраст' можно командой `.редактировать возраст`\nПожалуйста, ставьте только свой реальный возраст, не смотря на то, сколько вам лет." if \
+            result[3] is None else str(result[3])
+            karma = result[6]
+            luck = result[7]
+            await send_user_info_embed(clr, abt, age, tmz, karma, luck)
         else:
             await ctx.send("Запись о пользователе не найдена. Добавление...")
             # cursor.execute("INSERT INTO users (userid, username) VALUES (?, ?)", (userid, user.name))
             # conn.commit()
             publicCoreData.writeUserToDB(user)
 
-            await send_user_info_embed("#5865F2", "Задать поле 'О себе' можно командой .редактировать осебе", "Задать поле 'Возраст' можно командой `.редактировать возраст`\nПожалуйста, ставьте только свой реальный возраст, не смотря на то, сколько вам лет.", "UTC+?. Задать часовой пояс можно командой `.редактировать часовойпояс`. Укажите свой часовой пояс относительно Гринвича.")
+            await send_user_info_embed("#5865F2", "Задать поле 'О себе' можно командой .редактировать осебе",
+                                       "Задать поле 'Возраст' можно командой `.редактировать возраст`\nПожалуйста, ставьте только свой реальный возраст, не смотря на то, сколько вам лет.",
+                                       "UTC+?. Задать часовой пояс можно командой `.редактировать часовойпояс`. Укажите свой часовой пояс относительно Гринвича.")
+
 
 @bot.command(aliases=["редактировать"])
 async def edit(ctx, field, value):
@@ -250,12 +287,11 @@ async def edit(ctx, field, value):
                   "- возраст (целое число)")
 
 
-
-
 @bot.command()
 async def send_message(ctx):
     message = await ctx.send("Нажми на реакцию ❓, чтобы отправить это сообщение.")
     await message.add_reaction("❓")
+
 
 @bot.event
 async def on_reaction_add(reaction, user):
@@ -275,7 +311,9 @@ async def on_reaction_add(reaction, user):
             # Проверка, что бот находится в списке авторов реакции
             if bot.user in reactors:
                 await reaction.message.channel.send(reaction.message.content)
-@bot.slash_command(description="Перевод раскладки",name="раскладка") #guilds=[1076117733428711434]
+
+
+@bot.slash_command(description="Перевод раскладки", name="раскладка")  # guilds=[1076117733428711434]
 async def keyboard_layout_switcher(ctx, text):
     ru_layout = 'йцукенгшщзхъфывапролджэячсмитьбюё'
     en_layout = 'qwertyuiop[]asdfghjkl;\'zxcvbnm,.`'
@@ -292,9 +330,8 @@ async def keyboard_layout_switcher(ctx, text):
     await ctx.respond(result, ephemeral=True)
 
 
-@bot.slash_command(name="тест-работы-с-изображениями",description="обеме")
+@bot.slash_command(name="тест-работы-с-изображениями", description="обеме")
 async def send_image(ctx):
-
     # image = Image.open('10x10.png')
 
     # Выполняем необходимые операции с изображением
@@ -318,14 +355,11 @@ async def send_image(ctx):
     y2 = y1 + 3
     for i in range(10):
 
-    # Рисуем квадратик поверх пустого изображения
-        if i %2==0:
+        # Рисуем квадратик поверх пустого изображения
+        if i % 2 == 0:
             cim = ImageOps.colorize(gray, '#FF0000', '#000000')
-            image.paste(cim, (i * 10, y1+10))
-        image.paste(square_image, (i*10, y1))
-
-
-
+            image.paste(cim, (i * 10, y1 + 10))
+        image.paste(square_image, (i * 10, y1))
 
     # jittered_image = image.filter(ImageFilter.GaussianBlur(radius=2))
     # jittered_image = jittered_image.resize(image.size)
@@ -340,15 +374,31 @@ async def send_image(ctx):
 
     # Отправляем изображение в качестве сообщения
 
-
     modified_image_path = 'image_buffer.png'
     modified_image = discord.File(modified_image_path, filename='image_buffer.png')
     await ctx.respond(file=modified_image)
 
 
-
-
-
+# @bot.command()
+# async def send_buttons(ctx):
+#     await ctx.send(
+#         "Нажмите кнопку:",
+#         components=[
+#             Button(style=ButtonStyle.primary, label="Кнопка 1"),
+#             Button(style=ButtonStyle.secondary, label="Кнопка 2"),
+#             Button(style=ButtonStyle.success, label="Кнопка 3"),
+#         ],
+#     )
+#
+#
+# @bot.event
+# async def on_button_click(interaction):
+#     if interaction.component.label == "Кнопка 1":
+#         await interaction.respond(content="Вы нажали Кнопку 1")
+#     elif interaction.component.label == "Кнопка 2":
+#         await interaction.respond(content="Вы нажали Кнопку 2")
+#     elif interaction.component.label == "Кнопка 3":
+#         await interaction.respond(content="Вы нажали Кнопку 3")
 
 
 # @commands.slash_command(name="мьют",description="Переключить мьют пользоваателя (роль)")
@@ -379,11 +429,9 @@ async def send_image(ctx):
 #     await ctx.respond(makeDSTimestamp(year, month, day, hour, minute, second, timezone, mode))
 
 
-
 # @help.slash_option(name="name", description="Enter your name.", required=True)
 # async def hello_name(ctx, name: str):
 #     await ctx.send(f"Hello, {name}!")
-
 
 
 # commands = {
@@ -401,6 +449,8 @@ async def send_image(ctx):
 
 async def loop():
     ...
+
+
 # bot.add_cog(Weather(bot))
 bot.add_cog(game.Game(bot))
 # for f in os.listdir("./cogs"):
@@ -408,6 +458,8 @@ bot.add_cog(game.Game(bot))
 #         bot.load_extension("cogs." + f[:-3])
 bot.add_cog(tests.Tests(bot))
 bot.add_cog(rp.RP(bot))
+# bot.add_cog(paginator.PageTest(bot))
 asyncio.run(loop())
+
 
 bot.run(token)
