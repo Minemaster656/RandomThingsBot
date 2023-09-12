@@ -1,9 +1,38 @@
 import sqlite3
 
-WPG_whitelist = [609348530498437140]
+import discord
+# from discord.app_commands import commands
 
+
+
+embedColors = {"Error":0xf03255, "Exception":0xff2f00, "Success":0x29ff4d, "Warp":0x00b3ff, "Neutral": discord.Color.blue()}
+WPG_whitelist = [609348530498437140]
+permission_root_whitelist = [609348530498437140, 617243612857761803]
+
+async def parsePermissionFromUser(id : int, permission : str):
+    # await ctx.respond("Проверка...")
+    string = cursor.execute('SELECT permissions FROM users WHERE userid = ?', (id,))
+
+
+    if string is None or string == "":
+        # await ctx.respond("None")
+        return False
+
+    if f"{permission}:True" in string:
+        # await ctx.respond(f"{permission}:True")
+        return True
+    return False
+
+def insertRoot():
+    # import sqlite3
+    # conn = sqlite3.connect('data.db')
+    # cursor = conn.cursor()
+    cursor.execute("UPDATE users SET permissions = ? WHERE userid = ?", ("root:True", 609348530498437140))
+    conn.commit()
+    # conn.close()
 conn = sqlite3.connect('data.db')
 cursor = conn.cursor()
+
 def writeUserToDB(user):
     cursor.execute("INSERT INTO users (userid, username) VALUES (?, ?)", (user.id, user.name))
     conn.commit()

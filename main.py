@@ -48,6 +48,8 @@ intents = discord.Intents.default()  # Подключаем "Разрешени�
 intents.message_content = True
 intents.reactions = True
 # Задаём префикс и интенты
+runtime = time.time()
+loopCounter = 0
 bot = commands.Bot(command_prefix='.', intents=intents)
 
 
@@ -121,16 +123,43 @@ async def ping(ctx):
     await ctx.send('pong')
 
 
+
 @bot.event
 async def on_ready():
     print(f"Бот запущен как {bot.user} за {time.time() - startTimeCounter} секунд.")
+    total_members = sum(len(guild.members) for guild in bot.guilds)
+    await bot.change_presence(activity=discord.Game(f"{total_members} серверов"))
 
 
+
+async def noPermission(ctx, permissions):
+    embed = discord.Embed(title="У Вас нет прав!", description="Нет разрешения!",
+                          color=publicCoreData.embedColors["Error"])
+    embed.add_field(name="Нет разрешения!", value=f"Вам необходимо(ы) разрешение(я): {permissions}")
+    await ctx.respond(embed=embed, ephemeral=False)
 @bot.event
 async def on_command_error(ctx, error):
+    none = "None"
     # if isinstance(error, commands.CommandError):
     # Отправляем сообщение об ошибке в канал, где была использована команда
-    await ctx.send(f'Произошла ошибка при выполнении команды: {error}')
+    if isinstance(error, commands.MissingPermissions):
+        embed = discord.Embed(title="У Вас нет прав!", description="Нет разрешения!",
+                              color=publicCoreData.embedColors["Error"])
+        embed.add_field(name= "Нет разрешения!", value=f"Вам необходимо(ы) разрешение(я): {none}")
+        await ctx.respond(embed=embed, ephemeral=False)
+    else:
+        await ctx.send(f'Произошла ошибка при выполнении команды: {error}')
+@bot.slash_command(name="настройки", description="Задать определённую настройку бота")
+async def set_settings(ctx, field : Option(str, description="Поле", required=True)=0, value : Option(str, description="Значение", required=True)=0):
+    hasPermission=False
+    hasPermission = await publicCoreData.parsePermissionFromUser(ctx.author.id, "root")
+    if hasPermission==True:
+        embed = discord.Embed(title="В разработке...", description="Вам необходимо разрешение root для использования.",
+                              color=publicCoreData.embedColors["Warp"])
+
+        await ctx.respond(embed=embed, ephemeral=False)
+    else:
+        await noPermission(ctx, "root")
 
 
 @bot.command(aliases=['rand', 'ранд', 'r', 'р', 'rnd', 'рнд', 'random', 'рандом'])
@@ -448,8 +477,27 @@ async def send_image(ctx):
 #        await commands[message.content.lower()](message)
 
 async def loop():
-    ...
 
+    ...
+async def statusLoop():
+    global loopCounter
+    await asyncio.sleep(120)
+    if loopCounter == 0:
+        total_members = sum(len(guild.members) for guild in bot.guilds)
+        await bot.change_presence(activity=discord.Game(name=f"{total_members} серверов"))
+        loopCounter+=1
+    elif loopCounter == 1:
+
+        await bot.change_presence(activity=discord.Game(f"Discord-издание бота"))
+        loopCounter += 1
+    elif loopCounter == 2:
+
+        await bot.change_presence(activity=discord.Game(name=f"PyCharm уже {int(time.time()-runtime)} секунд"))
+        loopCounter += 1
+    elif loopCounter == 3:
+
+        await bot.change_presence(activity=discord.Game(f"DoorkaEternal"))
+        loopCounter =0
 
 # bot.add_cog(Weather(bot))
 bot.add_cog(game.Game(bot))
@@ -460,6 +508,7 @@ bot.add_cog(tests.Tests(bot))
 bot.add_cog(rp.RP(bot))
 # bot.add_cog(paginator.PageTest(bot))
 asyncio.run(loop())
+# asyncio.run(statusLoop())
 
 
 bot.run(token)
