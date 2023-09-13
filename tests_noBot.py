@@ -1,5 +1,8 @@
+import perlin_noise
 from PIL import Image, ImageOps
 import random
+
+import utils
 
 clrshiftSize = 2
 alpha = 0.2
@@ -62,21 +65,40 @@ for i in range(random.randint(10,20)):
     image.paste(cropped, (new_x, new_y))
 
     # Сохранение измененного изображения
-image.save("edited_image.png")
-image1 = Image.new('RGBA', (sizes[0]+clrshiftSize*2, sizes[1]+clrshiftSize*2), (0, 0, 0, 0))
-img_g = image.convert("L")
+# image.save("edited_image.png")
+# image1 = Image.new('RGBA', (sizes[0]+clrshiftSize*2, sizes[1]+clrshiftSize*2), (0, 0, 0, 0))
+# img_g = image.convert("L")
+#
+# img_cyan=ImageOps.colorize(img_g, '#00b3ff', '#b8eaff')
+# img_pink=ImageOps.colorize(img_g, '#fb00ff', '#fed1ff')
+# img_cyan = transperent(img_cyan)
+# img_pink = transperent(img_pink)
+#
+# image2 = image1.copy()
+# image3 = image1.copy()
+# image4 = image1.copy()
+# image1.paste(image, (int(clrshiftSize*0.5), int(clrshiftSize*0.5)))
+# image3.paste(img_cyan, (0,0))
+# image2.paste(img_pink, (clrshiftSize, clrshiftSize))
+# image1.alpha_composite(image2)
+# image1.alpha_composite(image3)
+# image1.save("glitch.png")
 
-img_cyan=ImageOps.colorize(img_g, '#00b3ff', '#b8eaff')
-img_pink=ImageOps.colorize(img_g, '#fb00ff', '#fed1ff')
-img_cyan = transperent(img_cyan)
-img_pink = transperent(img_pink)
+def genNoiseMap(seed, sizes):
+    noise1 = perlin_noise.PerlinNoise(octaves=1, seed=seed)
+    noise2 = perlin_noise.PerlinNoise(octaves=2, seed=seed)
+    noise3 = perlin_noise.PerlinNoise(octaves=3, seed=seed)
+    noise4 = perlin_noise.PerlinNoise(octaves=4, seed=seed)
 
-image2 = image1.copy()
-image3 = image1.copy()
-image4 = image1.copy()
-image1.paste(image, (int(clrshiftSize*0.5), int(clrshiftSize*0.5)))
-image3.paste(img_cyan, (0,0))
-image2.paste(img_pink, (clrshiftSize, clrshiftSize))
-image1.alpha_composite(image2)
-image1.alpha_composite(image3)
-image1.save("glitch.png")
+
+    image = Image.new("RGBA", sizes, (1, 1, 1, 1))
+    for x in range(sizes[0]):
+        for y in range(sizes[1]):
+            cVal = noise1([x*0.1, utils.invertY(y, sizes[1])*0.1])
+            cVal += noise2([x * 0.1, utils.invertY(y, sizes[1]) * 0.1])
+            cVal += noise3([x * 0.1, utils.invertY(y, sizes[1]) * 0.1])
+            cVal += noise4([x * 0.1, utils.invertY(y, sizes[1]) * 0.1])
+            image.putpixel((x, y), (int(cVal*255), int(cVal*255), int(cVal*255), 255))
+    image.save("perlin.png")
+genNoiseMap(100, (128, 128))
+noise = perlin_noise.PerlinNoise(octaves=1, seed=1000)

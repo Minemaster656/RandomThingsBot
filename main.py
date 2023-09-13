@@ -17,7 +17,7 @@ import requests
 import sqlite3
 
 from discord.ui import Button
-from pyowm import OWM
+# from pyowm import OWM
 # import torch
 # import torchvision
 # from stable_diffusion import DiffusionModel
@@ -25,8 +25,11 @@ from PIL import Image, ImageFilter, ImageDraw, ImageOps
 import requests
 from io import BytesIO
 
+import dbClone
+import economy
 import paginator
 import publicCoreData
+import utilities
 from coreData import *
 
 # cogs
@@ -50,72 +53,10 @@ intents.reactions = True
 # Задаём префикс и интенты
 runtime = time.time()
 loopCounter = 0
-bot = commands.Bot(command_prefix='.', intents=intents)
+bot = commands.Bot(command_prefix=publicCoreData.preffix, intents=intents)
 
 
-# Подключение к базе данных
-# conn = sqlite3.connect('data.db')
-# cursor = conn.cursor()
 
-# def glitch(image):
-# # Дрожание изображения
-#   image = image.transform((image.size[0], image.size[1]), Image.AFFINE,
-#                          (1, 0.01, 0, 0, 1, 0.01))
-#
-#   # Сжатие и расширение изображения
-#   # image = image.resize((int(image.size[0] * 0.9), int(image.size[1] * 0.9)),
-#   #                      Image.AFFINE, (1, 0.8, 0, 0, 1, 0.8))
-#
-#   # Добавление шума
-#   # image = image.add_noise(Image.GaussianBlur, sigma=0.5)
-#
-#   # Дублирование изображения
-#   image_left = image.copy()
-#   image_right = image.copy()
-#
-#   # Добавление голубого оттенка к левому изображению
-#   image_left = image_left.convert("L")
-#   image_left = image_left.point(lambda x: 255 if x > 128 else 0)
-#   image_left = image_left.convert("RGB")
-#
-#   # Добавление розового оттенка к правому изображению
-#   image_right = image_right.convert("L")
-#   image_right = image_right.point(lambda x: 255 - x)
-#   image_right = image_right.convert("RGB")
-#
-#   # Объединение изображений
-#   image = Image.merge("RGB", (image_left, image, image_right))
-#   return image
-#
-# def makeDSTimestamp(year, month, day, hour, minute, second, timezone, mode):
-#     dt = datetime.datetime(year, month, day, hour, minute, second,
-#                            tzinfo=datetime.timezone(datetime.timedelta(hours=timezone)))
-#     return f"<t:{int(dt.timestamp())}:{mode[0]}>"
-
-# class Weather(commands.Cog):
-#     def __init__(self, bot):
-#         self.bot = bot
-#         self.owm = OWM(coreData.tokens["OWM"])
-#
-#     @commands.command(name="погода")
-#     async def weather(self, ctx, city: str):
-#         # Получите данные о текущей погоде в указанном городе
-#         observation = requests.get(url)#self.owm.weather_at_place(city)
-#         weather = observation.get_weather()
-#
-#         # Выведите информацию о текущей погоде
-#         await ctx.send(f"Текущая погода в {city}:")
-#         await ctx.send(f"* Температура: {weather.get_temperature('celsius').get('temp'):.1f} °C")
-#         await ctx.send(f"* Ощущается как: {weather.get_temperature('celsius').get('feels_like'):.1f} °C")
-#         await ctx.send(f"* Погода: {weather.get_weather_description()}")
-#
-#         # Получите данные о прогнозе погоды на ближайшее время
-#         forecast = self.owm.daily_forecast(city)
-#         for day in forecast.get_forecast().get_days():
-#             # Выведите информацию о погоде на один день
-#             await ctx.send(f"Прогноз погоды на {day.get_date()}:")
-#             await ctx.send(f"* Температура: {day.get_temperature('celsius').get('min'):.1f}-{day.get_temperature('celsius').get('max'):.1f} °C")
-#             await ctx.send(f"* Погода: {day.get_weather().get('main')}")
 
 
 @bot.command()
@@ -133,9 +74,13 @@ async def on_ready():
 
 
 async def noPermission(ctx, permissions):
+    cursor.execute('SELECT permissions FROM users WHERE userid = ?', (ctx.author.id,))
+    perms = cursor.fetchone()
     embed = discord.Embed(title="У Вас нет прав!", description="Нет разрешения!",
                           color=publicCoreData.embedColors["Error"])
-    embed.add_field(name="Нет разрешения!", value=f"Вам необходимо(ы) разрешение(я): {permissions}")
+    embed.add_field(name="Нет разрешения!", value=f"Вам необходимо(ы) разрешение(я): \n> {permissions}\n<@{ctx.author.id}>\n"
+                                                  f"Ваши текущие разрешения: \n"
+                                                  f"> {perms}")
     await ctx.respond(embed=embed, ephemeral=False)
 @bot.event
 async def on_command_error(ctx, error):
@@ -146,18 +91,35 @@ async def on_command_error(ctx, error):
         embed = discord.Embed(title="У Вас нет прав!", description="Нет разрешения!",
                               color=publicCoreData.embedColors["Error"])
         embed.add_field(name= "Нет разрешения!", value=f"Вам необходимо(ы) разрешение(я): {none}")
-        await ctx.respond(embed=embed, ephemeral=False)
+        await ctx.send(embed=embed, ephemeral=False)
+    if isinstance(error, commands.CommandOnCooldown):
+        await ctx.send(f"Команда перезаряжается. Повторите через **{round(error.retry_after)}** секунд!")
+    if isinstance(error, commands.MissingPermissions):
+        await ctx.send(f"Недостаточно прав!")
     else:
         await ctx.send(f'Произошла ошибка при выполнении команды: {error}')
 @bot.slash_command(name="настройки", description="Задать определённую настройку бота")
-async def set_settings(ctx, field : Option(str, description="Поле", required=True)=0, value : Option(str, description="Значение", required=True)=0):
+async def set_settings(ctx, field : Option(str, description="Поле", required=True, choices=["SQL+commit", "eval", "Таблицы","Баланс"])=0, value : Option(str, description="Значение", required=True)=0, ephemeral : Option(bool, description="Видно ли только вам?", required=False)=False):
     hasPermission=False
     hasPermission = await publicCoreData.parsePermissionFromUser(ctx.author.id, "root")
     if hasPermission==True:
         embed = discord.Embed(title="В разработке...", description="Вам необходимо разрешение root для использования.",
                               color=publicCoreData.embedColors["Warp"])
+        if field == "SQL+commit":
+            cursor.execute(value)
+            conn.commit()
+            embed = discord.Embed(title="Запрос выполнен!", description=f"Запрос: {value}",
+                                  color=publicCoreData.embedColors["Success"])
+        elif field == "eval":
+            eval(value)
+            embed = discord.Embed(title="Код выполнен!", description=f"Код: {value}",
+                                  color=publicCoreData.embedColors["Success"])
+        elif field == "Таблицы":
+            embed = discord.Embed(title="Таблицы получены!", description=f"Запросы: \n=====\n\n{dbClone.getSQLs(False)}",
+                                  color=publicCoreData.embedColors["Success"])
 
-        await ctx.respond(embed=embed, ephemeral=False)
+
+        await ctx.respond(embed=embed, ephemeral=ephemeral)
     else:
         await noPermission(ctx, "root")
 
@@ -506,6 +468,8 @@ bot.add_cog(game.Game(bot))
 #         bot.load_extension("cogs." + f[:-3])
 bot.add_cog(tests.Tests(bot))
 bot.add_cog(rp.RP(bot))
+bot.add_cog(economy.Economy(bot))
+bot.add_cog(utilities.BotCog(bot))
 # bot.add_cog(paginator.PageTest(bot))
 asyncio.run(loop())
 # asyncio.run(statusLoop())

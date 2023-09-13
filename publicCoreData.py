@@ -5,14 +5,16 @@ import discord
 
 
 
-embedColors = {"Error":0xf03255, "Exception":0xff2f00, "Success":0x29ff4d, "Warp":0x00b3ff, "Neutral": discord.Color.blue()}
+embedColors = {"Error":0xf03255, "Exception":0xff2f00, "Success":0x29ff4d, "Warp":0x00b3ff, "Neutral": discord.Color.blue(), "Economy": 0xffcc12}
 WPG_whitelist = [609348530498437140]
 permission_root_whitelist = [609348530498437140, 617243612857761803]
+preffix = "."
+currency = "[placeholders:currency]"
 
 async def parsePermissionFromUser(id : int, permission : str):
     # await ctx.respond("Проверка...")
-    string = cursor.execute('SELECT permissions FROM users WHERE userid = ?', (id,))
-
+    cursor.execute('SELECT permissions FROM users WHERE userid = ?', (id,))
+    string = cursor.fetchone()
 
     if string is None or string == "":
         # await ctx.respond("None")
@@ -35,6 +37,9 @@ cursor = conn.cursor()
 
 def writeUserToDB(user):
     cursor.execute("INSERT INTO users (userid, username) VALUES (?, ?)", (user.id, user.name))
+    conn.commit()
+def writeUserToDB(id : int, name : str):
+    cursor.execute("INSERT INTO users (userid, username) VALUES (?, ?)", (id, name))
     conn.commit()
 def initTables():
     cursor.execute('''CREATE IF NOT EXISTS TABLE countries (
