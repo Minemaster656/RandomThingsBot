@@ -10,6 +10,7 @@ WPG_whitelist = [609348530498437140]
 permission_root_whitelist = [609348530498437140, 617243612857761803]
 preffix = "."
 currency = "[placeholders:currency]"
+infectionRolesID = [1151515080219967498, 1135925890182807552]
 
 async def parsePermissionFromUser(id : int, permission : str):
     # await ctx.respond("Проверка...")

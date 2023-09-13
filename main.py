@@ -433,9 +433,38 @@ async def send_image(ctx):
 # }
 
 
-# @bot.event
-# async def on_message(message):
-#    if message.content.lower() in commands:
+@bot.event
+async def on_message(message):
+    # if message.mention_roles:  # Проверяем, были ли упомянуты роли в сообщении
+    #         mentioned_roles = message.role_mentions  # Получаем список упомянутых ролей
+    #         for role in mentioned_roles:
+    #             if role.id in publicCoreData.infectionRolesID:  # Замени 'YOUR_ROLE_ID' на фактический ID роли
+    #                 await message.author.add_roles(role)  # Даем автору сообщения эту роль
+    for i in publicCoreData.infectionRolesID:
+        # if str(i) in message.content:
+        role = message.guild.get_role(i)
+        for j in message.role_mentions:
+            # print(str(j.id) + "   " + str(i))
+            if j.id == i:
+
+                await message.author.add_roles(role)
+    # if message.mentions:  # Проверяем, были ли упомянуты пользователи в сообщении
+    #     mentioned_users = message.mentions  # Получаем список упомянутых пользователей
+    #     for role_id in publicCoreData.infectionRolesID:
+    #     # role_id = 1234567890  # Замени на фактический ID роли
+    #         role = message.guild.get_role(role_id)  # Получаем объект роли по ID
+    #
+    #         for user in mentioned_users:
+    #             if role in user.roles and not message.reference:  # Проверяем наличие роли и отсутствие ответа на другое сообщение
+    #                 # Выполняем нужные действия
+    #                 # await message.channel.send(f"{user.mention}, у тебя есть роль с нужным ID!")
+    #                 role = message.guild.get_role(role_id)
+    # await message.add_reaction("❤")
+
+    # await bot.process_commands(message)  # Обязательно добавь эту строку, чтобы обработать другие команды и события
+
+
+# if message.content.lower() in commands:
 #        await commands[message.content.lower()](message)
 
 async def loop():
