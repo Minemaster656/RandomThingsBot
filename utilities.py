@@ -1,3 +1,4 @@
+import json
 import random
 # import numpy as np
 # import matplotlib.pyplot as plt
@@ -10,21 +11,24 @@ from random import *
 import publicCoreData
 import re
 
+import utils
+
 
 class BotCog(commands.Cog):
+    permissions = publicCoreData.permissions_user
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.slash_command(name="массивное-редактирование-каналов",
-                            description="Редактировать каналы категории. Выберите ? для информации.")
+    @commands.slash_command(name="массовое-редактирование-каналов",
+                            description="Редактировать каналы категории. Выберите справку для информации.")
     @commands.has_permissions(administrator=True)
     @commands.cooldown(1, 30, commands.BucketType.guild)
     async def massPermissionsEdit(self, ctx,
                                   mode: Option(str, description="Режим работы", required=False,
-                                               choices=["?", "Имя", "Копировать права", "DEBUG"]) = None, #
+                                               choices=["Справка", "Имя", "Копировать права", "DEBUG"]) = None, #
                                   category: Option(discord.CategoryChannel, description="Категория для работы команды",
                                                    required=True) = None, value : Option(str, description="Значение", required=False)="None",
-                                  filters : Option(str, description="Фильтры", choices=["-", "первый", "последний"], required=False)="-",
+                                  filters : Option(str, description="Фильтр", choices=["все", "первый", "последний", "не первый","не последний", "не крайний"], required=False)="все",
                                   channel : Option(discord.TextChannel, description="Второй канал (см. справку.)", required=False)="None"
                                   ): #"Выполнить"
 
@@ -35,11 +39,25 @@ class BotCog(commands.Cog):
 
 
 
-        if mode == "?":
-            embed = discord.Embed(title="Режимы массивного редактирования каналов",
+        if mode == "Справка":
+            embed = discord.Embed(title="Режимы массового редактирования каналов",
                                   colour=publicCoreData.embedColors["Neutral"],
                                   description=f"Справка по режимам команды"
                                   )
+            embed.add_field(inline=False, name="Параметры",value=f"- Режим работы\n"
+                                                   f"Выбирает режим работы. Они указаны далее.\n"
+                                                   f"- Категория\n"
+                                                   f"Категория, каналы которой будут подвергнуты изменению\n"
+                                                   f"- Значение\n"
+                                                   f"Используется некоторыми из режимов. Например, массовое добавление текста в название использует параметры для шаблона переименования.\n"
+                                                   f"- Фильтр\n"
+                                                   f"Фильтр для каналов. Работает по позиции канала. Фильр `все` изменит ВСЕ каналы категории!\n"
+                                                   f"- Второй канал\n"
+                                                   f"Используется некоторыми режимами для копирования данных из него. Если он требуется, но пропущен, будет взят канал, в котором вызвана команда.\n")
+            embed.add_field(inline=False, name="Имя",value=f"Меняет имя каналов по паттерну:\n"
+                                             f"``текст<name>текст``\n"
+                                             f"Меняет имя канала. Оригинальное имя находится на месте <name>. перед ним и после него можно добавлять текст. Меняет по шаблону имена ВСЕХ каналов категирии, попадающих под фильтр.\n")
+
             # embed.add_field(name="Выполнить", value=f"Выполняет специальный код для редактирования каналов. Вот как это работает:"
             #                                         f"`IF ENDIF` - условие. Между ними можно вписать код"
             #                                         f"`channelPosition == first|last|middle DO RENAME|aaa<name>bbb|` - условие и действие для логики: если канал **первый|последний|середина** в категории то переименовать его по паттерну:"
@@ -48,7 +66,7 @@ class BotCog(commands.Cog):
             #                                         f"Если указано first то будет переименован только первый канал категории, last же последний. middle - средний"
             #                                         f"Пример команды - IF channelPosition == first DO RENAME|aaa<name>b| ENDIF"
             #                                         f"")
-
+            await ctx.respond(embed=embed)
 
             embed.set_footer(text="Вам необходимы права Администратора для использования этой команды.\nВ целях безопасности, есть откат в 30 секунд на сервер.")
         elif mode == "Выполнить":
@@ -122,3 +140,36 @@ class BotCog(commands.Cog):
         # tokenize_text(user_input)
             # await ctx.respond(embed=embed)
         # await ctx.respond("Учтите, что у Вас должно быть разрешение Администратора для использования этой команды!")
+
+    @commands.slash_command(name="разрешения", description="Редактирование разрешений пользователя")
+    async def editMemberPermissions(self, ctx, permission: Option(str, description="Разрешение. ? для списка",
+                                                            choises=permissions, required=True) = "none",
+                                    member: Option(discord.Member, description="Пользователь", required=True) = None,
+                                    value: Option(bool, description="Значение", required=True) = True,
+                                    ephemeral: Option(bool, description="Видно ли только вам?",
+                                                      required=False) = False):
+        if member is None:
+            member = ctx.author
+        perm_root = publicCoreData.parsePermissionFromUser(ctx.author.id, "root")
+        perm_edit = publicCoreData.parsePermissionFromUser(ctx.author.id, "edit_permissions")
+        if permission != "?":
+            if perm_root or perm_edit:
+                if permission != "root":
+                    await publicCoreData.setPermissionForUser(member.id, permission, value)
+                    embed = discord.Embed(title=f"Разрешение {permission} изменено успешно!",
+                                          description=f"Разрешение изменено у участника <@{member.id}> на **{value}**",
+                                          colour=publicCoreData.embedColors["Success"])
+                    await ctx.respond(embed=embed, ephemeral=ephemeral)
+                else:
+                    if perm_root:
+                        await publicCoreData.setPermissionForUser(member.id, permission, value)
+                        embed = discord.Embed(title=f"Разрешение {permission} изменено успешно!",
+                                              description=f"Разрешение изменено у участника <@{member.id}> на **{value}**",
+                                              colour=publicCoreData.embedColors["Success"])
+                        await ctx.respond(embed=embed, ephemeral=ephemeral)
+                    else:
+                        await utils.noPermission(ctx, "root")
+            else:
+                await utils.noPermission(ctx, "edit_permissions | root")
+        else:
+            await ctx.respond(json.dumps(publicCoreData.permissions_user))

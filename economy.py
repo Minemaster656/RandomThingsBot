@@ -25,6 +25,9 @@ class Economy(commands.Cog):
                 member = ctx.author
             cursor.execute('SELECT money, money_bank FROM users WHERE userid = ?',(member.id, ))
             data = cursor.fetchone()
+            if not data:
+                publicCoreData.writeUserToDB(member.id, member.name)
+            data = (0,0)
 
             embed = discord.Embed(title="Баланс",description=f"Баланс пользователя <@{member.id}>:"
                                                              , colour=publicCoreData.embedColors["Economy"])
@@ -49,3 +52,21 @@ class Economy(commands.Cog):
         cursor.execute(f"UPDATE users SET money = money + ? WHERE userid = ?", (rand, ctx.author.id))
         conn.commit()
         await ctx.send(f"Получено **{rand}{publicCoreData.currency}**")
+    @commands.slash_command(name="лидеры",description="Лидеры экономики")
+    async def ec_leaders(self, ctx):
+        leaderCount = 10
+        cursor.execute("SELECT username, money, money_bank, money + money_bank AS sum FROM users ORDER BY sum DESC LIMIT 10")
+        result = cursor.fetchall()
+        out = ""
+        it = 0
+        # Вывод результатов
+        embed = discord.Embed(title="Лидеры экономики", description="Топ-", colour=publicCoreData.embedColors["Economy"])
+        for row in result:
+            # out +=f"`{it}`. @{row[0]} {row[1]}{publicCoreData.currency}💰 + {row[2]}{publicCoreData.currency}🏦. И того {row[1]+row[2]}{publicCoreData.currency}\n"
+            embed.add_field(name=f"`{it}`. @{row[0]}",value=f""
+                                                            f"{row[1]+row[2]}{publicCoreData.currency}",inline=False)
+            it+=1
+
+        await ctx.respond(embed=embed)
+
+

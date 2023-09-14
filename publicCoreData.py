@@ -1,15 +1,16 @@
+import json
 import sqlite3
 
 import discord
 # from discord.app_commands import commands
 
 
-
+permissions_user = ["root", "edit_characters", "say_as_bot", "edit_permissions", "---"]
 embedColors = {"Error":0xf03255, "Exception":0xff2f00, "Success":0x29ff4d, "Warp":0x00b3ff, "Neutral": discord.Color.blue(), "Economy": 0xffcc12}
 WPG_whitelist = [609348530498437140]
 permission_root_whitelist = [609348530498437140, 617243612857761803]
 preffix = "."
-currency = "[placeholders:currency]"
+currency = "<:catalist:1076130269867819099>"
 infectionRolesID = [1151515080219967498, 1135925890182807552]
 
 async def parsePermissionFromUser(id : int, permission : str):
@@ -17,14 +18,32 @@ async def parsePermissionFromUser(id : int, permission : str):
     cursor.execute('SELECT permissions FROM users WHERE userid = ?', (id,))
     string = cursor.fetchone()
 
-    if string is None or string == "":
+    if string[0] is None or string[0] == "":
         # await ctx.respond("None")
         return False
+    else:
+        dictitonary = json.loads(string[0])
+        if permission in dictitonary:
+            return dictitonary[permission]
+        else:
+            return False
 
-    if f"{permission}:True" in string:
-        # await ctx.respond(f"{permission}:True")
-        return True
+    # if f"{permission}:True" in string:
+    #     # await ctx.respond(f"{permission}:True")
+    #     return True
     return False
+async def setPermissionForUser(id : int, permission : str, value : bool):
+    cursor.execute('SELECT permissions FROM users WHERE userid = ?', (id,))
+    perms = cursor.fetchone()
+    if perms[0] is None or perms[0] == "":
+        dictionary = {permission : value}
+    else:
+        dictionary = json.loads(perms[0])
+
+        dictionary[permission] = value
+    _dictstr = json.dumps(dictionary)
+    cursor.execute('UPDATE users SET permissions = ? WHERE userid = ?', (_dictstr, id))
+    conn.commit()
 
 def insertRoot():
     # import sqlite3
@@ -36,9 +55,9 @@ def insertRoot():
 conn = sqlite3.connect('data.db')
 cursor = conn.cursor()
 
-def writeUserToDB(user):
-    cursor.execute("INSERT INTO users (userid, username) VALUES (?, ?)", (user.id, user.name))
-    conn.commit()
+# def writeUserToDB(user):
+#     cursor.execute("INSERT INTO users (userid, username) VALUES (?, ?)", (user.id, user.name))
+#     conn.commit()
 def writeUserToDB(id : int, name : str):
     cursor.execute("INSERT INTO users (userid, username) VALUES (?, ?)", (id, name))
     conn.commit()

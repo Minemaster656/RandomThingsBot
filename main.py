@@ -76,6 +76,9 @@ async def on_ready():
 async def noPermission(ctx, permissions):
     cursor.execute('SELECT permissions FROM users WHERE userid = ?', (ctx.author.id,))
     perms = cursor.fetchone()
+    permissions = permissions.replace("|", "или")
+    permissions = permissions.replace("&", "и")
+    permissions = "`"+permissions+"`"
     embed = discord.Embed(title="У Вас нет прав!", description="Нет разрешения!",
                           color=publicCoreData.embedColors["Error"])
     embed.add_field(name="Нет разрешения!", value=f"Вам необходимо(ы) разрешение(я): \n> {permissions}\n<@{ctx.author.id}>\n"
@@ -92,16 +95,18 @@ async def on_command_error(ctx, error):
                               color=publicCoreData.embedColors["Error"])
         embed.add_field(name= "Нет разрешения!", value=f"Вам необходимо(ы) разрешение(я): {none}")
         await ctx.send(embed=embed, ephemeral=False)
-    if isinstance(error, commands.CommandOnCooldown):
+    elif isinstance(error, commands.CommandOnCooldown):
         await ctx.send(f"Команда перезаряжается. Повторите через **{round(error.retry_after)}** секунд!")
-    if isinstance(error, commands.MissingPermissions):
+    elif isinstance(error, commands.MissingPermissions):
         await ctx.send(f"Недостаточно прав!")
     else:
         await ctx.send(f'Произошла ошибка при выполнении команды: {error}')
 @bot.slash_command(name="настройки", description="Задать определённую настройку бота")
-async def set_settings(ctx, field : Option(str, description="Поле", required=True, choices=["SQL+commit", "eval", "Таблицы","Баланс"])=0, value : Option(str, description="Значение", required=True)=0, ephemeral : Option(bool, description="Видно ли только вам?", required=False)=False):
+async def set_settings(ctx, field : Option(str, description="Поле", required=True, choices=["SQL+commit", "eval", "Таблицы","Баланс"])=0, value : Option(str, description="Значение", required=True)=0, ephemeral : Option(bool, description="Видно ли только вам?", required=False)=False, member : Option(discord.Member, description="Пользователь, на которого влияет команда", required=False)=None):
     hasPermission=False
     hasPermission = await publicCoreData.parsePermissionFromUser(ctx.author.id, "root")
+    if member is None:
+        member = ctx.author
     if hasPermission==True:
         embed = discord.Embed(title="В разработке...", description="Вам необходимо разрешение root для использования.",
                               color=publicCoreData.embedColors["Warp"])
@@ -119,9 +124,12 @@ async def set_settings(ctx, field : Option(str, description="Поле", required
                                   color=publicCoreData.embedColors["Success"])
 
 
+
         await ctx.respond(embed=embed, ephemeral=ephemeral)
     else:
         await noPermission(ctx, "root")
+
+
 
 
 @bot.command(aliases=['rand', 'ранд', 'r', 'р', 'rnd', 'рнд', 'random', 'рандом'])

@@ -301,3 +301,9 @@ class RP(commands.Cog):
                 # barPoints = 11
                 # await ctx.send(
                 #     f"layersFull: {(barPoints // 10)}, layersNotFull: {barPoints % 10} при barPoints: {barPoints}")
+
+
+
+    @commands.slash_command(name="регистрация-рп",description="Регистрация РП персонажа")
+    async def fname(self, ctx):
+        await ctx.respond("В разработке...")

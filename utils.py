@@ -1,4 +1,7 @@
+import asyncio
 from random import randint
+
+import discord
 
 import publicCoreData
 from publicCoreData import cursor
@@ -66,5 +69,18 @@ def throwDice(id, name):
             out = genRandom()
         return out
     return makeThrow()
+async def noPermission(ctx, permissions):
+    cursor.execute('SELECT permissions FROM users WHERE userid = ?', (ctx.author.id,))
+    perms = cursor.fetchone()
+    permissions = permissions.replace("|", "или")
+    permissions = permissions.replace("&", "и")
+    permissions = "`"+permissions+"`"
+    embed = discord.Embed(title="У Вас нет прав!", description="Нет разрешения!",
+                          color=publicCoreData.embedColors["Error"])
+    embed.add_field(name="Нет разрешения!", value=f"Вам необходимо(ы) разрешение(я): \n> {permissions}\n<@{ctx.author.id}>\n"
+                                                  f"Ваши текущие разрешения: \n"
+                                                  f"> {perms}")
+    await ctx.respond(embed=embed, ephemeral=False)
 # while True:
 #     print(format_number((convert_to_number(input(">")))))
+# asyncio.run(publicCoreData.setPermissionForUser(609348530498437140, "root", True))
