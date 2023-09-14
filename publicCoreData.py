@@ -2,18 +2,21 @@ import json
 import sqlite3
 
 import discord
+
 # from discord.app_commands import commands
 
 
 permissions_user = ["root", "edit_characters", "say_as_bot", "edit_permissions", "---"]
-embedColors = {"Error":0xf03255, "Exception":0xff2f00, "Success":0x29ff4d, "Warp":0x00b3ff, "Neutral": discord.Color.blue(), "Economy": 0xffcc12}
+embedColors = {"Error": 0xf03255, "Exception": 0xff2f00, "Success": 0x29ff4d, "Warp": 0x00b3ff,
+               "Neutral": discord.Color.blue(), "Economy": 0xffcc12}
 WPG_whitelist = [609348530498437140]
 permission_root_whitelist = [609348530498437140, 617243612857761803]
 preffix = "."
 currency = "<:catalist:1076130269867819099>"
 infectionRolesID = [1151515080219967498, 1135925890182807552]
 
-async def parsePermissionFromUser(id : int, permission : str):
+
+async def parsePermissionFromUser(id: int, permission: str):
     # await ctx.respond("Проверка...")
     cursor.execute('SELECT permissions FROM users WHERE userid = ?', (id,))
     string = cursor.fetchone()
@@ -32,11 +35,13 @@ async def parsePermissionFromUser(id : int, permission : str):
     #     # await ctx.respond(f"{permission}:True")
     #     return True
     return False
-async def setPermissionForUser(id : int, permission : str, value : bool):
+
+
+async def setPermissionForUser(id: int, permission: str, value: bool):
     cursor.execute('SELECT permissions FROM users WHERE userid = ?', (id,))
     perms = cursor.fetchone()
     if perms[0] is None or perms[0] == "":
-        dictionary = {permission : value}
+        dictionary = {permission: value}
     else:
         dictionary = json.loads(perms[0])
 
@@ -45,6 +50,7 @@ async def setPermissionForUser(id : int, permission : str, value : bool):
     cursor.execute('UPDATE users SET permissions = ? WHERE userid = ?', (_dictstr, id))
     conn.commit()
 
+
 def insertRoot():
     # import sqlite3
     # conn = sqlite3.connect('data.db')
@@ -52,15 +58,20 @@ def insertRoot():
     cursor.execute("UPDATE users SET permissions = ? WHERE userid = ?", ("root:True", 609348530498437140))
     conn.commit()
     # conn.close()
+
+
 conn = sqlite3.connect('data.db')
 cursor = conn.cursor()
+
 
 # def writeUserToDB(user):
 #     cursor.execute("INSERT INTO users (userid, username) VALUES (?, ?)", (user.id, user.name))
 #     conn.commit()
-def writeUserToDB(id : int, name : str):
+def writeUserToDB(id: int, name: str):
     cursor.execute("INSERT INTO users (userid, username) VALUES (?, ?)", (id, name))
     conn.commit()
+
+
 def initTables():
     cursor.execute('''CREATE IF NOT EXISTS TABLE countries (
     userid         INTEGER,
