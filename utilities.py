@@ -16,6 +16,7 @@ import utils
 
 class BotCog(commands.Cog):
     permissions = publicCoreData.permissions_user
+
     def __init__(self, bot):
         self.bot = bot
 
@@ -25,38 +26,37 @@ class BotCog(commands.Cog):
     @commands.cooldown(1, 30, commands.BucketType.guild)
     async def massPermissionsEdit(self, ctx,
                                   mode: Option(str, description="Режим работы", required=False,
-                                               choices=["Справка", "Имя", "Копировать права", "DEBUG"]) = None, #
+                                               choices=["Справка", "Имя", "Копировать права", "DEBUG"]) = None,  #
                                   category: Option(discord.CategoryChannel, description="Категория для работы команды",
-                                                   required=True) = None, value : Option(str, description="Значение", required=False)="None",
-                                  filters : Option(str, description="Фильтр", choices=["все", "первый", "последний", "не первый","не последний", "не крайний"], required=False)="все",
-                                  channel : Option(discord.TextChannel, description="Второй канал (см. справку.)", required=False)="None"
-                                  ): #"Выполнить"
-
+                                                   required=True) = None,
+                                  value: Option(str, description="Значение", required=False) = "None",
+                                  filters: Option(str, description="Фильтр",
+                                                  choices=["все", "первый", "последний", "не первый", "не последний",
+                                                           "не крайний"], required=False) = "все",
+                                  channel: Option(discord.TextChannel, description="Второй канал (см. справку.)",
+                                                  required=False) = "None"
+                                  ):  # "Выполнить"
 
         embed = discord.Embed(title="none", description="none")
-
-
-
-
 
         if mode == "Справка":
             embed = discord.Embed(title="Режимы массового редактирования каналов",
                                   colour=publicCoreData.embedColors["Neutral"],
                                   description=f"Справка по режимам команды"
                                   )
-            embed.add_field(inline=False, name="Параметры",value=f"- Режим работы\n"
-                                                   f"Выбирает режим работы. Они указаны далее.\n"
-                                                   f"- Категория\n"
-                                                   f"Категория, каналы которой будут подвергнуты изменению\n"
-                                                   f"- Значение\n"
-                                                   f"Используется некоторыми из режимов. Например, массовое добавление текста в название использует параметры для шаблона переименования.\n"
-                                                   f"- Фильтр\n"
-                                                   f"Фильтр для каналов. Работает по позиции канала. Фильр `все` изменит ВСЕ каналы категории!\n"
-                                                   f"- Второй канал\n"
-                                                   f"Используется некоторыми режимами для копирования данных из него. Если он требуется, но пропущен, будет взят канал, в котором вызвана команда.\n")
-            embed.add_field(inline=False, name="Имя",value=f"Меняет имя каналов по паттерну:\n"
-                                             f"``текст<name>текст``\n"
-                                             f"Меняет имя канала. Оригинальное имя находится на месте <name>. перед ним и после него можно добавлять текст. Меняет по шаблону имена ВСЕХ каналов категирии, попадающих под фильтр.\n")
+            embed.add_field(inline=False, name="Параметры", value=f"- Режим работы\n"
+                                                                  f"Выбирает режим работы. Они указаны далее.\n"
+                                                                  f"- Категория\n"
+                                                                  f"Категория, каналы которой будут подвергнуты изменению\n"
+                                                                  f"- Значение\n"
+                                                                  f"Используется некоторыми из режимов. Например, массовое добавление текста в название использует параметры для шаблона переименования.\n"
+                                                                  f"- Фильтр\n"
+                                                                  f"Фильтр для каналов. Работает по позиции канала. Фильр `все` изменит ВСЕ каналы категории!\n"
+                                                                  f"- Второй канал\n"
+                                                                  f"Используется некоторыми режимами для копирования данных из него. Если он требуется, но пропущен, будет взят канал, в котором вызвана команда.\n")
+            embed.add_field(inline=False, name="Имя", value=f"Меняет имя каналов по паттерну:\n"
+                                                            f"``текст<name>текст``\n"
+                                                            f"Меняет имя канала. Оригинальное имя находится на месте <name>. перед ним и после него можно добавлять текст. Меняет по шаблону имена ВСЕХ каналов категирии, попадающих под фильтр.\n")
 
             # embed.add_field(name="Выполнить", value=f"Выполняет специальный код для редактирования каналов. Вот как это работает:"
             #                                         f"`IF ENDIF` - условие. Между ними можно вписать код"
@@ -68,7 +68,8 @@ class BotCog(commands.Cog):
             #                                         f"")
             await ctx.respond(embed=embed)
 
-            embed.set_footer(text="Вам необходимы права Администратора для использования этой команды.\nВ целях безопасности, есть откат в 30 секунд на сервер.")
+            embed.set_footer(
+                text="Вам необходимы права Администратора для использования этой команды.\nВ целях безопасности, есть откат в 30 секунд на сервер.")
         elif mode == "Выполнить":
             # await tokenize_text(value)
             ...
@@ -138,12 +139,12 @@ class BotCog(commands.Cog):
         # Пример использования
         # user_input = "IF channelPosition == first DO RENAME aaa<TEXT> IF channelPosition == last DO RENAME bbb<TEXT>"
         # tokenize_text(user_input)
-            # await ctx.respond(embed=embed)
+        # await ctx.respond(embed=embed)
         # await ctx.respond("Учтите, что у Вас должно быть разрешение Администратора для использования этой команды!")
 
     @commands.slash_command(name="разрешения", description="Редактирование разрешений пользователя")
     async def editMemberPermissions(self, ctx, permission: Option(str, description="Разрешение. ? для списка",
-                                                            choises=permissions, required=True) = "none",
+                                                                  choises=permissions, required=True) = "none",
                                     member: Option(discord.Member, description="Пользователь", required=True) = None,
                                     value: Option(bool, description="Значение", required=True) = True,
                                     ephemeral: Option(bool, description="Видно ли только вам?",
