@@ -13,7 +13,7 @@ WPG_whitelist = [609348530498437140]
 permission_root_whitelist = [609348530498437140, 617243612857761803]
 preffix = "."
 currency = "<:catalist:1076130269867819099>"
-infectionRolesID = [1151515080219967498, 1135925890182807552]
+infectionRolesID = [1151515080219967498, 1135925890182807552, 1152163431869329468]
 
 
 async def parsePermissionFromUser(id: int, permission: str):

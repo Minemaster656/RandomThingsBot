@@ -1,4 +1,5 @@
 import asyncio
+import json
 import os
 import time
 from datetime import datetime
@@ -439,6 +440,44 @@ async def send_image(ctx):
 #    '!р': rand,
 #    '!r': rand
 # }
+@bot.slash_command(name="разрешения", description="Редактирование разрешений пользователя")
+async def editMemberPermissions(ctx, permission: Option(str, description="Разрешение. ? для списка",
+                                                              choises=publicCoreData.permissions_user, required=True) = "none",
+                                member: Option(discord.Member, description="Пользователь", required=True) = None,
+                                value: Option(bool, description="Значение", required=True) = True,
+                                ephemeral: Option(bool, description="Видно ли только вам?",
+                                                  required=False) = False):
+    if member is None:
+        member = ctx.author
+    perm_root = publicCoreData.parsePermissionFromUser(ctx.author.id, "root")
+    perm_edit = publicCoreData.parsePermissionFromUser(ctx.author.id, "edit_permissions")
+    if permission != "?":
+        if perm_root or perm_edit:
+            if permission != "root":
+                await publicCoreData.setPermissionForUser(member.id, permission, value)
+                embed = discord.Embed(title=f"Разрешение {permission} изменено успешно!",
+                                      description=f"Разрешение изменено у участника <@{member.id}> на **{value}**",
+                                      colour=publicCoreData.embedColors["Success"])
+                await ctx.respond(embed=embed, ephemeral=ephemeral)
+            else:
+                if perm_root:
+                    await publicCoreData.setPermissionForUser(member.id, permission, value)
+                    embed = discord.Embed(title=f"Разрешение {permission} изменено успешно!",
+                                          description=f"Разрешение изменено у участника <@{member.id}> на **{value}**",
+                                          colour=publicCoreData.embedColors["Success"])
+                    await ctx.respond(embed=embed, ephemeral=ephemeral)
+                else:
+                    await noPermission(ctx, "root")
+        else:
+            await noPermission(ctx, "root | edit_permissions")
+    else:
+        await ctx.respond(json.dumps(publicCoreData.permissions_user))
+@bot.slash_command(name="инфо",description="Информация о боте")
+async def info(ctx):
+    embed = discord.Embed(title="Информация о боте",description=f"[Пригласить бота на сервер](https://discord.com/api/oauth2/authorize?client_id=1126887522690142359&permissions=8&scope=bot)"
+                                                                f"\n[Исходники](https://github.com/Minemaster656/RandomThingsBot)"
+                                                                f"",colour=publicCoreData.embedColors["Neutral"])
+    await ctx.respond(embed=embed)
 
 
 @bot.event

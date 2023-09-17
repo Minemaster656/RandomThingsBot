@@ -24,7 +24,7 @@ class BotCog(commands.Cog):
                             description="Редактировать каналы категории. Выберите справку для информации.")
     @commands.has_permissions(administrator=True)
     @commands.cooldown(1, 30, commands.BucketType.guild)
-    async def massPermissionsEdit(self, ctx,
+    async def massChannelsEdit(self, ctx,
                                   mode: Option(str, description="Режим работы", required=False,
                                                choices=["Справка", "Имя", "Копировать права", "DEBUG"]) = None,  #
                                   category: Option(discord.CategoryChannel, description="Категория для работы команды",
@@ -142,35 +142,35 @@ class BotCog(commands.Cog):
         # await ctx.respond(embed=embed)
         # await ctx.respond("Учтите, что у Вас должно быть разрешение Администратора для использования этой команды!")
 
-    @commands.slash_command(name="разрешения", description="Редактирование разрешений пользователя")
-    async def editMemberPermissions(self, ctx, permission: Option(str, description="Разрешение. ? для списка",
-                                                                  choises=permissions, required=True) = "none",
-                                    member: Option(discord.Member, description="Пользователь", required=True) = None,
-                                    value: Option(bool, description="Значение", required=True) = True,
-                                    ephemeral: Option(bool, description="Видно ли только вам?",
-                                                      required=False) = False):
-        if member is None:
-            member = ctx.author
-        perm_root = publicCoreData.parsePermissionFromUser(ctx.author.id, "root")
-        perm_edit = publicCoreData.parsePermissionFromUser(ctx.author.id, "edit_permissions")
-        if permission != "?":
-            if perm_root or perm_edit:
-                if permission != "root":
-                    await publicCoreData.setPermissionForUser(member.id, permission, value)
-                    embed = discord.Embed(title=f"Разрешение {permission} изменено успешно!",
-                                          description=f"Разрешение изменено у участника <@{member.id}> на **{value}**",
-                                          colour=publicCoreData.embedColors["Success"])
-                    await ctx.respond(embed=embed, ephemeral=ephemeral)
-                else:
-                    if perm_root:
-                        await publicCoreData.setPermissionForUser(member.id, permission, value)
-                        embed = discord.Embed(title=f"Разрешение {permission} изменено успешно!",
-                                              description=f"Разрешение изменено у участника <@{member.id}> на **{value}**",
-                                              colour=publicCoreData.embedColors["Success"])
-                        await ctx.respond(embed=embed, ephemeral=ephemeral)
-                    else:
-                        await utils.noPermission(ctx, "root")
-            else:
-                await utils.noPermission(ctx, "edit_permissions | root")
-        else:
-            await ctx.respond(json.dumps(publicCoreData.permissions_user))
+    # @commands.slash_command(name="разрешения", description="Редактирование разрешений пользователя")
+    # async def editMemberPermissions(self, ctx, permission: Option(str, description="Разрешение. ? для списка",
+    #                                                               choises=permissions, required=True) = "none",
+    #                                 member: Option(discord.Member, description="Пользователь", required=True) = None,
+    #                                 value: Option(bool, description="Значение", required=True) = True,
+    #                                 ephemeral: Option(bool, description="Видно ли только вам?",
+    #                                                   required=False) = False):
+    #     if member is None:
+    #         member = ctx.author
+    #     perm_root = publicCoreData.parsePermissionFromUser(ctx.author.id, "root")
+    #     perm_edit = publicCoreData.parsePermissionFromUser(ctx.author.id, "edit_permissions")
+    #     if permission != "?":
+    #         if perm_root or perm_edit:
+    #             if permission != "root":
+    #                 await publicCoreData.setPermissionForUser(member.id, permission, value)
+    #                 embed = discord.Embed(title=f"Разрешение {permission} изменено успешно!",
+    #                                       description=f"Разрешение изменено у участника <@{member.id}> на **{value}**",
+    #                                       colour=publicCoreData.embedColors["Success"])
+    #                 await ctx.respond(embed=embed, ephemeral=ephemeral)
+    #             else:
+    #                 if perm_root:
+    #                     await publicCoreData.setPermissionForUser(member.id, permission, value)
+    #                     embed = discord.Embed(title=f"Разрешение {permission} изменено успешно!",
+    #                                           description=f"Разрешение изменено у участника <@{member.id}> на **{value}**",
+    #                                           colour=publicCoreData.embedColors["Success"])
+    #                     await ctx.respond(embed=embed, ephemeral=ephemeral)
+    #                 else:
+    #                     await utils.noPermission(ctx, "root")
+    #         else:
+    #             await utils.noPermission(ctx, "edit_permissions | root")
+    #     else:
+    #         await ctx.respond(json.dumps(publicCoreData.permissions_user))
