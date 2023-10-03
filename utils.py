@@ -1,4 +1,5 @@
 import asyncio
+import random
 from random import randint
 
 import discord
@@ -81,6 +82,38 @@ async def noPermission(ctx, permissions):
                                                   f"Ваши текущие разрешения: \n"
                                                   f"> {perms}")
     await ctx.respond(embed=embed, ephemeral=False)
+import json
+
+def save_report_to_json(server_name: str, report_text: str, timestamp: int) -> str:
+    data = {
+        "server_name": server_name,
+        "report_text": report_text,
+        "timestamp": timestamp
+    }
+    json_str = json.dumps(data)
+    return json_str
+
+def load_report_from_json(json_str: str):
+    data = json.loads(json_str)
+    server_name = data["server_name"]
+    report_text = data["report_text"]
+    timestamp = data["timestamp"]
+    # print(f"Server Name: {server_name}")
+    # print(f"Report Text: {report_text}")
+    # print(f"Timestamp: {timestamp}")
+    return data
+def hashgen(length):
+    hash_symbols = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ12345/-#$%:."
+    output = ""
+    for i in range(length):
+        output += random.choice(hash_symbols)
+    return output
+# print(hashgen(16))
+# # Пример использования
+# json_str = save_to_json("MyServer", "Some report text", 1632048765)
+# print(json_str)
+#
+# load_from_json(json_str)
 # while True:
 #     print(format_number((convert_to_number(input(">")))))
 # asyncio.run(publicCoreData.setPermissionForUser(609348530498437140, "root", True))

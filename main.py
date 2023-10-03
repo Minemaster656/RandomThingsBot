@@ -1,4 +1,5 @@
 import asyncio
+#TODO: add transformers to requirements
 import json
 import os
 import time
@@ -26,11 +27,13 @@ from PIL import Image, ImageFilter, ImageDraw, ImageOps
 import requests
 from io import BytesIO
 
+import Apocalypse
 import dbClone
 import economy
 import paginator
 import publicCoreData
 import utilities
+import utils
 from coreData import *
 
 # cogs
@@ -68,7 +71,7 @@ async def ping(ctx):
 
 @bot.event
 async def on_ready():
-    print(f"Бот запущен как {bot.user} за {time.time() - startTimeCounter} секунд.")
+    print(f"Бот запущен как {bot.user} за {round(time.time() - startTimeCounter, 3)} секунд. Преффикс: {bot.command_prefix}")
     total_members = sum(len(guild.members) for guild in bot.guilds)
     await bot.change_presence(activity=discord.Game(f"{total_members} серверов"))
 
@@ -513,6 +516,31 @@ async def on_message(message):
 
 # if message.content.lower() in commands:
 #        await commands[message.content.lower()](message)
+@bot.slash_command(name="отправить-жалобу-на-пользователя",description="Отправить жалобу на пользователя")
+async def fname(ctx):
+    ...
+@bot.event
+async def on_member_join(member):
+    guild = member.guild
+    community_updates_channel_id = guild.system_channel.id
+    community_updates_channel = guild.get_channel(community_updates_channel_id)
+    cursor.execute("SELECT reports FROM users WHERE id = ?", (member.id, ))
+    dt = cursor.fetchone()
+    if dt is not None and dt != "":
+        data = utils.load_report_from_json(dt[0])
+        if len(data)>0:
+            await community_updates_channel.send(f"На пользователя {member.name} аж {len(data)} жалоб!")
+
+    # # Ваш код обработки захода нового участника на сервер
+    # # Например, отправка приветственного сообщения или присвоение роли
+    #
+    # # Пример отправки приветственного сообщения в канал приветствия
+    # welcome_channel = bot.get_channel(1234567890)  # Замените на ID вашего канала приветствия
+    # await welcome_channel.send(f"Добро пожаловать, {member.mention}! Надеемся, вам понравится наш сервер!")
+    #
+    # # Пример присвоения роли новому участнику
+    # role = discord.utils.get(member.guild.roles, name="Новичок")  # Замените на имя вашей роли
+    # await member.add_roles(role)
 
 async def loop():
 
@@ -546,6 +574,7 @@ bot.add_cog(tests.Tests(bot))
 bot.add_cog(rp.RP(bot))
 bot.add_cog(economy.Economy(bot))
 bot.add_cog(utilities.BotCog(bot))
+bot.add_cog(Apocalypse.Apocalypse(bot))
 # bot.add_cog(paginator.PageTest(bot))
 asyncio.run(loop())
 # asyncio.run(statusLoop())
