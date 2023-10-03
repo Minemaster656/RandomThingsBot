@@ -1,4 +1,6 @@
 import random
+import sqlite3
+
 # import numpy as np
 # import matplotlib.pyplot as plt
 import discord
@@ -9,8 +11,10 @@ from random import *
 
 
 class Apocalypse(commands.Cog):
+    items = sqlite3.connect("ApocalypseData/ApocalypseItems.db")
+    itemsCursor = items.cursor()
     def __init__(self, bot):
         self.bot = bot
-    @commands.slash_command(name="name",description="description")
-    async def fname(self, ctx):
+    @commands.slash_command(name="создать-список",description="Создаёт список предметов и заданий.")
+    async def getList(self, ctx):
         ...
