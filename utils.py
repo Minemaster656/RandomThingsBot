@@ -3,6 +3,7 @@ import random
 from random import randint
 
 import discord
+import requests
 
 import publicCoreData
 from publicCoreData import cursor
@@ -108,6 +109,21 @@ def hashgen(length):
     for i in range(length):
         output += random.choice(hash_symbols)
     return output
+async def sendMessageWithhook(ctx, text, name, embed):
+    avatar_url = str(
+        "https://images-ext-2.discordapp.net/external/-1-6AJKBQh38RYGz6D3j-IgURlKEfFifX5LeJ8h-TBw/%3Fsize%3D4096/https/cdn.discordapp.com/avatars/1126887522690142359/0767783560eee507f86c95a4b09f120a.png?width=437&height=437")  # str(self.bot.user.avatar_url)  # ссылка на аватар бота
+    webhook_name = str("RTBot's webhook")
+    channel = ctx.channel
+    webhooks = await channel.webhooks()
+    webhook = discord.utils.get(webhooks, name=webhook_name)
+    if webhook is None:
+        avatar_bytes = requests.get(avatar_url).content
+        webhook = await channel.create_webhook(name=str(webhook_name), avatar=avatar_bytes)
+    user = ctx.author
+    if name is None or name == "" or name == " ":
+        name=webhook_name
+
+    await webhook.send(f'{text}', username=name, embed=embed)
 # print(hashgen(16))
 # # Пример использования
 # json_str = save_to_json("MyServer", "Some report text", 1632048765)

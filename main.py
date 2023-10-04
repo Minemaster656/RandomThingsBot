@@ -49,7 +49,8 @@ whitelist = [609348530498437140, 617243612857761803]
 token = coreData.token_ds
 from discord.ext import commands
 import random
-
+import win10toast
+toaster = win10toast.ToastNotifier()
 startTimeCounter = time.time()
 intents = discord.Intents.default()  # Подключаем "Разрешения"
 intents.message_content = True
@@ -75,6 +76,7 @@ async def on_ready():
     print(f"Бот запущен как {bot.user} за {round(time.time() - startTimeCounter, 3)} секунд. Преффикс: {bot.command_prefix}")
     total_members = sum(len(guild.members) for guild in bot.guilds)
     await bot.change_presence(activity=discord.Game(f"{total_members} серверов"))
+    toaster.show_toast(f"Random Things Bot", f"RTB:discord_bot запущен за {round(time.time() - startTimeCounter, 3)} секунд. Преффикс: {bot.command_prefix}", threaded=True)
 
 
 

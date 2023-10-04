@@ -11,9 +11,11 @@ from discord.ext import commands
 from discord import Option
 from random import *
 
+import utils
+
 
 class Apocalypse(commands.Cog):
-
+    currentDLC="Самый странный апокалипсис⁶™"
     def __init__(self, bot):
         self.bot = bot
         self.items = sqlite3.connect("ApocalypseData/ApocalypseItems.db")
@@ -40,7 +42,18 @@ class Apocalypse(commands.Cog):
         ex_tasks = choices(extras, k=randint(0, 3))
         for i in ex_tasks:
             ex_tasks_out+="- "+i
-        await ctx.respond(f"# Список слов:\n{result_ds}\n"
+        await ctx.respond("Отправка...",ephemeral=True)
+        guide = f"\n\nЭто список предметов для игры {self.currentDLC}. \n" \
+                f"Правила игры - У Вас есть список предметов. Можно гипертрофировать их смысл, использовать мемный или прямой смысл. " \
+                f"\nПо умолчанию Вы не можете использовать предметы не из списка. Обычно цель - уничтожить планету/мир/человечество, однако могут быть другие типы заданий.\n" \
+                f"Так же есть дополнительные эффекты, изменяющие правила игры.\n" \
+                f"# ИГРА ЕЩЁ В РАЗРАБОТКЕ! \n### В планах сделать автоотправку и ИИ ответы автоматические."
+        await utils.sendMessageWithhook(ctx, f"# Список слов:\n{result_ds}\n"
                           f"# Условие: \n{task}\n"
-                          f"# Дополнительные условия:\n{ex_tasks_out}")
+                          f"# Дополнительные условия:\n{ex_tasks_out}"
+                                             f"\n{guide}", "", None)
+
+        # await ctx.respond(f"# Список слов:\n{result_ds}\n"
+        #                   f"# Условие: \n{task}\n"
+        #                   f"# Дополнительные условия:\n{ex_tasks_out}")
 
