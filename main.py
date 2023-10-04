@@ -54,6 +54,7 @@ startTimeCounter = time.time()
 intents = discord.Intents.default()  # Подключаем "Разрешения"
 intents.message_content = True
 intents.reactions = True
+
 # Задаём префикс и интенты
 runtime = time.time()
 loopCounter = 0
@@ -517,7 +518,7 @@ async def on_message(message):
 # if message.content.lower() in commands:
 #        await commands[message.content.lower()](message)
 @bot.slash_command(name="отправить-жалобу-на-пользователя",description="Отправить жалобу на пользователя")
-async def fname(ctx):
+async def report(ctx):
     ...
 @bot.event
 async def on_member_join(member):
