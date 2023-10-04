@@ -483,9 +483,15 @@ async def info(ctx):
                                                                 f"",colour=publicCoreData.embedColors["Neutral"])
     await ctx.respond(embed=embed)
 
-
+@bot.command(aliases=["код"])
+async def code(ctx, length):
+    if length:
+        await ctx.send(utils.hashgen(int(length)))
+    else:
+        await ctx.send(utils.hashgen(16))
 @bot.event
 async def on_message(message):
+    await bot.process_commands(message)
     # if message.mention_roles:  # Проверяем, были ли упомянуты роли в сообщении
     #         mentioned_roles = message.role_mentions  # Получаем список упомянутых ролей
     #         for role in mentioned_roles:
@@ -520,6 +526,11 @@ async def on_message(message):
 @bot.slash_command(name="отправить-жалобу-на-пользователя",description="Отправить жалобу на пользователя")
 async def report(ctx):
     ...
+
+@bot.command(aliases=["код-от-ядерки"])
+async def getNukeCode(ctx):
+    await ctx.send(f"Одноразовый код от ядерки: ``nuke_{utils.hashgen(16)}::ot#FF#j#EX``")
+
 @bot.event
 async def on_member_join(member):
     guild = member.guild
