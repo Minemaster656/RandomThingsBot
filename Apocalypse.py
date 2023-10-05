@@ -22,11 +22,11 @@ class Apocalypse(commands.Cog):
         self.itemsCursor = self.items.cursor()
     @commands.slash_command(name="создать-список",description="Создаёт список предметов и заданий.")
     async def getList(self, ctx):
-        # Выполнение запроса на выборку 10 случайных значений столбца ItemNameRu из таблицы items
+
         self.itemsCursor.execute("SELECT ItemNameRu FROM items ORDER BY RANDOM() LIMIT 10")
-        # Получение результатов запроса
+
         results = self.itemsCursor.fetchall()
-        # Вывод 10 случайных значений
+
         result_ds = ""
         for result in results:
             print(result[0])
@@ -55,7 +55,5 @@ class Apocalypse(commands.Cog):
                           f"# Дополнительные условия:\n{ex_tasks_out}"
                                              f"\n{guide}", "", None)
 
-        # await ctx.respond(f"# Список слов:\n{result_ds}\n"
-        #                   f"# Условие: \n{task}\n"
-        #                   f"# Дополнительные условия:\n{ex_tasks_out}")
+
 

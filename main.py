@@ -4,11 +4,14 @@ import json
 import os
 import time
 from datetime import datetime
+from threading import Thread
+
+import aiohttp
 # -*- coding: utf-8 -*-
 import discord
 # from discord_components import DiscordComponents, Button
 import sqlite3
-from discord import Option, ButtonStyle
+from discord import Option, ButtonStyle, Webhook
 
 # from discord_components import DiscordComponents, Button, ButtonStyle
 
@@ -56,21 +59,14 @@ startTimeCounter = time.time()
 intents = discord.Intents.default()  # Подключаем "Разрешения"
 intents.message_content = True
 intents.reactions = True
+# intents.guilds = True
+# intents.channels = True
+# intents.threads = True
 
 # Задаём префикс и интенты
 runtime = time.time()
 loopCounter = 0
 bot = commands.Bot(command_prefix=publicCoreData.preffix, intents=intents)
-
-
-
-
-
-@bot.command()
-async def ping(ctx):
-    await ctx.send('pong')
-
-
 
 @bot.event
 async def on_ready():
@@ -79,9 +75,8 @@ async def on_ready():
     await bot.change_presence(activity=discord.Game(f"{total_members} серверов"))
     toaster.show_toast(f"Random Things Bot", f"RTB:discord_bot запущен за {round(time.time() - startTimeCounter, 3)} секунд. Преффикс: {bot.command_prefix}", threaded=True)
 
-
-
 async def noPermission(ctx, permissions):
+    """Вызов сообщения об отсутствии разрешений. Нужен контекст /-команды!"""
     cursor.execute('SELECT permissions FROM users WHERE userid = ?', (ctx.author.id,))
     perms = cursor.fetchone()
     permissions = permissions.replace("|", "или")
@@ -95,9 +90,8 @@ async def noPermission(ctx, permissions):
     await ctx.respond(embed=embed, ephemeral=False)
 @bot.event
 async def on_command_error(ctx, error):
+    """Обработка ошибок"""
     none = "None"
-    # if isinstance(error, commands.CommandError):
-    # Отправляем сообщение об ошибке в канал, где была использована команда
     if isinstance(error, commands.MissingPermissions):
         embed = discord.Embed(title="У Вас нет прав!", description="Нет разрешения!",
                               color=publicCoreData.embedColors["Error"])
@@ -111,6 +105,7 @@ async def on_command_error(ctx, error):
         await ctx.send(f'Произошла ошибка при выполнении команды: {error}')
 @bot.slash_command(name="настройки", description="Задать определённую настройку бота")
 async def set_settings(ctx, field : Option(str, description="Поле", required=True, choices=["SQL+commit", "eval", "Таблицы","Баланс"])=0, value : Option(str, description="Значение", required=True)=0, ephemeral : Option(bool, description="Видно ли только вам?", required=False)=False, member : Option(discord.Member, description="Пользователь, на которого влияет команда", required=False)=None):
+    """Натсройки и приколы бота для админов БОТА."""
     hasPermission=False
     hasPermission = await publicCoreData.parsePermissionFromUser(ctx.author.id, "root")
     if member is None:
@@ -139,15 +134,10 @@ async def set_settings(ctx, field : Option(str, description="Поле", required
 
 
 
-
-@bot.command(aliases=['rand', 'ранд', 'r', 'р', 'rnd', 'рнд', 'random', 'рандом'])
-async def random_int(ctx, arg1: int, arg2: int):
-    await ctx.send(random.randint(arg1, arg2))
-
-
 @bot.command(aliases=['me', 'я', '>'])
 async def sendMsg(ctx, *, args):
-    if ctx.author.id in whitelist:
+    """Отправка сообщения от лица бота."""
+    if publicCoreData.parsePermissionFromUser(ctx.author.id, "say_as_bot"):
         if ctx.message.reference:
             await ctx.send(args, reference=ctx.message.reference)
         else:
@@ -557,8 +547,53 @@ async def on_member_join(member):
     # role = discord.utils.get(member.guild.roles, name="Новичок")  # Замените на имя вашей роли
     # await member.add_roles(role)
 
+# class ctx():
+#     def __init__(self, channel):
+#         self.channel = channel
 async def loop():
+    while True:
+        cursor.execute("SELECT apocalypseChannelHook FROM servers")
+        urls = cursor.fetchall()
+        print("Loop tick")
 
+
+
+
+
+
+
+        for hook_url in urls:
+            url = hook_url[0]  # Извлечение значения из кортежа
+            try:
+                if url is not None:
+                    async with aiohttp.ClientSession() as session:
+                        webhook = Webhook.from_url(str(url), session=session)
+                        await webhook.send('Hello World', username='Foo')
+            except:
+                print(f"Hook {url} not found!")
+            # channel = bot.get_channel(channel_id)
+            # avatar_url = str(
+            #     "https://images-ext-2.discordapp.net/external/-1-6AJKBQh38RYGz6D3j-IgURlKEfFifX5LeJ8h-TBw/%3Fsize%3D4096/https/cdn.discordapp.com/avatars/1126887522690142359/0767783560eee507f86c95a4b09f120a.png?width=437&height=437")  # str(self.bot.user.avatar_url)  # ссылка на аватар бота
+            # webhook_name = str("RTBot's webhook")
+            # # channel = ctx.channel
+            # channel = discord.utils.get(bot.get_all_channels(), id=channel_id)
+            # webhooks = await channel.webhooks()
+            # webhook = discord.utils.get(webhooks, name=webhook_name)
+            # if webhook is None:
+            #     avatar_bytes = requests.get(avatar_url).content
+            #     webhook = await channel.create_webhook(name=str(webhook_name), avatar=avatar_bytes)
+
+            # if channel:
+                # webhook = await channel.create_webhook(name="Bot's hook")
+                # await webhook.send("Привет, я бот!")
+                # utils.sendMessageWithhook()
+            # else:
+            #     print(f"Канал с id {channel_id} не найден.")
+        await asyncio.sleep(1)
+
+async def loopRunner():
+    # loopTask = asyncio.create_task(loop())
+    # await loopTask
     ...
 async def statusLoop():
     global loopCounter
@@ -592,8 +627,13 @@ bot.add_cog(utilities.BotCog(bot))
 bot.add_cog(Apocalypse.Apocalypse(bot))
 bot.add_cog(ServerCore.ServerCore(bot))
 # bot.add_cog(paginator.PageTest(bot))
-asyncio.run(loop())
+# asyncio.run(loop())
+asyncio.run(loopRunner())
+# loop_thread = Thread(target=loopRunner())
+# loop_thread.start()
+
+bot.run(token)
 # asyncio.run(statusLoop())
 
 
-bot.run(token)
+

@@ -5,7 +5,7 @@ import discord
 
 # from discord.app_commands import commands
 
-
+webhook_avatar_url = "https://images-ext-2.discordapp.net/external/-1-6AJKBQh38RYGz6D3j-IgURlKEfFifX5LeJ8h-TBw/%3Fsize%3D4096/https/cdn.discordapp.com/avatars/1126887522690142359/0767783560eee507f86c95a4b09f120a.png?width=437&height=437"
 permissions_user = ["root", "edit_characters", "say_as_bot", "edit_permissions", "---"]
 embedColors = {"Error": 0xf03255, "Exception": 0xff2f00, "Success": 0x29ff4d, "Warp": 0x00b3ff,
                "Neutral": discord.Color.blue(), "Economy": 0xffcc12}
@@ -73,11 +73,12 @@ def writeUserToDB(id: int, name: str):
 def findServerInDB(ctx):
     ownerid = ctx.guild.owner_id
     serverid = ctx.guild.id
-    serverid = '12345'  # Замените на ваше искомое значение serverid
+
 
 
     cursor.execute("SELECT * FROM servers WHERE serverid=?", (serverid,))
     result = cursor.fetchone()
+
 
 
     if result is None:

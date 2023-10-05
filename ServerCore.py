@@ -4,6 +4,7 @@ import typing
 # import numpy as np
 # import matplotlib.pyplot as plt
 import discord
+import requests
 from discord.ext import commands
 # import perlin_noise
 from discord import Option
@@ -23,8 +24,26 @@ class ServerCore(commands.Cog):
                                                          choices=["игра Апокалипсис", "Объявления", "реклама"],
                                                          required=True) = "",
                                 channel: Option(typing.Union[discord.TextChannel, discord.Thread], description="Канал.",
-                                                required=True) = None):
+                                                required=True) = None, clear_field : Option(bool, description="Очистить настройку? Удалит значение вместо установки.", required=False)=False):
         publicCoreData.findServerInDB(ctx)
+        if field == "игра Апокалипсис":
+            if clear_field:
+                cursor.execute("UPDATE servers SET apocalypseChannel = 0 WHERE serverid = ?", (ctx.guild.id, ))
+                conn.commit()
+                await ctx.respond("Канал отчищен!")
+            else:
+                avatar_url = publicCoreData.webhook_avatar_url
+                webhook_name = str("RTBot's webhook")
+                channel = ctx.channel
+                webhooks = await channel.webhooks()
+                webhook = discord.utils.get(webhooks, name=webhook_name)
+                if webhook is None:
+                    avatar_bytes = requests.get(avatar_url).content
+                    webhook = await channel.create_webhook(name=str(webhook_name), avatar=avatar_bytes)
+                cursor.execute("UPDATE servers SET apocalypseChannel = ?, apocalypseChannelHook = ? WHERE serverid = ?", (channel.id, webhook.url ,ctx.guild.id))
+                conn.commit()
+                await ctx.respond("Канал установлен!")
+
 
     @commands.slash_command(name="настройки-сервера", description="description")
     @commands.has_permissions(administrator=True)
