@@ -18,6 +18,7 @@ class ServerCore(commands.Cog):
         self.bot = bot
 
     @commands.slash_command(name="настройки-каналов", description="description")
+    @commands.has_permissions(administrator=True)
     async def settings_channels(self, ctx, field: Option(str, description="Поле",
                                                          choices=["игра Апокалипсис", "Объявления", "реклама"],
                                                          required=True) = "",
@@ -26,6 +27,8 @@ class ServerCore(commands.Cog):
         publicCoreData.findServerInDB(ctx)
 
     @commands.slash_command(name="настройки-сервера", description="description")
+    @commands.has_permissions(administrator=True)
+
     async def server_settings(self, ctx,
                               field: Option(str, description="Поле", choices=["ссылка на сервер"], required=True) = "0",
                               value: Option(bool, description="Значение", required=True) = False):
@@ -47,3 +50,10 @@ class ServerCore(commands.Cog):
                                (" ", ctx.guild.id))
                 conn.commit()
                 await ctx.respond(f"Поле **{field}** отчищено.")
+    @commands.slash_command(name="настройки-серверных-строк",description="description")
+    @commands.has_permissions(administrator=True)
+    async def server_settings_str(self, ctx, field : Option(str, description="Поле",choices=["текст партнёрки"], required=True)="", value : Option(str, description="Значение", required=True)=" "):
+        if field == "текст партнёрки":
+            cursor.execute("UPDATE servers SET text = ? WHERE serverid = ?", (value, ctx.guild.id))
+            conn.commit()
+
