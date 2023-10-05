@@ -70,6 +70,28 @@ cursor = conn.cursor()
 def writeUserToDB(id: int, name: str):
     cursor.execute("INSERT INTO users (userid, username) VALUES (?, ?)", (id, name))
     conn.commit()
+def findServerInDB(ctx):
+    ownerid = ctx.guild.owner_id
+    serverid = ctx.guild.id
+    serverid = '12345'  # Замените на ваше искомое значение serverid
+
+
+    cursor.execute("SELECT * FROM servers WHERE serverid=?", (serverid,))
+    result = cursor.fetchone()
+
+
+    if result is None:
+        cursor.execute("INSERT INTO servers (serverid, ownerid) VALUES (?, ?)", (serverid, ownerid))
+        print(f"Server added: serverID: {serverid}, ownerID: {ownerid}")
+        conn.commit()
+        return False
+    else:
+        return True
+
+
+
+
+
 
 
 def initTables():
@@ -103,3 +125,12 @@ def initTables():
     food           INTEGER DEFAULT (0),
     materials      INTEGER DEFAULT (0) 
 )''')
+'''CREATE TABLE servers (
+    serverid   INTEGER,
+    muteroleid INTEGER,
+    mutes      TEXT,
+    bumpcolor  TEXT,
+    bumptext   TEXT,
+    invitelink TEXT,
+    ownerid    INTEGER
+);'''

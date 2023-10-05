@@ -28,6 +28,7 @@ import requests
 from io import BytesIO
 
 import Apocalypse
+import ServerCore
 import dbClone
 import economy
 import paginator
@@ -589,6 +590,7 @@ bot.add_cog(rp.RP(bot))
 bot.add_cog(economy.Economy(bot))
 bot.add_cog(utilities.BotCog(bot))
 bot.add_cog(Apocalypse.Apocalypse(bot))
+bot.add_cog(ServerCore.ServerCore(bot))
 # bot.add_cog(paginator.PageTest(bot))
 asyncio.run(loop())
 # asyncio.run(statusLoop())
