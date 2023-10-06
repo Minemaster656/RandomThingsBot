@@ -633,6 +633,9 @@ asyncio.run(loopRunner())
 # loop_thread = Thread(target=loopRunner())
 # loop_thread.start()
 
+# client = discord.Client()
+
+# client.loop.create_task(loop())
 bot.run(token)
 # asyncio.run(statusLoop())
 

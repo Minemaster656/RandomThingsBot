@@ -1,14 +1,18 @@
 import json
 import random
+
+import aiohttp
 # import numpy as np
 # import matplotlib.pyplot as plt
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 # import perlin_noise
-from discord import Option
+from discord import Option, Webhook
 from random import *
 
+import Apocalypse
 import publicCoreData
+from publicCoreData import cursor, conn
 import re
 
 import utils
@@ -19,6 +23,51 @@ class BotCog(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+        self.index=1
+        self.loop.start()
+
+    def cog_unload(self):
+        self.loop.cancel()
+
+    @tasks.loop(seconds=5.0)
+    async def loop(self):
+        #TODO: сохранение даты и списка в джсон
+        list = Apocalypse.genApocalypseItems()
+
+        def saveList(string):
+            with open('list.txt', 'w') as file:
+                file.write(string)
+
+        saveList(list[0])
+        # apocalypse = Apocalypse.Apocalypse(commands.Bot)
+        cursor.execute("SELECT apocalypseChannelHook, apocalypseLastSendDay, serverid, isThread, apocalypseChannel FROM servers")
+        urls = cursor.fetchall()
+
+        # print("Loop tick")
+
+        for hook_url in urls:
+            url = hook_url[0]  # Извлечение значения из кортежа
+            date = hook_url[1]
+            if hook_url[0] is not None and hook_url[1] is not None and hook_url[2] is not None and hook_url[3] is not None and hook_url[4] is not None:
+                if date < utils.get_current_day():
+                    try:
+                        if url is not None:
+                            cursor.execute("UPDATE servers SET apocalypseLastSendDay = ? WHERE serverid = ?",
+                                           (utils.get_current_day(), hook_url[2]))
+                            conn.commit()  # TODO: ук шлёт в канал где была команда а не ветку (пофикшено)
+                            async with aiohttp.ClientSession() as session:
+                                webhook = Webhook.from_url(str(url), session=session)
+
+                                if hook_url[3]:
+                                    await webhook.send(list[0], username=publicCoreData.hook_names["apocalypse"],
+                                                       embed=list[1], thread=discord.Object(hook_url[4]))
+                                else:
+                                    await webhook.send(list[0], username=publicCoreData.hook_names["apocalypse"],
+                                                       embed=list[1])
+                                await webhook.send(list[0], username=publicCoreData.hook_names["apocalypse"],embed=list[1])
+
+                    except:
+                        print(f"Hook {url} not found! {hook_url}")
 
     @commands.slash_command(name="массовое-редактирование-каналов",
                             description="Редактировать каналы категории. Выберите справку для информации.")

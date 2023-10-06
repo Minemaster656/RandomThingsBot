@@ -1,5 +1,6 @@
 import asyncio
 import random
+import time
 from random import randint
 
 import discord
@@ -124,6 +125,10 @@ async def sendMessageWithhook(ctx, text, name, embed):
         name=webhook_name
 
     await webhook.send(f'{text}', username=name, embed=embed)
+def get_current_day():
+    current_time = time.time()
+    days_since_unix_epoch = current_time // (24 * 60 * 60)
+    return int(days_since_unix_epoch)
 # print(hashgen(16))
 # # Пример использования
 # json_str = save_to_json("MyServer", "Some report text", 1632048765)

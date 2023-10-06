@@ -28,19 +28,27 @@ class ServerCore(commands.Cog):
         publicCoreData.findServerInDB(ctx)
         if field == "игра Апокалипсис":
             if clear_field:
-                cursor.execute("UPDATE servers SET apocalypseChannel = 0 WHERE serverid = ?", (ctx.guild.id, ))
+                none = "none"
+                cursor.execute(f"UPDATE servers SET apocalypseChannel = 0, apocalypseChannelHook = ?, isThread = 0 WHERE serverid = ?", (none, ctx.guild.id, ))
                 conn.commit()
                 await ctx.respond("Канал отчищен!")
             else:
+                isThread = 1 if isinstance(channel, discord.Thread) else 0
+                parent = channel
+                if isinstance(channel, discord.Thread):
+
+                    parent = channel.parent
                 avatar_url = publicCoreData.webhook_avatar_url
                 webhook_name = str("RTBot's webhook")
                 channel = ctx.channel
-                webhooks = await channel.webhooks()
+                webhooks = await parent.webhooks()
                 webhook = discord.utils.get(webhooks, name=webhook_name)
+
                 if webhook is None:
                     avatar_bytes = requests.get(avatar_url).content
-                    webhook = await channel.create_webhook(name=str(webhook_name), avatar=avatar_bytes)
-                cursor.execute("UPDATE servers SET apocalypseChannel = ?, apocalypseChannelHook = ? WHERE serverid = ?", (channel.id, webhook.url ,ctx.guild.id))
+                    webhook = await parent.create_webhook(name=str(webhook_name), avatar=avatar_bytes)
+                cursor.execute("UPDATE servers SET apocalypseChannel = ?, apocalypseChannelHook = ?, isThread = ?, parentID = ? WHERE serverid = ?", (channel.id, webhook.url, isThread, parent.id ,ctx.guild.id))
+                print((channel.id, webhook.url, isThread ,ctx.guild.id))
                 conn.commit()
                 await ctx.respond("Канал установлен!")
 
