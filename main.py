@@ -614,7 +614,8 @@ async def statusLoop():
 
         await bot.change_presence(activity=discord.Game(f"DoorkaEternal"))
         loopCounter =0
-
+# voice:.idea/1696585352512.wav
+# voice:.idea/1696530559952.wav
 # bot.add_cog(Weather(bot))
 bot.add_cog(game.Game(bot))
 # for f in os.listdir("./cogs"):
