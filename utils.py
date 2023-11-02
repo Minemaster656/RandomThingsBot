@@ -129,6 +129,10 @@ def get_current_day():
     current_time = time.time()
     days_since_unix_epoch = current_time // (24 * 60 * 60)
     return int(days_since_unix_epoch)
+def checkStringForNoContent(strg : str):
+    if strg == "" or strg is None or strg == " " or strg == "  " or strg == "\n":
+        return True
+    return False
 # print(hashgen(16))
 # # Пример использования
 # json_str = save_to_json("MyServer", "Some report text", 1632048765)

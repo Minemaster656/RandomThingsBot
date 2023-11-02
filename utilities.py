@@ -34,11 +34,11 @@ class BotCog(commands.Cog):
         #TODO: сохранение даты и списка в джсон
         list = Apocalypse.genApocalypseItems()
 
-        def saveList(string):
-            with open('list.txt', 'w') as file:
-                file.write(string)
-
-        saveList(list[0])
+        # def saveList(string):
+        #     with open('list.txt', 'w') as file:
+        #         file.write(string)
+        #
+        # saveList(list[0])
         # apocalypse = Apocalypse.Apocalypse(commands.Bot)
         cursor.execute("SELECT apocalypseChannelHook, apocalypseLastSendDay, serverid, isThread, apocalypseChannel FROM servers")
         urls = cursor.fetchall()
@@ -224,4 +224,40 @@ class BotCog(commands.Cog):
     #     else:
     #         await ctx.respond(json.dumps(publicCoreData.permissions_user))
 
-    
+    @commands.slash_command(name="винжер",description="кодировщик-декодировщик в винжере")
+    async def vinger(self, ctx, input : Option(str, description="Текст на русском/английском", required=True)="none", key : Option(str, description="Ключ", required=True)="а", destination : Option(bool, description="True - шифровка, False - дешифровка", required=False)=True):
+
+
+
+
+        def setupAlphabet():
+
+            return r'абвгдеёжзийклмнопрстуфхцчшщъыьэюя1234567890-=_+/\!.,:;"[]{}<>abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ`~ '
+
+
+        def vigenere_cipher(alphabet, key, text, encode=True):
+            result = ""
+            key_index = 0
+
+            for char in text:
+                if char in alphabet:
+                    char_index = alphabet.index(char)
+                    key_char = key[key_index % len(key)]
+                    key_char_index = alphabet.index(key_char)
+
+                    if encode:
+                        encrypted_char_index = (char_index + key_char_index) % len(alphabet)
+                    else:
+                        encrypted_char_index = (char_index - key_char_index) % len(alphabet)
+
+                    encrypted_char = alphabet[encrypted_char_index]
+                    result += encrypted_char
+                    key_index += 1
+                else:
+                    result += char
+
+            return result
+        embed = discord.Embed(title="Винжер",description="Результат:",colour=0xffffff)
+        embed.add_field(name="Исходный текст",value=f"{input}",inline=False)
+        embed.add_field(name="Результат",value=f"{vigenere_cipher(setupAlphabet(), key, input, destination)}")
+        await ctx.respond(embed = embed, ephemeral=True)

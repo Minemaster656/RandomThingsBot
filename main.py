@@ -32,6 +32,7 @@ from io import BytesIO
 
 import Apocalypse
 import ServerCore
+import _AI_Stuff
 import dbClone
 import economy
 import paginator
@@ -498,6 +499,11 @@ async def on_message(message):
             if j.id == i:
 
                 await message.author.add_roles(role)
+
+    try:
+        await message.publish()
+    except:
+        ...
     # if message.mentions:  # Проверяем, были ли упомянуты пользователи в сообщении
     #     mentioned_users = message.mentions  # Получаем список упомянутых пользователей
     #     for role_id in publicCoreData.infectionRolesID:
@@ -627,6 +633,7 @@ bot.add_cog(economy.Economy(bot))
 bot.add_cog(utilities.BotCog(bot))
 bot.add_cog(Apocalypse.Apocalypse(bot))
 bot.add_cog(ServerCore.ServerCore(bot))
+bot.add_cog(_AI_Stuff._AI_Stuff(bot))
 # bot.add_cog(paginator.PageTest(bot))
 # asyncio.run(loop())
 asyncio.run(loopRunner())

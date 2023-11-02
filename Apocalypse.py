@@ -78,7 +78,7 @@ def genApocalypseItems():
     ex_tasks_out = ""
     ex_tasks = choices(extras, k=randint(0, 3))
     for i in ex_tasks:
-        ex_tasks_out += "- " + i
+        ex_tasks_out += "\n- " + i
     # await ctx.respond("Отправка...", ephemeral=True)
     guide = f"\n\nЭто список предметов для игры {publicCoreData.apocalypseDLC}. \n" \
             f"Правила игры - У Вас есть список предметов. Можно гипертрофировать их смысл, использовать мемный или прямой смысл. " \
@@ -93,4 +93,5 @@ def genApocalypseItems():
               f"# Условие: \n{task}\n"
               f"# Дополнительные условия:\n{ex_tasks_out}", embed)
               #f"\n{guide}", )
+
     return output

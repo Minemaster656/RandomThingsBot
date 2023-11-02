@@ -57,7 +57,7 @@ class ServerCore(commands.Cog):
     @commands.has_permissions(administrator=True)
 
     async def server_settings(self, ctx,
-                              field: Option(str, description="Поле", choices=["ссылка на сервер"], required=True) = "0",
+                              field: Option(str, description="Поле", choices=["ссылка на сервер","автопубликация"], required=True) = "0",
                               value: Option(bool, description="Значение", required=True) = False):
         if field == "ссылка на сервер":
             if value:
@@ -77,6 +77,12 @@ class ServerCore(commands.Cog):
                                (" ", ctx.guild.id))
                 conn.commit()
                 await ctx.respond(f"Поле **{field}** отчищено.")
+
+        # if field == "автопубликация":
+        #     if value:
+        #
+        #
+        #         await ctx.respond(f"Поле **{field}** установлено на {value}")
     @commands.slash_command(name="настройки-серверных-строк",description="description")
     @commands.has_permissions(administrator=True)
     async def server_settings_str(self, ctx, field : Option(str, description="Поле",choices=["текст партнёрки"], required=True)="", value : Option(str, description="Значение", required=True)=" "):
