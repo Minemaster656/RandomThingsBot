@@ -1,5 +1,6 @@
 import asyncio
 import sqlite3
+import platform
 from googletrans import Translator  # TODO: requirements: googletrans
 
 translator = Translator()
@@ -16,14 +17,15 @@ itemsCursor = items.cursor()
 itemsCursor.execute(
     "CREATE TABLE IF NOT EXISTS items (ItemIDInt INTEGER UNIQUE NOT NULL DEFAULT (0), ItemIDString UNIQUE NOT NULL DEFAULT none, ItemNameEn TEXT, ItemNameRu TEXT, ItemSpecialData TEXT)")
 items.commit()
-from win10toast import ToastNotifier  # TODO: requirements: win10toast
+if platform.system() == 'Windows':
+    from win10toast import ToastNotifier  # TODO: requirements: win10toast
 
-toaster = ToastNotifier()
-toastLoop = asyncio.new_event_loop()
+    toaster = ToastNotifier()
+    toastLoop = asyncio.new_event_loop()
 
 import tkinter as tk
-
-toaster.show_toast("Apocalypse Item Creator", "Item Creator запущен!", threaded=True, duration=2)
+if platform.system() == 'Windows':
+    toaster.show_toast("Apocalypse Item Creator", "Item Creator запущен!", threaded=True, duration=2)
 
 
 def sendToast(title, text, duration):
