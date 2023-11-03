@@ -56,7 +56,12 @@ token = coreData.token_ds
 from discord.ext import commands
 import random
 if platform.system() == 'Windows':
-    import win10toast
+    try:
+        import win10toast
+    except:
+        import os
+        os.system("pip install win10toast")
+        import win10toast
     toaster = win10toast.ToastNotifier()
 startTimeCounter = time.time()
 intents = discord.Intents.default()  # Подключаем "Разрешения"
