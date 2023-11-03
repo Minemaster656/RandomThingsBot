@@ -1,9 +1,9 @@
 import asyncio
 import sqlite3
 import platform
-from googletrans import Translator  # TODO: requirements: googletrans
+#from googletrans import Translator  # TODO: requirements: googletrans
 
-translator = Translator()
+# translator = Translator()
 
 # # Перевод с английского на русский
 # result = translator.translate("Hello", dest="ru")
@@ -22,10 +22,11 @@ if platform.system() == 'Windows':
 
     toaster = ToastNotifier()
     toastLoop = asyncio.new_event_loop()
+    toaster.show_toast("Apocalypse Item Creator", "Item Creator запущен!", threaded=True, duration=2)
 
 import tkinter as tk
-if platform.system() == 'Windows':
-    toaster.show_toast("Apocalypse Item Creator", "Item Creator запущен!", threaded=True, duration=2)
+
+
 
 
 def sendToast(title, text, duration):
