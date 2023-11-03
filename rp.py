@@ -190,10 +190,7 @@ class RP(commands.Cog):
                 bgTileSizeX=32
                 bgTileSizeY=32
                 cell0 = Image.open("graphics/cell.png")
-                # # cell0.convert("L")
-                # # cell1 = ImageOps.colorize(cell0, '#FF0000', '#000000')
-                # cell1 = Image.open("10x10.png")
-                # cells = [cell0, cell1]
+
                 backgrounds=[None, None, None, None, None]
 
                 cells = [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None]

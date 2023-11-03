@@ -3,6 +3,8 @@ import sqlite3
 
 import discord
 
+import INIT
+
 # from discord.app_commands import commands
 
 webhook_avatar_url = "https://images-ext-2.discordapp.net/external/-1-6AJKBQh38RYGz6D3j-IgURlKEfFifX5LeJ8h-TBw/%3Fsize%3D4096/https/cdn.discordapp.com/avatars/1126887522690142359/0767783560eee507f86c95a4b09f120a.png?width=437&height=437"
@@ -14,9 +16,12 @@ permission_root_whitelist = [609348530498437140, 617243612857761803]
 preffix = "!!"
 currency = "<:catalist:1076130269867819099>"
 infectionRolesID = [1151515080219967498, 1135925890182807552, 1152163431869329468]
-apocalypseDLC="Самый странный апокалипсис⁶™"
-hook_names={"apocalypse":apocalypseDLC}
-
+apocalypseDLC = "Самый странный апокалипсис⁶™"
+hook_names = {"apocalypse": apocalypseDLC}
+data_DB_path = "private/data.db"
+INIT.initDB(data_DB_path)
+conn = sqlite3.connect(data_DB_path)
+cursor = conn.cursor()
 
 async def parsePermissionFromUser(id: int, permission: str):
     # await ctx.respond("Проверка...")
@@ -62,8 +67,8 @@ def insertRoot():
     # conn.close()
 
 
-conn = sqlite3.connect('data.db')
-cursor = conn.cursor()
+
+
 
 
 # def writeUserToDB(user):
@@ -72,16 +77,14 @@ cursor = conn.cursor()
 def writeUserToDB(id: int, name: str):
     cursor.execute("INSERT INTO users (userid, username) VALUES (?, ?)", (id, name))
     conn.commit()
+
+
 def findServerInDB(ctx):
     ownerid = ctx.guild.owner_id
     serverid = ctx.guild.id
 
-
-
     cursor.execute("SELECT * FROM servers WHERE serverid=?", (serverid,))
     result = cursor.fetchone()
-
-
 
     if result is None:
         cursor.execute("INSERT INTO servers (serverid, ownerid) VALUES (?, ?)", (serverid, ownerid))
@@ -90,11 +93,6 @@ def findServerInDB(ctx):
         return False
     else:
         return True
-
-
-
-
-
 
 
 def initTables():
@@ -128,6 +126,8 @@ def initTables():
     food           INTEGER DEFAULT (0),
     materials      INTEGER DEFAULT (0) 
 )''')
+
+
 '''CREATE TABLE servers (
     serverid   INTEGER,
     muteroleid INTEGER,

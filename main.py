@@ -2,59 +2,47 @@ import asyncio
 import platform
 #TODO: add transformers to requirements
 import json
-import os
 import time
-from datetime import datetime
-from threading import Thread
 
 import aiohttp
 # -*- coding: utf-8 -*-
 import discord
 # from discord_components import DiscordComponents, Button
-import sqlite3
-from discord import Option, ButtonStyle, Webhook
+from discord import Option, Webhook
 
 # from discord_components import DiscordComponents, Button, ButtonStyle
 
 # from discord import Option
-import requests
 
 # from commands import *
-import sqlite3
 
-from discord.ui import Button
 # from pyowm import OWM
 # import torch
 # import torchvision
 # from stable_diffusion import DiffusionModel
-from PIL import Image, ImageFilter, ImageDraw, ImageOps
-import requests
-from io import BytesIO
 
 import Apocalypse
 import ServerCore
 import _AI_Stuff
 import dbClone
 import economy
-import paginator
 import publicCoreData
 import utilities
 import utils
-from coreData import *
 
 # cogs
 import game
 import rp
 import tests
 
-import coreData
+from private import coreData
 from publicCoreData import cursor
 from publicCoreData import conn
 
 whitelist = [609348530498437140, 617243612857761803]
 token = coreData.token_ds
 from discord.ext import commands
-import random
+
 if platform.system() == 'Windows':
     try:
         import win10toast
@@ -336,84 +324,10 @@ async def keyboard_layout_switcher(ctx, text):
     await ctx.respond(result, ephemeral=True)
 
 
-@bot.slash_command(name="тест-работы-с-изображениями", description="обеме")
-async def send_image(ctx):
-    # image = Image.open('10x10.png')
-
-    # Выполняем необходимые операции с изображением
-    # Например, изменение размера, обрезка, фильтры и т.д.
-    # image = image.resize((256, 256), resample=Image.NEAREST)
-
-    # Создаем пустое прозрачное изображение размером 300x200 пикселей
-    image = Image.new('RGBA', (300, 200), (0, 0, 0, 0))
-
-    # Открываем изображение квадратика
-    square_image = Image.open('10X10.png')
-    gray = Image.open("gray.png")
-    gray = gray.convert("L")
-    # Создаем объект ImageDraw для рисования
-    draw = ImageDraw.Draw(image)
-
-    # Определяем координаты верхнего левого и нижнего правого углов квадратика
-    x1 = 10
-    y1 = 10
-    x2 = x1 + 3
-    y2 = y1 + 3
-    for i in range(10):
-
-        # Рисуем квадратик поверх пустого изображения
-        if i % 2 == 0:
-            cim = ImageOps.colorize(gray, '#FF0000', '#000000')
-            image.paste(cim, (i * 10, y1 + 10))
-        image.paste(square_image, (i * 10, y1))
-
-    # jittered_image = image.filter(ImageFilter.GaussianBlur(radius=2))
-    # jittered_image = jittered_image.resize(image.size)
-    # jittered_image = Image.blend(image, jittered_image, alpha=0.5)
-
-    # image = glitch(image)
-
-    # Сохраняем измененное изображение
-
-    image.save('image_buffer.png')
-    # jittered_image.save('image_buffer.png')
-
-    # Отправляем изображение в качестве сообщения
-
-    modified_image_path = 'image_buffer.png'
-    modified_image = discord.File(modified_image_path, filename='image_buffer.png')
-    await ctx.respond(file=modified_image)
 
 
-# @bot.command()
-# async def send_buttons(ctx):
-#     await ctx.send(
-#         "Нажмите кнопку:",
-#         components=[
-#             Button(style=ButtonStyle.primary, label="Кнопка 1"),
-#             Button(style=ButtonStyle.secondary, label="Кнопка 2"),
-#             Button(style=ButtonStyle.success, label="Кнопка 3"),
-#         ],
-#     )
-#
-#
-# @bot.event
-# async def on_button_click(interaction):
-#     if interaction.component.label == "Кнопка 1":
-#         await interaction.respond(content="Вы нажали Кнопку 1")
-#     elif interaction.component.label == "Кнопка 2":
-#         await interaction.respond(content="Вы нажали Кнопку 2")
-#     elif interaction.component.label == "Кнопка 3":
-#         await interaction.respond(content="Вы нажали Кнопку 3")
 
 
-# @commands.slash_command(name="мьют",description="Переключить мьют пользоваателя (роль)")
-# async def my_command(self, ctx, user : discord.Member):
-#     role = discord.utils.get(ctx.guild.roles, id=role_id)
-#     if role in user.roles:
-#         await
-#     else:
-#         await
 
 
 # @bot.slash_command(name="метка-времени", description="Конвертирует дату, время и часовой пояс в метку времени")
@@ -435,17 +349,10 @@ async def send_image(ctx):
 #     await ctx.respond(makeDSTimestamp(year, month, day, hour, minute, second, timezone, mode))
 
 
-# @help.slash_option(name="name", description="Enter your name.", required=True)
-# async def hello_name(ctx, name: str):
-#     await ctx.send(f"Hello, {name}!")
 
 
-# commands = {
-#    '!rand': rand,
-#    '!ранд': rand,
-#    '!р': rand,
-#    '!r': rand
-# }
+
+
 @bot.slash_command(name="разрешения", description="Редактирование разрешений пользователя")
 async def editMemberPermissions(ctx, permission: Option(str, description="Разрешение. ? для списка",
                                                               choises=publicCoreData.permissions_user, required=True) = "none",

@@ -1,7 +1,7 @@
 import sqlite3
 
 # Подключение к базе данных
-conn = sqlite3.connect('data.db')
+conn = sqlite3.connect('private/data.db')
 cursor = conn.cursor()
 
 # Выполнение запроса на выборку всех данных из таблицы
