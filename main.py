@@ -165,23 +165,14 @@ async def help(ctx):
 
 @bot.slash_command(description="Сообщение от лица бота.", name="бот")
 async def me(ctx, text):
-    if ctx.author.id in whitelist:
+    if publicCoreData.parsePermissionFromUser(ctx.author.id, "say_as_bot"):
         if ctx.message.reference:
+            await ctx.send(text, reference=ctx.message.reference)
+        else:
             await ctx.send(text)
+    await ctx.message.delete()
 
 
-# @bot.command()
-# async def send_embed(ctx):
-#     embed = discord.Embed(title="Заголовок", description="Описание", color=discord.Color.blue())
-#     embed.add_field(name="Поле 1", value="Значение 1", inline=False)
-#     embed.add_field(name="Поле 2", value="Значение 2", inline=True)
-#     embed.set_footer(text="Футер")
-#
-#     await ctx.send(embed=embed)
-
-@bot.command(aliases=[".."])
-async def cmd_trigger_bruh(ctx):
-    await ctx.send("bruh")
 
 
 @bot.command(aliases=["осебе", "профиль", "profile"])
