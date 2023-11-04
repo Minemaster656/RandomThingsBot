@@ -67,7 +67,7 @@ class BotCog(commands.Cog):
                                 await webhook.send(list[0], username=publicCoreData.hook_names["apocalypse"],embed=list[1])
 
                     except:
-                        print(f"Hook {url} not found! {hook_url}")
+                        ...
 
     @commands.slash_command(name="массовое-редактирование-каналов",
                             description="Редактировать каналы категории. Выберите справку для информации.")
