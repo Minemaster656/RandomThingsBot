@@ -54,7 +54,7 @@ class BotCog(commands.Cog):
                         if url is not None:
                             cursor.execute("UPDATE servers SET apocalypseLastSendDay = ? WHERE serverid = ?",
                                            (utils.get_current_day(), hook_url[2]))
-                            conn.commit()  # TODO: ук шлёт в канал где была команда а не ветку (пофикшено)
+                            conn.commit()
                             async with aiohttp.ClientSession() as session:
                                 webhook = Webhook.from_url(str(url), session=session)
 
