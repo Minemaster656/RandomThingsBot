@@ -98,8 +98,8 @@ async def on_command_error(ctx, error):
         await ctx.send(f"Команда перезаряжается. Повторите через **{round(error.retry_after)}** секунд!")
     elif isinstance(error, commands.MissingPermissions):
         await ctx.send(f"Недостаточно прав!")
-    else:
-        await ctx.send(f'Произошла ошибка при выполнении команды: {error}')
+    # else:
+    #     await ctx.send(f'Произошла ошибка при выполнении команды: {error}')
 @bot.slash_command(name="настройки", description="Задать определённую настройку бота")
 async def set_settings(ctx, field : Option(str, description="Поле", required=True, choices=["SQL+commit", "eval", "Таблицы","Баланс"])=0, value : Option(str, description="Значение", required=True)=0, ephemeral : Option(bool, description="Видно ли только вам?", required=False)=False, member : Option(discord.Member, description="Пользователь, на которого влияет команда", required=False)=None):
     """Натсройки и приколы бота для админов БОТА."""
