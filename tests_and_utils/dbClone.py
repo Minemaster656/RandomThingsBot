@@ -3,7 +3,7 @@ import sqlite3
 def getSQLs(isPrinted : bool):
     output = ""
     # Подключение к базе данных
-    conn = sqlite3.connect('private/data.db')
+    conn = sqlite3.connect('../private/data.db')
     cursor = conn.cursor()
 
     # Получение списка всех таблиц в базе данных

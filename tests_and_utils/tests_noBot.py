@@ -40,7 +40,7 @@ def transperent(image):
     return image_tr
 
 # Загрузка изображения
-image = Image.open("image_buffer.png")
+image = Image.open("../image_buffer.png")
 sizes = image.size
 for i in range(random.randint(10,20)):
     # Определение координат и размеров прямоугольника
