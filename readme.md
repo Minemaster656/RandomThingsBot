@@ -3,6 +3,7 @@
 token_ds = 'тут токен бота для Discord'
 token_tg = "Токен бота Telegram"
 tokens = {"OWM":'токен для OWM'}
+mongo_url = "mongodb://localhost:27017/"
 
 ```
 На данный момент из них используется только токен для Discord.
