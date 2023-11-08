@@ -40,11 +40,12 @@ import tests
 from private import coreData
 from publicCoreData import cursor
 from publicCoreData import conn
-# from publicCoreData import db
+from publicCoreData import db
+from publicCoreData import collections
 
 
-db = mongo_client = MongoClient(coreData.mongo_url)
-mongo_db = mongo_client[coreData.mongo_db_name]
+# db = MongoClient(coreData.mongo_url)
+# mongo_db = db[coreData.mongo_db_name]
 
 
 whitelist = [609348530498437140, 617243612857761803]
@@ -171,9 +172,13 @@ async def about(ctx, user: discord.Member = None):
         if user is None:
             user = ctx.author
         userid = user.id
+        print(str(user.id) + " ID")
+        print(str(userid) +" uID")
+        print(db.users)
+        result = db.users.find_one({"userid": str(userid)}) #TODO: ошибка, не выводящаяся в колсоль
 
-        result = db.users.find_one({"userid": userid}) #TODO: ошибка, не выводящаяся в колсоль
-
+        #TODO: id теперь строка
+        print("mongo does not give us up")
         async def send_user_info_embed(color, about, age, timezone, karma, luck):
             def convertKarmaToEmoji(karma):
                 if karma < -1:

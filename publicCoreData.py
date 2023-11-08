@@ -26,14 +26,14 @@ data_DB_path = "private/data.db"
 INIT.initDB(data_DB_path)
 conn = sqlite3.connect(data_DB_path)
 cursor = conn.cursor()
-db = mongo_client = MongoClient(coreData.mongo_url)
-mongo_db = mongo_client[coreData.mongo_db_name]
+db = MongoClient(coreData.mongo_url)
+mongo_db = db[coreData.mongo_db_name]
 collections = {"users": db["users"], "servers":db["servers"], "countries":["countries"]}
 
 async def parsePermissionFromUser(id: int, permission: str):
     # await ctx.respond("Проверка...")
     # cursor.execute('SELECT permissions FROM users WHERE userid = ?', (id,))
-    string = db.users.find({"userid": id}, {"permissions": 1})
+    string = db.users.find({"userid": str(id)}, {"permissions": 1})
 
     # string = cursor.fetchone()
 
@@ -55,7 +55,7 @@ async def parsePermissionFromUser(id: int, permission: str):
 
 async def setPermissionForUser(id: int, permission: str, value: bool):
     # cursor.execute('SELECT permissions FROM users WHERE userid = ?', (id,))
-    perms = db.users.find({"userid": id}, {"permissions":1})  # cursor.fetchone()
+    perms = db.users.find({"userid": str(id)}, {"permissions":1})  # cursor.fetchone()
     if perms[0] is None or perms[0] == "":
         dictionary = {permission: value}
     else:
@@ -65,7 +65,7 @@ async def setPermissionForUser(id: int, permission: str, value: bool):
     _dictstr = json.dumps(dictionary)
     # cursor.execute('UPDATE users SET permissions = ? WHERE userid = ?', (_dictstr, id))
     # conn.commit()
-    db.users.update_one({"userid": id}, {"$set": {"permissions": _dictstr}})
+    db.users.update_one({"userid": str(id)}, {"$set": {"permissions": _dictstr}})
 
 
 def insertRoot():
@@ -74,7 +74,7 @@ def insertRoot():
     # cursor = conn.cursor()
     # cursor.execute("UPDATE users SET permissions = ? WHERE userid = ?", ("root:True", 609348530498437140))
     # conn.commit()
-    db.users.update_one({"userid": id}, {"$set": {"permissions": "root:True"}})
+    db.users.update_one({"userid": str(id)}, {"$set": {"permissions": "root:True"}})
     # conn.close()
 
 
@@ -91,10 +91,10 @@ def findServerInDB(ctx):
     ownerid = ctx.guild.owner_id
     serverid = ctx.guild.id
 
-    result = db.servers.find_one({"serverid": serverid})
+    result = db.servers.find_one({"serverid": str(serverid)})
 
     if result is None:
-        db.servers.insert_one({"serverid": serverid, "ownerid": ownerid})
+        db.servers.insert_one({"serverid": str(serverid), "ownerid": str(ownerid)})
         # print(f"Server added: serverID: {serverid}, ownerID: {ownerid}")
         return False
     else:
