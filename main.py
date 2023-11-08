@@ -9,6 +9,8 @@ import aiohttp
 import discord
 # from discord_components import DiscordComponents, Button
 from discord import Option, Webhook
+import pymongo
+from pymongo import MongoClient
 
 # from discord_components import DiscordComponents, Button, ButtonStyle
 
@@ -38,6 +40,12 @@ import tests
 from private import coreData
 from publicCoreData import cursor
 from publicCoreData import conn
+# from publicCoreData import db
+
+
+db = mongo_client = MongoClient(coreData.mongo_url)
+mongo_db = mongo_client[coreData.mongo_db_name]
+
 
 whitelist = [609348530498437140, 617243612857761803]
 token = coreData.token_ds
@@ -74,11 +82,10 @@ async def on_ready():
 
 async def noPermission(ctx, permissions):
     """Вызов сообщения об отсутствии разрешений. Нужен контекст /-команды!"""
-    cursor.execute('SELECT permissions FROM users WHERE userid = ?', (ctx.author.id,))
-    perms = cursor.fetchone()
-    permissions = permissions.replace("|", "или")
-    permissions = permissions.replace("&", "и")
-    permissions = "`"+permissions+"`"
+    result = db.users.find_one({"userid": ctx.author.id}, {"permissions": 1})
+    perms = result["permissions"] if result else None
+    permissions = permissions.replace("|", "или").replace("&", "и")
+    permissions = f"`{permissions}`"
     embed = discord.Embed(title="У Вас нет прав!", description="Нет разрешения!",
                           color=publicCoreData.embedColors["Error"])
     embed.add_field(name="Нет разрешения!", value=f"Вам необходимо(ы) разрешение(я): \n> {permissions}\n<@{ctx.author.id}>\n"
@@ -100,30 +107,24 @@ async def on_command_error(ctx, error):
         await ctx.send(f"Недостаточно прав!")
     # else:
     #     await ctx.send(f'Произошла ошибка при выполнении команды: {error}')
-@bot.slash_command(name="настройки", description="Задать определённую настройку бота")
-async def set_settings(ctx, field : Option(str, description="Поле", required=True, choices=["SQL+commit", "eval", "Таблицы","Баланс"])=0, value : Option(str, description="Значение", required=True)=0, ephemeral : Option(bool, description="Видно ли только вам?", required=False)=False, member : Option(discord.Member, description="Пользователь, на которого влияет команда", required=False)=None):
-    """Натсройки и приколы бота для админов БОТА."""
-    hasPermission=False
+@bot.slash_command(name="настройки-бота", description="Задать определённую настройку бота",guilds=[1019180616731873290, 855045703235928094])
+async def set_settings(ctx, field: Option(str, description="Поле", required=True, choices=["SQL+commit", "eval", "Таблицы", "Баланс"]) = 0, value: Option(str, description="Значение", required=True) = 0, ephemeral: Option(bool, description="Видно ли только вам?", required=False) = False, member: Option(discord.Member, description="Пользователь, на которого влияет команда", required=False) = None):
+    """Настройки и приколы бота для админов БОТА."""
+    hasPermission = False
     hasPermission = await publicCoreData.parsePermissionFromUser(ctx.author.id, "root")
     if member is None:
         member = ctx.author
-    if hasPermission==True:
-        embed = discord.Embed(title="В разработке...", description="Вам необходимо разрешение root для использования.",
-                              color=publicCoreData.embedColors["Warp"])
+    if hasPermission == True:
+        embed = discord.Embed(title="В разработке...", description="Вам необходимо разрешение root для использования.", color=publicCoreData.embedColors["Warp"])
         if field == "SQL+commit":
-            cursor.execute(value)
-            conn.commit()
-            embed = discord.Embed(title="Запрос выполнен!", description=f"Запрос: {value}",
-                                  color=publicCoreData.embedColors["Success"])
+            # cursor.execute(value)
+            # conn.commit()
+            embed = discord.Embed(title="Не поддерживается!", description=f"БАЗА ДАННЫХ ПЕРЕЕЗЖАЕТ НА MONGODB! Запрос: {value}", color=publicCoreData.embedColors["Exception"])
         elif field == "eval":
             eval(value)
-            embed = discord.Embed(title="Код выполнен!", description=f"Код: {value}",
-                                  color=publicCoreData.embedColors["Success"])
+            embed = discord.Embed(title="Код выполнен!", description=f"Код: {value}", color=publicCoreData.embedColors["Success"])
         elif field == "Таблицы":
-            embed = discord.Embed(title="Таблицы получены!", description=f"Запросы: \n=====\n\n{dbClone.getSQLs(False)}",
-                                  color=publicCoreData.embedColors["Success"])
-
-
+            embed = discord.Embed(title="Таблицы получены!", description=f"БАЗА ДАННЫХ ПЕРЕЕЗЖАЕТ НА MONGODB! Запросы: \n=====\n\n{dbClone.getSQLs(False)}", color=publicCoreData.embedColors["Exception"])
 
         await ctx.respond(embed=embed, ephemeral=ephemeral)
     else:
@@ -142,24 +143,13 @@ async def sendMsg(ctx, *, args):
     await ctx.message.delete()
 
 
-@bot.command(aliases=["hlp", "хелп", "помощь", "commands", "команды"])
-async def sendHelp(ctx):
-    await ctx.send('''Preffix: .
-ping - sends pong
-rand, ранд, r, р, rnd, рнд, random, рандом - sends a random integer. Arguments: a b
 
-<@1126887522690142359> by @minemaster_''')
 
 
 @bot.slash_command(description="Список команд.", name="хелп")  # guilds=[1076117733428711434]
 async def help(ctx):
     await ctx.respond(
-        f"Чел, используй /-команды\nА если невтерпёж то вот список:\nhelp, sendHelp, hlp, хелп, помощь, commands, команды\n"
-        f"sendMsg, me, я, >"
-        f"\nrand, ранд, r, р, rnd, рнд, random, рандом, random_int"
-        f"\nping"
-        f"\nВсё с преффиксом ."
-        f"\nВ дальнейшем этот список может быть расширен, но всё же приоритетнее разработка /-комманд. Из их минусов - их долгая индексация и ввод в замен на простоту использования."
+        f"Тут должен быть нормальный help"
         )
 
 
@@ -181,8 +171,8 @@ async def about(ctx, user: discord.Member = None):
         if user is None:
             user = ctx.author
         userid = user.id
-        cursor.execute("SELECT * FROM users WHERE userid = ?", (userid,))
-        result = cursor.fetchone()
+
+        result = db.users.find_one({"userid": userid}) #TODO: ошибка, не выводящаяся в колсоль
 
         async def send_user_info_embed(color, about, age, timezone, karma, luck):
             def convertKarmaToEmoji(karma):
@@ -231,20 +221,18 @@ async def about(ctx, user: discord.Member = None):
 
 
 
-            clr = "#5865F2" if result[5] is None else result[5]
-            abt = "Задать поле 'О себе' можно командой `.редактировать осебе`" if result[2] is None else result[2]
+            clr = "#5865F2" if result["color"] is None else result["color"]
+            abt = "Задать поле 'О себе' можно командой `!!редактировать осебе`" if result["about"] is None else result["about"]
             tmz = "UTC+?. Задать часовой пояс можно командой `.редактировать часовойпояс`. Укажите свой часовой пояс относительно Гринвича." if \
-            result[4] is None else str(result[4])
-            age = "Задать поле 'Возраст' можно командой `.редактировать возраст`\nПожалуйста, ставьте только свой реальный возраст, не смотря на то, сколько вам лет." if \
-            result[3] is None else str(result[3])
-            karma = result[6]
-            luck = result[7]
+            result["timezone"] is None else str(result["timezone"])
+            age = "Задать поле 'Возраст' можно командой `!!редактировать возраст`\nПожалуйста, ставьте только свой реальный возраст, не смотря на то, сколько вам лет." if \
+            result["age"] is None else str(result["age"])
+            karma = result["karma"]
+            luck = result["luck"]
             await send_user_info_embed(clr, abt, age, tmz, karma, luck)
         else:
             await ctx.send("Запись о пользователе не найдена. Добавление...")
-            # cursor.execute("INSERT INTO users (userid, username) VALUES (?, ?)", (userid, user.name))
-            # conn.commit()
-            publicCoreData.writeUserToDB(user)
+            publicCoreData.writeUserToDB(user.id, user.name)
 
             await send_user_info_embed("#5865F2", "Задать поле 'О себе' можно командой .редактировать осебе",
                                        "Задать поле 'Возраст' можно командой `.редактировать возраст`\nПожалуйста, ставьте только свой реальный возраст, не смотря на то, сколько вам лет.",
@@ -315,29 +303,6 @@ async def keyboard_layout_switcher(ctx, text):
     await ctx.respond(result, ephemeral=True)
 
 
-
-
-
-
-
-
-# @bot.slash_command(name="метка-времени", description="Конвертирует дату, время и часовой пояс в метку времени")
-# async def time(ctx, year: Option(int, description="Год для даты", required=False) = 1970,
-#                month: Option(int, description="Номер месяца года", required=False) = 1,
-#                day: Option(int, description="Номер дня месяца", required=False) = 1,
-#                hour: Option(int, description="Час дня", required=False) = 0,
-#                minute: Option(int, description="Минута часа", required=False) = 0,
-#                second: Option(int, description="Секунда минуты", required=False) = 0,
-#                timezone: Option(int, description="Временная зона GMT+n", required=False) = 0,
-#                mode: Option(str, description="Тип отображения", choices=("R — Оставшееся время",
-#                                                                          "d — Короткая запись даты только цифрами",
-#                                                                          "D — Дата с подписью месяца словом",
-#                                                                          "f — Дата и время",
-#                                                                          "F — Полные день недели, дата и время",
-#                                                                          "t — Часы и минуты",
-#                                                                          "T — Часы, минуты и секунды"),
-#                             required=False) = "R"):
-#     await ctx.respond(makeDSTimestamp(year, month, day, hour, minute, second, timezone, mode))
 
 
 

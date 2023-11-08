@@ -2,8 +2,11 @@ import json
 import sqlite3
 
 import discord
+import pymongo
+from pymongo import MongoClient
 
 import INIT
+from private import coreData
 
 # from discord.app_commands import commands
 
@@ -13,7 +16,8 @@ embedColors = {"Error": 0xf03255, "Exception": 0xff2f00, "Success": 0x29ff4d, "W
                "Neutral": discord.Color.blue(), "Economy": 0xffcc12}
 WPG_whitelist = [609348530498437140]
 permission_root_whitelist = [609348530498437140, 617243612857761803]
-preffix = "!!"
+# preffix = "!!"
+preffix = ".!!" #TODO: SET IF BETA
 currency = "<:catalist:1076130269867819099>"
 infectionRolesID = [1151515080219967498, 1135925890182807552, 1152163431869329468]
 apocalypseDLC = "Самый странный апокалипсис⁶™"
@@ -22,11 +26,16 @@ data_DB_path = "private/data.db"
 INIT.initDB(data_DB_path)
 conn = sqlite3.connect(data_DB_path)
 cursor = conn.cursor()
+db = mongo_client = MongoClient(coreData.mongo_url)
+mongo_db = mongo_client[coreData.mongo_db_name]
+collections = {"users": db["users"], "servers":db["servers"], "countries":["countries"]}
 
 async def parsePermissionFromUser(id: int, permission: str):
     # await ctx.respond("Проверка...")
-    cursor.execute('SELECT permissions FROM users WHERE userid = ?', (id,))
-    string = cursor.fetchone()
+    # cursor.execute('SELECT permissions FROM users WHERE userid = ?', (id,))
+    string = db.users.find({"userid": id}, {"permissions": 1})
+
+    # string = cursor.fetchone()
 
     if string[0] is None or string[0] == "":
         # await ctx.respond("None")
@@ -45,8 +54,8 @@ async def parsePermissionFromUser(id: int, permission: str):
 
 
 async def setPermissionForUser(id: int, permission: str, value: bool):
-    cursor.execute('SELECT permissions FROM users WHERE userid = ?', (id,))
-    perms = cursor.fetchone()
+    # cursor.execute('SELECT permissions FROM users WHERE userid = ?', (id,))
+    perms = db.users.find({"userid": id}, {"permissions":1})  # cursor.fetchone()
     if perms[0] is None or perms[0] == "":
         dictionary = {permission: value}
     else:
@@ -54,48 +63,45 @@ async def setPermissionForUser(id: int, permission: str, value: bool):
 
         dictionary[permission] = value
     _dictstr = json.dumps(dictionary)
-    cursor.execute('UPDATE users SET permissions = ? WHERE userid = ?', (_dictstr, id))
-    conn.commit()
+    # cursor.execute('UPDATE users SET permissions = ? WHERE userid = ?', (_dictstr, id))
+    # conn.commit()
+    db.users.update_one({"userid": id}, {"$set": {"permissions": _dictstr}})
 
 
 def insertRoot():
     # import sqlite3
     # conn = sqlite3.connect('data.db')
     # cursor = conn.cursor()
-    cursor.execute("UPDATE users SET permissions = ? WHERE userid = ?", ("root:True", 609348530498437140))
-    conn.commit()
+    # cursor.execute("UPDATE users SET permissions = ? WHERE userid = ?", ("root:True", 609348530498437140))
+    # conn.commit()
+    db.users.update_one({"userid": id}, {"$set": {"permissions": "root:True"}})
     # conn.close()
-
-
-
-
 
 
 # def writeUserToDB(user):
 #     cursor.execute("INSERT INTO users (userid, username) VALUES (?, ?)", (user.id, user.name))
 #     conn.commit()
 def writeUserToDB(id: int, name: str):
-    cursor.execute("INSERT INTO users (userid, username) VALUES (?, ?)", (id, name))
-    conn.commit()
+    # cursor.execute("INSERT INTO users (userid, username) VALUES (?, ?)", (id, name))
+    # conn.commit()
+    db.users.insert_one({"userid":id, "username":name})
 
 
 def findServerInDB(ctx):
     ownerid = ctx.guild.owner_id
     serverid = ctx.guild.id
 
-    cursor.execute("SELECT * FROM servers WHERE serverid=?", (serverid,))
-    result = cursor.fetchone()
+    result = db.servers.find_one({"serverid": serverid})
 
     if result is None:
-        cursor.execute("INSERT INTO servers (serverid, ownerid) VALUES (?, ?)", (serverid, ownerid))
-        print(f"Server added: serverID: {serverid}, ownerID: {ownerid}")
-        conn.commit()
+        db.servers.insert_one({"serverid": serverid, "ownerid": ownerid})
+        # print(f"Server added: serverID: {serverid}, ownerID: {ownerid}")
         return False
     else:
         return True
 
 
-def initTables():
+def initTables(): #SQL ONLY!!!
     cursor.execute('''CREATE IF NOT EXISTS TABLE countries (
     userid         INTEGER,
     countryname    TEXT,
