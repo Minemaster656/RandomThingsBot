@@ -175,7 +175,7 @@ async def about(ctx, user: discord.Member = None):
         print(str(user.id) + " ID")
         print(str(userid) +" uID")
         print(db.users)
-        result = db.users.find_one({"userid": str(userid)}) #TODO: ошибка, не выводящаяся в колсоль
+        result = db.users.find({"userid": str(userid)})[0] #TODO: ошибка, не выводящаяся в колсоль
 
         #TODO: id теперь строка
         print("mongo does not give us up")
