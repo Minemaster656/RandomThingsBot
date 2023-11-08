@@ -10,6 +10,8 @@ from private import coreData
 
 # from discord.app_commands import commands
 
+secret_guilds = []
+
 webhook_avatar_url = "https://images-ext-2.discordapp.net/external/-1-6AJKBQh38RYGz6D3j-IgURlKEfFifX5LeJ8h-TBw/%3Fsize%3D4096/https/cdn.discordapp.com/avatars/1126887522690142359/0767783560eee507f86c95a4b09f120a.png?width=437&height=437"
 permissions_user = ["root", "edit_characters", "say_as_bot", "edit_permissions", "---"]
 embedColors = {"Error": 0xf03255, "Exception": 0xff2f00, "Success": 0x29ff4d, "Warp": 0x00b3ff,
@@ -26,36 +28,33 @@ data_DB_path = "private/data.db"
 INIT.initDB(data_DB_path)
 conn = sqlite3.connect(data_DB_path)
 cursor = conn.cursor()
-db = MongoClient(coreData.mongo_url)
-mongo_db = db[coreData.mongo_db_name]
+client  = MongoClient(coreData.mongo_url)
+db = client [coreData.mongo_db_name]
 collections = {"users": db["users"], "servers":db["servers"], "countries":["countries"]}
 
 async def parsePermissionFromUser(id: int, permission: str):
-    # await ctx.respond("Проверка...")
-    # cursor.execute('SELECT permissions FROM users WHERE userid = ?', (id,))
-    string = db.users.find({"userid": str(id)}, {"permissions": 1})
 
-    # string = cursor.fetchone()
+    string = db.users.find({"userid": str(id)}, {"permissions": 1})[0]
 
-    if string[0] is None or string[0] == "":
-        # await ctx.respond("None")
+
+
+    if string is None or string == "":
+
         return False
     else:
-        dictitonary = json.loads(string[0])
+        dictitonary = json.loads(string["permissions"])
         if permission in dictitonary:
             return dictitonary[permission]
         else:
             return False
 
-    # if f"{permission}:True" in string:
-    #     # await ctx.respond(f"{permission}:True")
-    #     return True
+
     return False
 
 
 async def setPermissionForUser(id: int, permission: str, value: bool):
     # cursor.execute('SELECT permissions FROM users WHERE userid = ?', (id,))
-    perms = db.users.find({"userid": str(id)}, {"permissions":1})  # cursor.fetchone()
+    perms = db.users.find({"userid": str(id)}, {"permissions":1})[0]  # cursor.fetchone()
     if perms[0] is None or perms[0] == "":
         dictionary = {permission: value}
     else:
@@ -68,7 +67,7 @@ async def setPermissionForUser(id: int, permission: str, value: bool):
     db.users.update_one({"userid": str(id)}, {"$set": {"permissions": _dictstr}})
 
 
-def insertRoot():
+def insertRoot(id):
     # import sqlite3
     # conn = sqlite3.connect('data.db')
     # cursor = conn.cursor()
@@ -84,14 +83,14 @@ def insertRoot():
 def writeUserToDB(id: int, name: str):
     # cursor.execute("INSERT INTO users (userid, username) VALUES (?, ?)", (id, name))
     # conn.commit()
-    db.users.insert_one({"userid":id, "username":name})
+    db.users.insert_one({"userid":str(id), "username":name})
 
 
 def findServerInDB(ctx):
     ownerid = ctx.guild.owner_id
     serverid = ctx.guild.id
 
-    result = db.servers.find_one({"serverid": str(serverid)})
+    result = db.servers.find_one({"serverid": str(serverid)})[0]
 
     if result is None:
         db.servers.insert_one({"serverid": str(serverid), "ownerid": str(ownerid)})

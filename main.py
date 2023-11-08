@@ -133,6 +133,9 @@ async def set_settings(ctx, field: Option(str, description="Поле", required=
 
 
 
+
+
+
 @bot.command(aliases=['me', 'я', '>'])
 async def sendMsg(ctx, *, args):
     """Отправка сообщения от лица бота."""
@@ -172,13 +175,11 @@ async def about(ctx, user: discord.Member = None):
         if user is None:
             user = ctx.author
         userid = user.id
-        print(str(user.id) + " ID")
-        print(str(userid) +" uID")
-        print(db.users)
-        result = db.users.find({"userid": str(userid)})[0] #TODO: ошибка, не выводящаяся в колсоль
+
+        result = db.users.find({"userid": str(userid)})[0]
 
         #TODO: id теперь строка
-        print("mongo does not give us up")
+
         async def send_user_info_embed(color, about, age, timezone, karma, luck):
             def convertKarmaToEmoji(karma):
                 if karma < -1:
@@ -247,16 +248,13 @@ async def about(ctx, user: discord.Member = None):
 @bot.command(aliases=["редактировать"])
 async def edit(ctx, field, value):
     if field == "осебе":
-        cursor.execute("UPDATE users SET about = ? WHERE userid = ?", (value, ctx.author.id))
-        conn.commit()
+        db.users.update_one({"userid": str(ctx.author.id)}, {"$set": {"about": value}})
         await ctx.reply("**Строка** `осебе` (.осебе) изменена!")
     elif field == "возраст":
-        cursor.execute("UPDATE users SET age = ? WHERE userid = ?", (int(value), ctx.author.id))
-        conn.commit()
+        db.users.update_one({"userid": str(ctx.author.id)}, {"$set": {"age": int(value)}})
         await ctx.reply("**Число** `возраст` (.осебе) изменено!")
     elif field == "часовойпояс":
-        cursor.execute("UPDATE users SET timezone = ? WHERE userid = ?", (int(value), ctx.author.id))
-        conn.commit()
+        db.users.update_one({"userid": str(ctx.author.id)}, {"$set": {"timezone": int(value)}})
         await ctx.reply("**Число** `часовойпояс` (.осебе) изменено!")
     else:
         ctx.reply("Допустимые параметры:\n"
@@ -401,83 +399,30 @@ async def on_message(message):
 #        await commands[message.content.lower()](message)
 @bot.slash_command(name="отправить-жалобу-на-пользователя",description="Отправить жалобу на пользователя")
 async def report(ctx):
-    ...
+    await ctx.respond("Жалобы не принимаются, эта фича ещё в разработке ;(")
 
 @bot.command(aliases=["код-от-ядерки"])
 async def getNukeCode(ctx):
     await ctx.send(f"Одноразовый код от ядерки: ``nuke_{utils.hashgen(16)}::ot#FF#j#EX``")
 
-@bot.event
-async def on_member_join(member):
-    guild = member.guild
-    community_updates_channel_id = guild.system_channel.id
-    community_updates_channel = guild.get_channel(community_updates_channel_id)
-    cursor.execute("SELECT reports FROM users WHERE id = ?", (member.id, ))
-    dt = cursor.fetchone()
-    if dt is not None and dt != "":
-        data = utils.load_report_from_json(dt[0])
-        if len(data)>0:
-            await community_updates_channel.send(f"На пользователя {member.name} аж {len(data)} жалоб!")
 
-    # # Ваш код обработки захода нового участника на сервер
-    # # Например, отправка приветственного сообщения или присвоение роли
-    #
-    # # Пример отправки приветственного сообщения в канал приветствия
-    # welcome_channel = bot.get_channel(1234567890)  # Замените на ID вашего канала приветствия
-    # await welcome_channel.send(f"Добро пожаловать, {member.mention}! Надеемся, вам понравится наш сервер!")
-    #
-    # # Пример присвоения роли новому участнику
-    # role = discord.utils.get(member.guild.roles, name="Новичок")  # Замените на имя вашей роли
-    # await member.add_roles(role)
+#TODO: обработчик захода на сервер
 
-# class ctx():
-#     def __init__(self, channel):
-#         self.channel = channel
-async def loop():
-    while True:
-        cursor.execute("SELECT apocalypseChannelHook FROM servers")
-        urls = cursor.fetchall()
-        print("Loop tick")
+# @bot.event
+# async def on_member_join(member):
+#     guild = member.guild
+#     community_updates_channel_id = guild.system_channel.id
+#     community_updates_channel = guild.get_channel(community_updates_channel_id)
+#     cursor.execute("SELECT reports FROM users WHERE id = ?", (member.id, ))
+#     dt = cursor.fetchone()
+#     if dt is not None and dt != "":
+#         data = utils.load_report_from_json(dt[0])
+#         if len(data)>0:
+#             await community_updates_channel.send(f"На пользователя {member.name} аж {len(data)} жалоб!")
 
 
 
 
-
-
-
-        for hook_url in urls:
-            url = hook_url[0]  # Извлечение значения из кортежа
-            try:
-                if url is not None:
-                    async with aiohttp.ClientSession() as session:
-                        webhook = Webhook.from_url(str(url), session=session)
-                        await webhook.send('Hello World', username='Foo')
-            except:
-                print(f"Hook {url} not found!")
-            # channel = bot.get_channel(channel_id)
-            # avatar_url = str(
-            #     "https://images-ext-2.discordapp.net/external/-1-6AJKBQh38RYGz6D3j-IgURlKEfFifX5LeJ8h-TBw/%3Fsize%3D4096/https/cdn.discordapp.com/avatars/1126887522690142359/0767783560eee507f86c95a4b09f120a.png?width=437&height=437")  # str(self.bot.user.avatar_url)  # ссылка на аватар бота
-            # webhook_name = str("RTBot's webhook")
-            # # channel = ctx.channel
-            # channel = discord.utils.get(bot.get_all_channels(), id=channel_id)
-            # webhooks = await channel.webhooks()
-            # webhook = discord.utils.get(webhooks, name=webhook_name)
-            # if webhook is None:
-            #     avatar_bytes = requests.get(avatar_url).content
-            #     webhook = await channel.create_webhook(name=str(webhook_name), avatar=avatar_bytes)
-
-            # if channel:
-                # webhook = await channel.create_webhook(name="Bot's hook")
-                # await webhook.send("Привет, я бот!")
-                # utils.sendMessageWithhook()
-            # else:
-            #     print(f"Канал с id {channel_id} не найден.")
-        await asyncio.sleep(1)
-
-async def loopRunner():
-    # loopTask = asyncio.create_task(loop())
-    # await loopTask
-    ...
 async def statusLoop():
     global loopCounter
     await asyncio.sleep(120)
@@ -513,7 +458,7 @@ bot.add_cog(ServerCore.ServerCore(bot))
 bot.add_cog(_AI_Stuff._AI_Stuff(bot))
 # bot.add_cog(paginator.PageTest(bot))
 # asyncio.run(loop())
-asyncio.run(loopRunner())
+
 # loop_thread = Thread(target=loopRunner())
 # loop_thread.start()
 

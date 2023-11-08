@@ -8,6 +8,7 @@ from discord import Option
 from random import *
 
 import publicCoreData
+from publicCoreData import db
 import utils
 from publicCoreData import cursor
 from publicCoreData import conn
@@ -23,16 +24,18 @@ class Economy(commands.Cog):
         with ctx.typing():
             if member is None:
                 member = ctx.author
-            cursor.execute('SELECT money, money_bank FROM users WHERE userid = ?',(member.id, ))
-            data = cursor.fetchone()
+
+            data = db.users.find_one({"userid":str(member.id)})
             if not data:
                 publicCoreData.writeUserToDB(member.id, member.name)
-            data = (0,0)
+                data['money'] = 0
+                data['money_bank'] = 0
+            # data = (0,0)
 
             embed = discord.Embed(title="Баланс",description=f"Баланс пользователя <@{member.id}>:"
                                                              , colour=publicCoreData.embedColors["Economy"])
-            embed.add_field(name="Баланс на руках", value=f"{data[0]}")
-            embed.add_field(name="Баланс в банке",value=f"{data[1]}")
+            embed.add_field(name="Баланс на руках", value=f"{data['money']}")
+            embed.add_field(name="Баланс в банке",value=f"{data['money_bank']}")
 
             await ctx.respond(embed=embed)
     @commands.slash_command(name="заработок",description="Информация о заработке")
@@ -49,23 +52,24 @@ class Economy(commands.Cog):
     async def findMoney(self, ctx):
 
         rand = rd.randint(1, utils.throwDice(ctx.author.id, ctx.author.name))
-        cursor.execute(f"UPDATE users SET money = money + ? WHERE userid = ?", (rand, ctx.author.id))
-        conn.commit()
+
+        db.users.update_one({"userid": str(ctx.author.id)}, {"$inc": {"field": rand}})
         await ctx.send(f"Получено **{rand}{publicCoreData.currency}**")
-    @commands.slash_command(name="лидеры",description="Лидеры экономики")
+
+    @commands.slash_command(name="лидеры", description="Лидеры экономики")
     async def ec_leaders(self, ctx):
         leaderCount = 10
-        cursor.execute("SELECT username, money, money_bank, money + money_bank AS sum FROM users ORDER BY sum DESC LIMIT 10")
-        result = cursor.fetchall()
+        result = db.users.find().sort([("money", -1), ("money_bank", -1)]).limit(leaderCount)
         out = ""
         it = 0
         # Вывод результатов
-        embed = discord.Embed(title="Лидеры экономики", description="Топ-", colour=publicCoreData.embedColors["Economy"])
+        embed = discord.Embed(title="Лидеры экономики", description="Топ-",
+                              colour=publicCoreData.embedColors["Economy"])
         for row in result:
-            # out +=f"`{it}`. @{row[0]} {row[1]}{publicCoreData.currency}💰 + {row[2]}{publicCoreData.currency}🏦. И того {row[1]+row[2]}{publicCoreData.currency}\n"
-            embed.add_field(name=f"`{it}`. @{row[0]}",value=f""
-                                                            f"{row[1]+row[2]}{publicCoreData.currency}",inline=False)
-            it+=1
+            # out +=f"`{it}`. @{row[0]} {row[1]}{publicCoreData.currency}:moneybag: + {row[2]}{publicCoreData.currency}:bank:. И того {row[1]+row[2]}{publicCoreData.currency}\n"
+            embed.add_field(name=f"`{it}`. @{row['username']}",
+                            value=f"{row['money'] + row['money_bank']}{publicCoreData.currency}", inline=False)
+            it += 1
 
         await ctx.respond(embed=embed)
 
