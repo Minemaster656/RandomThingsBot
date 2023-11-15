@@ -12,7 +12,7 @@ from random import *
 
 import Apocalypse
 import publicCoreData
-from publicCoreData import cursor, conn
+from publicCoreData import db
 import re
 
 import utils
@@ -40,29 +40,29 @@ class BotCog(commands.Cog):
         #
         # saveList(list[0])
         # apocalypse = Apocalypse.Apocalypse(commands.Bot)
-        cursor.execute(
-            "SELECT apocalypseChannelHook, apocalypseLastSendDay, serverid, isThread, apocalypseChannel FROM servers")
-        urls = cursor.fetchall()
+        # list = Apocalypse.genApocalypseItems()
 
-        # print("Loop tick")
+        urls = db.servers.find({},
+                               {"apocalypseChannelHook": 1, "apocalypseLastSendDay": 1, "serverid": 1, "isAPchannelThread": 1,
+                                "apocalypseChannel": 1})
 
         for hook_url in urls:
-            url = hook_url[0]  # Извлечение значения из кортежа
-            date = hook_url[1]
-            if hook_url[0] is not None and hook_url[1] is not None and hook_url[2] is not None and hook_url[
-                3] is not None and hook_url[4] is not None:
+            url = hook_url["apocalypseChannelHook"]
+            date = hook_url["apocalypseLastSendDay"]
+            if url is not None and date is not None and hook_url["serverid"] is not None and hook_url[
+                "isAPchannelThread"] is not None and hook_url["apocalypseChannel"] is not None:
                 if date < utils.get_current_day():
                     try:
                         if url is not None:
-                            cursor.execute("UPDATE servers SET apocalypseLastSendDay = ? WHERE serverid = ?",
-                                           (utils.get_current_day(), hook_url[2]))
-                            conn.commit()
+                            db.servers.update_one({"serverid": hook_url["serverid"]},
+                                                  {"$set": {"apocalypseLastSendDay": utils.get_current_day()}})
                             async with aiohttp.ClientSession() as session:
                                 webhook = Webhook.from_url(str(url), session=session)
 
-                                if hook_url[3]:
+                                if hook_url["isThread"]:
                                     await webhook.send(list[0], username=publicCoreData.hook_names["apocalypse"],
-                                                       embed=list[1], thread=discord.Object(hook_url[4]))
+                                                       embed=list[1],
+                                                       thread=discord.Object(hook_url["apocalypseChannel"]))
                                 else:
                                     await webhook.send(list[0], username=publicCoreData.hook_names["apocalypse"],
                                                        embed=list[1])
