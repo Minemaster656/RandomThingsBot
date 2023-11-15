@@ -19,7 +19,7 @@ embedColors = {"Error": 0xf03255, "Exception": 0xff2f00, "Success": 0x29ff4d, "W
 WPG_whitelist = [609348530498437140]
 permission_root_whitelist = [609348530498437140, 617243612857761803]
 # preffix = "!!"
-preffix = ".!!" #TODO: SET IF BETA
+preffix = ".!!"  # TODO: SET IF BETA
 currency = "<:catalist:1076130269867819099>"
 infectionRolesID = [1151515080219967498, 1135925890182807552, 1152163431869329468]
 apocalypseDLC = "Самый странный апокалипсис⁶™"
@@ -28,15 +28,13 @@ data_DB_path = "private/data.db"
 INIT.initDB(data_DB_path)
 conn = sqlite3.connect(data_DB_path)
 cursor = conn.cursor()
-client  = MongoClient(coreData.mongo_url)
-db = client [coreData.mongo_db_name]
-collections = {"users": db["users"], "servers":db["servers"], "countries":["countries"]}
+client = MongoClient(coreData.mongo_url)
+db = client[coreData.mongo_db_name]
+collections = {"users": db["users"], "servers": db["servers"], "countries": ["countries"]}
+
 
 async def parsePermissionFromUser(id: int, permission: str):
-
-    string = db.users.find({"userid": str(id)}, {"permissions": 1})[0]
-
-
+    string = db.users.find({"userid": id}, {"permissions": 1})[0]
 
     if string is None or string == "":
 
@@ -48,13 +46,12 @@ async def parsePermissionFromUser(id: int, permission: str):
         else:
             return False
 
-
     return False
 
 
 async def setPermissionForUser(id: int, permission: str, value: bool):
     # cursor.execute('SELECT permissions FROM users WHERE userid = ?', (id,))
-    perms = db.users.find({"userid": str(id)}, {"permissions":1})[0]  # cursor.fetchone()
+    perms = db.users.find({"userid": id}, {"permissions": 1})[0]  # cursor.fetchone()
     if perms[0] is None or perms[0] == "":
         dictionary = {permission: value}
     else:
@@ -64,7 +61,7 @@ async def setPermissionForUser(id: int, permission: str, value: bool):
     _dictstr = json.dumps(dictionary)
     # cursor.execute('UPDATE users SET permissions = ? WHERE userid = ?', (_dictstr, id))
     # conn.commit()
-    db.users.update_one({"userid": str(id)}, {"$set": {"permissions": _dictstr}})
+    db.users.update_one({"userid": id}, {"$set": {"permissions": _dictstr}})
 
 
 def insertRoot(id):
@@ -73,7 +70,7 @@ def insertRoot(id):
     # cursor = conn.cursor()
     # cursor.execute("UPDATE users SET permissions = ? WHERE userid = ?", ("root:True", 609348530498437140))
     # conn.commit()
-    db.users.update_one({"userid": str(id)}, {"$set": {"permissions": "root:True"}})
+    db.users.update_one({"userid": id}, {"$set": {"permissions": "root:True"}})
     # conn.close()
 
 
@@ -83,24 +80,48 @@ def insertRoot(id):
 def writeUserToDB(id: int, name: str):
     # cursor.execute("INSERT INTO users (userid, username) VALUES (?, ?)", (id, name))
     # conn.commit()
-    db.users.insert_one({"userid":str(id), "username":name})
+    db.users.insert_one({"userid": id, "username": name, "about": None, "age": None,
+                         "timezone": None,
+                         "color": None,
+
+                         "karma": 0,
+                         "luck":
+                             0,
+                         "permissions": None,
+                         "money":
+                             0,
+                         "money_bank":
+                             0})
 
 
 def findServerInDB(ctx):
     ownerid = ctx.guild.owner_id
     serverid = ctx.guild.id
 
-    result = db.servers.find_one({"serverid": str(serverid)})[0]
+    result = db.servers.find_one({"serverid": serverid})[0]
 
     if result is None:
-        db.servers.insert_one({"serverid": str(serverid), "ownerid": str(ownerid)})
+        db.servers.insert_one({"serverid": serverid, "ownerid": ownerid, "bumpcolor": None,
+                               "bumptext": None,
+                               "invitelink": None,
+                               "apocalypseChannel": None,
+
+                               "apocalypseChannelHook": None,
+
+                               "apocalypseLastSendDay": None,
+
+                               "parentID": None,
+
+                               "autoPublish": True,
+
+                               "isAPchannelThread": True})
         # print(f"Server added: serverID: {serverid}, ownerID: {ownerid}")
         return False
     else:
         return True
 
 
-def initTables(): #SQL ONLY!!!
+def initTables():  # SQL ONLY!!!
     cursor.execute('''CREATE IF NOT EXISTS TABLE countries (
     userid         INTEGER,
     countryname    TEXT,

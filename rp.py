@@ -10,8 +10,8 @@ import sqlite3
 
 import publicCoreData
 import utils
-from publicCoreData import cursor
-from publicCoreData import conn
+
+from publicCoreData import db
 from PIL import Image, ImageFilter, ImageDraw, ImageOps
 
 
@@ -20,43 +20,36 @@ from PIL import Image, ImageFilter, ImageDraw, ImageOps
 
 
 class RP(commands.Cog):
-    # choicesEditWPG = []
-    cursor.execute('SELECT id FROM countries')
 
-    # Получение всех значений из результата запроса
-    result = cursor.fetchall()
+    result = db.countries.find({}, {"id": 1})  # Получение всех значений из коллекции "countries"
+    choicesEditWPG = [str(value["id"]) for value in
+                      result]  # Преобразование значений в формат, который можно передать в choices аргумент
 
-    # Преобразование значений в формат, который можно передать в `choices` аргумент
-    choicesEditWPG = [str(value[0]) for value in result]
+
     def __init__(self, bot):
         self.bot = bot
 
-
-
-    @commands.slash_command(name="двадцатигранник",description="Бросить двадцатигранник удачи")
-    async def dice(self, ctx, user:Option(discord.Member, description="Пользователь, от имени которого идёт бросок", required=False)= None):
+    @commands.slash_command(name="двадцатигранник", description="Бросить двадцатигранник удачи")
+    async def dice(self, ctx, user: Option(discord.Member, description="Пользователь, от имени которого идёт бросок",
+                                           required=False) = None):
         author = user if user else ctx.author
-        cursor.execute("SELECT karma, luck FROM users WHERE userid = ?", (author.id,))
-        result = cursor.fetchone()
-        if result:
-            karma = result[0]
-            luck = result[1]
+        user_data = db.users.find_one({"userid": author.id})
+        if user_data:
+            karma = user_data.get("karma", 0)
+            luck = user_data.get("luck", 0)
         else:
-            publicCoreData.writeUserToDB(user)
+            db.users.insert_one({"userid": author.id, "karma": 0, "luck": 0})
             karma = 0
             luck = 0
 
-
-
         def makeThrow():
             def genRandom():
-                o = randint(1, 20)+luck
+                o = randint(1, 20) + luck
                 if o > 20:
-                    o=20
+                    o = 20
                 if o < 1:
-                    o=1
+                    o = 1
                 return o
-
 
             out = genRandom()
 
@@ -65,7 +58,6 @@ class RP(commands.Cog):
             if karma > 1 and out < 10:
                 out = genRandom()
             return out
-
 
         await ctx.respond(f"На двадцатиграннике выпало {makeThrow()}")
 
@@ -90,8 +82,18 @@ class RP(commands.Cog):
                     user = ctx.author
                 await ctx.respond(f"Запись страны {country_name}...")
                 userid = user.id
-                cursor.execute("INSERT INTO countries (userid, countryname, government, ideology, currency, about, flagURL, extraSymbols, ownerdata, id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (userid, country_name, government, ideology, currency, about, flag_url, other_symbols, ownerdata, id))
-                conn.commit()
+                db.countries.insert_one({
+                    "userid": userid,
+                    "countryname": country_name,
+                    "government": government,
+                    "ideology": ideology,
+                    "currency": currency,
+                    "about": about,
+                    "flagURL": flag_url,
+                    "extraSymbols": other_symbols,
+                    "ownerdata": ownerdata,
+                    "id": id
+                })
 
                 await ctx.respond(f"Страна {country_name} пользователя <@{userid}> записана с ID {id}!")
             else:
@@ -106,8 +108,7 @@ class RP(commands.Cog):
                       ):
         with ctx.typing():
             if ctx.author.id in publicCoreData.WPG_whitelist:
-                cursor.execute("DELETE FROM countries WHERE id = ?", (id, ))
-
+                db.countries.delete_one({"id": id})
                 await ctx.respond(f"Страна {id} удалена!")
             else:
                 whitelisted_user_name = " "
@@ -147,8 +148,7 @@ class RP(commands.Cog):
                 elif field == "индекс технологий":column="tech_index"
                 elif field == "еда":column="food"
                 elif field == "материалы":column="materials"
-                cursor.execute(f"UPDATE countries SET {column} = {column} + ? WHERE id = ?", (value, id))
-                conn.commit()
+                db.countries.update_one({"id": id}, {"$inc": {column: value}})
                 await ctx.respond(f"Значение ``{field}`` у государства ``{id}`` изменено на {value} едениц(у/ы).", ephemeral=ephemeral)
 
 
@@ -163,21 +163,18 @@ class RP(commands.Cog):
     async def WPG_stats(self, ctx, id : Option(str, description="ID государства. Не вводите для списка",choices=choisesWPGButWithList, required=False)="list", size : Option(int, description="Масштабирование", required=False, choices=[1, 2, 3, 4, 5])=1, ephemeral : Option(bool, description="Видно лишь вам или нет", required=False)=False):
         with ctx.typing():
 
-
-
             if id == "list":
-                # Выполнение запроса
-                cursor.execute('SELECT userid, id, countryname FROM countries')
-
                 # Получение результатов
-                results = cursor.fetchall()
-                out=""
+                results = db.countries.find({}, {"userid": 1, "id": 1, "countryname": 1})
+                out = ""
                 # Вывод результатов
                 for row in results:
-                    userid, id, countryname = row
-                    # print(f'userid: {userid}, id: {id}')
+                    userid = row["userid"]
+                    id = row["id"]
+                    countryname = row["countryname"]
                     out += f"страна: **{countryname}** (ID: ``{id}``)  принадлежит <@{userid}> \n"
-                embed = discord.Embed(title="Страны", description="Все страны, их владельцы и ID стран", color=discord.Color.orange())
+                embed = discord.Embed(title="Страны", description="Все страны, их владельцы и ID стран",
+                                      color=discord.Color.orange())
                 embed.add_field(name="Список стран", value=f"{out}", inline=False)
                 embed.set_footer(text="Для статов страны введите эту же команду, но указав ID страны")
 
@@ -218,28 +215,30 @@ class RP(commands.Cog):
                 materials = Image.open("graphics/materials.png")
                 food = Image.open("graphics/food.png")
 
+                result = db.countries.find_one({"id": id}, {"money": 1, "population": 1, "agreement": 1, "area": 1,
+                                                            "infrastructure": 1, "medicine": 1, "eudication": 1,
+                                                            "attack": 1, "armor": 1, "fuel": 1, "fuel_space": 1,
+                                                            "fuel_star": 1, "fuel_void": 1, "transport": 1,
+                                                            "tech_index": 1, "materials": 1, "food": 1})
 
-
-                cursor.execute("SELECT money, population, agreement, area, infrastructure, medicine, eudication, attack, armor, fuel, fuel_space, fuel_star, fuel_void, transport, tech_index, materials, food FROM countries WHERE id = ?", (id, ))
-                result = cursor.fetchone()
                 if result:
-                    _money = result[0]
-                    _population = result[1]
-                    _agreement = result[2]
-                    _area = result[3]
-                    _infrastructure = result[4]
-                    _medicine = result[5]
-                    _eudication = result[6]
-                    _attack = result[7]
-                    _armor = result[8]
-                    _fuel = result[9]
-                    _fuel_space = result[10]
-                    _fuel_star = result[11]
-                    _fuel_void = result[12]
-                    _transport = result[13]
-                    _tech_index = result[14]
-                    _materials = result[15]
-                    _food=result[16]
+                    _money = result.get("money")
+                    _population = result.get("population")
+                    _agreement = result.get("agreement")
+                    _area = result.get("area")
+                    _infrastructure = result.get("infrastructure")
+                    _medicine = result.get("medicine")
+                    _eudication = result.get("eudication")
+                    _attack = result.get("attack")
+                    _armor = result.get("armor")
+                    _fuel = result.get("fuel")
+                    _fuel_space = result.get("fuel_space")
+                    _fuel_star = result.get("fuel_star")
+                    _fuel_void = result.get("fuel_void")
+                    _transport = result.get("transport")
+                    _tech_index = result.get("tech_index")
+                    _materials = result.get("materials")
+                    _food = result.get("food")
                 arrVal = 0
                 if _tech_index / 10 < 5:
                     arrVal = int(_tech_index / 10)

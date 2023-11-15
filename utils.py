@@ -4,6 +4,7 @@ import time
 from random import randint
 
 import discord
+import pymongo
 import requests
 
 import publicCoreData
@@ -133,7 +134,30 @@ def checkStringForNoContent(strg : str):
     if strg == "" or strg is None or strg == " " or strg == "  " or strg == "\n":
         return True
     return False
-
+def handle_key_error(func):
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except KeyError:
+            return None
+    return wrapper
+def handle_missing_field(func):
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except pymongo.errors.PyMongoError as e:
+            if isinstance(e, pymongo.errors.OperationFailure) and e.code == 16840:
+                # Поле отсутствует в документе
+                collection = args[0]  # Первый аргумент - коллекция MongoDB
+                document_id = args[1]  # Второй аргумент - идентификатор документа
+                field = kwargs['field']  # Поле, которое отсутствует
+                default_value = e.details.get('errmsg').split()[-1].strip("'")
+                collection.update_one({"_id": document_id}, {"$set": {field: default_value}})
+                return func(*args, **kwargs)
+            else:
+                print(f"Произошла ошибка MongoDB: {str(e)}")
+                # Дополнительные действия по обработке ошибки
+    return wrapper
 # print(hashgen(16))
 # # Пример использования
 # json_str = save_to_json("MyServer", "Some report text", 1632048765)

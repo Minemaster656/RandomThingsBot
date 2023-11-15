@@ -52,6 +52,8 @@ whitelist = [609348530498437140, 617243612857761803]
 token = coreData.token_ds
 from discord.ext import commands
 
+sendAllExceptionsToChat=True
+
 if platform.system() == 'Windows':
     try:
         import win10toast
@@ -106,6 +108,8 @@ async def on_command_error(ctx, error):
         await ctx.send(f"Команда перезаряжается. Повторите через **{round(error.retry_after)}** секунд!")
     elif isinstance(error, commands.MissingPermissions):
         await ctx.send(f"Недостаточно прав!")
+    if (sendAllExceptionsToChat):
+        await ctx.send(error)
     # else:
     #     await ctx.send(f'Произошла ошибка при выполнении команды: {error}')
 @bot.slash_command(name="настройки-бота", description="Задать определённую настройку бота",guilds=[1019180616731873290, 855045703235928094])
@@ -157,14 +161,14 @@ async def help(ctx):
         )
 
 
-@bot.slash_command(description="Сообщение от лица бота.", name="бот")
-async def me(ctx, text):
-    if publicCoreData.parsePermissionFromUser(ctx.author.id, "say_as_bot"):
-        if ctx.message.reference:
-            await ctx.send(text, reference=ctx.message.reference)
-        else:
-            await ctx.send(text)
-    await ctx.message.delete()
+# @bot.slash_command(description="Сообщение от лица бота.", name="бот")
+# async def me(ctx, text):
+#     if publicCoreData.parsePermissionFromUser(ctx.author.id, "say_as_bot"):
+#         if ctx.message.reference:
+#             await ctx.send(text, reference=ctx.message.reference)
+#         else:
+#             await ctx.send(text)
+#     await ctx.message.delete()
 
 
 
@@ -176,7 +180,7 @@ async def about(ctx, user: discord.Member = None):
             user = ctx.author
         userid = user.id
 
-        result = db.users.find({"userid": str(userid)})[0]
+        result = db.users.find({"userid": userid})[0]
 
         #TODO: id теперь строка
 
@@ -248,13 +252,13 @@ async def about(ctx, user: discord.Member = None):
 @bot.command(aliases=["редактировать"])
 async def edit(ctx, field, value):
     if field == "осебе":
-        db.users.update_one({"userid": str(ctx.author.id)}, {"$set": {"about": value}})
+        db.users.update_one({"userid": ctx.author.id}, {"$set": {"about": value}})
         await ctx.reply("**Строка** `осебе` (.осебе) изменена!")
     elif field == "возраст":
-        db.users.update_one({"userid": str(ctx.author.id)}, {"$set": {"age": int(value)}})
+        db.users.update_one({"userid": ctx.author.id}, {"$set": {"age": int(value)}})
         await ctx.reply("**Число** `возраст` (.осебе) изменено!")
     elif field == "часовойпояс":
-        db.users.update_one({"userid": str(ctx.author.id)}, {"$set": {"timezone": int(value)}})
+        db.users.update_one({"userid": ctx.author.id}, {"$set": {"timezone": int(value)}})
         await ctx.reply("**Число** `часовойпояс` (.осебе) изменено!")
     else:
         ctx.reply("Допустимые параметры:\n"
@@ -368,12 +372,15 @@ async def on_message(message):
     #                 await message.author.add_roles(role)  # Даем автору сообщения эту роль
     for i in publicCoreData.infectionRolesID:
         # if str(i) in message.content:
-        role = message.guild.get_role(i)
-        for j in message.role_mentions:
-            # print(str(j.id) + "   " + str(i))
-            if j.id == i:
+        try:
+            role = message.guild.get_role(i)
+            for j in message.role_mentions:
+                # print(str(j.id) + "   " + str(i))
+                if j.id == i:
 
-                await message.author.add_roles(role)
+                    await message.author.add_roles(role)
+        except:
+            ...
 
     try:
         await message.publish()

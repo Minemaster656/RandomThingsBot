@@ -19,17 +19,19 @@ class Economy(commands.Cog):
         self.bot = bot
 
 
+
     @commands.slash_command(name="баланс",description="Показывает Ваш баланс или баланс пользователя")
     async def balance(self, ctx, member : Option(discord.Member, description="Пользователь", required=False)=None):
         with ctx.typing():
             if member is None:
                 member = ctx.author
 
-            data = db.users.find_one({"userid":str(member.id)})
+            data = db.users.find_one({"userid":member.id})
             if not data:
                 publicCoreData.writeUserToDB(member.id, member.name)
-                data['money'] = 0
-                data['money_bank'] = 0
+                data = db.users.find_one({"userid": member.id})
+                # data['money'] = 0
+                # data['money_bank'] = 0
             # data = (0,0)
 
             embed = discord.Embed(title="Баланс",description=f"Баланс пользователя <@{member.id}>:"
@@ -53,7 +55,7 @@ class Economy(commands.Cog):
 
         rand = rd.randint(1, utils.throwDice(ctx.author.id, ctx.author.name))
 
-        db.users.update_one({"userid": str(ctx.author.id)}, {"$inc": {"field": rand}})
+        db.users.update_one({"userid": ctx.author.id}, {"$inc": {"field": rand}})
         await ctx.send(f"Получено **{rand}{publicCoreData.currency}**")
 
     @commands.slash_command(name="лидеры", description="Лидеры экономики")
@@ -63,11 +65,13 @@ class Economy(commands.Cog):
         out = ""
         it = 0
         # Вывод результатов
-        embed = discord.Embed(title="Лидеры экономики", description="Топ-",
+        embed = discord.Embed(title="Лидеры экономики", description="Топ-10 в экономике",
                               colour=publicCoreData.embedColors["Economy"])
+
         for row in result:
+
             # out +=f"`{it}`. @{row[0]} {row[1]}{publicCoreData.currency}:moneybag: + {row[2]}{publicCoreData.currency}:bank:. И того {row[1]+row[2]}{publicCoreData.currency}\n"
-            embed.add_field(name=f"`{it}`. @{row['username']}",
+            embed.add_field(name=f"`{it+1}`. @{row['username']}",
                             value=f"{row['money'] + row['money_bank']}{publicCoreData.currency}", inline=False)
             it += 1
 

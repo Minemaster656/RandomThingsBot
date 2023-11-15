@@ -23,7 +23,7 @@ class BotCog(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.index=1
+        self.index = 1
         self.loop.start()
 
     def cog_unload(self):
@@ -31,7 +31,7 @@ class BotCog(commands.Cog):
 
     @tasks.loop(seconds=5.0)
     async def loop(self):
-        #TODO: сохранение даты и списка в джсон
+        # TODO: сохранение даты и списка в джсон
         list = Apocalypse.genApocalypseItems()
 
         # def saveList(string):
@@ -40,7 +40,8 @@ class BotCog(commands.Cog):
         #
         # saveList(list[0])
         # apocalypse = Apocalypse.Apocalypse(commands.Bot)
-        cursor.execute("SELECT apocalypseChannelHook, apocalypseLastSendDay, serverid, isThread, apocalypseChannel FROM servers")
+        cursor.execute(
+            "SELECT apocalypseChannelHook, apocalypseLastSendDay, serverid, isThread, apocalypseChannel FROM servers")
         urls = cursor.fetchall()
 
         # print("Loop tick")
@@ -48,7 +49,8 @@ class BotCog(commands.Cog):
         for hook_url in urls:
             url = hook_url[0]  # Извлечение значения из кортежа
             date = hook_url[1]
-            if hook_url[0] is not None and hook_url[1] is not None and hook_url[2] is not None and hook_url[3] is not None and hook_url[4] is not None:
+            if hook_url[0] is not None and hook_url[1] is not None and hook_url[2] is not None and hook_url[
+                3] is not None and hook_url[4] is not None:
                 if date < utils.get_current_day():
                     try:
                         if url is not None:
@@ -64,27 +66,30 @@ class BotCog(commands.Cog):
                                 else:
                                     await webhook.send(list[0], username=publicCoreData.hook_names["apocalypse"],
                                                        embed=list[1])
-                                await webhook.send(list[0], username=publicCoreData.hook_names["apocalypse"],embed=list[1])
+                                await webhook.send(list[0], username=publicCoreData.hook_names["apocalypse"],
+                                                   embed=list[1])
 
                     except:
                         ...
 
-    @commands.slash_command(name="массовое-редактирование-каналов",
-                            description="Редактировать каналы категории. Выберите справку для информации.")
-    @commands.has_permissions(administrator=True)
-    @commands.cooldown(1, 30, commands.BucketType.guild)
+    # TODO: фиксики массового эдита каналов
+    # @commands.slash_command(name="массовое-редактирование-каналов",
+    #                         description="Редактировать каналы категории. Выберите справку для информации.")
+    # @commands.has_permissions(administrator=True)
+    # @commands.cooldown(1, 30, commands.BucketType.guild)
+
     async def massChannelsEdit(self, ctx,
-                                  mode: Option(str, description="Режим работы", required=False,
-                                               choices=["Справка", "Имя", "Копировать права", "DEBUG"]) = None,  #
-                                  category: Option(discord.CategoryChannel, description="Категория для работы команды",
-                                                   required=True) = None,
-                                  value: Option(str, description="Значение", required=False) = "None",
-                                  filters: Option(str, description="Фильтр",
-                                                  choices=["все", "первый", "последний", "не первый", "не последний",
-                                                           "не крайний"], required=False) = "все",
-                                  channel: Option(discord.TextChannel, description="Второй канал (см. справку.)",
-                                                  required=False) = "None"
-                                  ):  # "Выполнить"
+                               mode: Option(str, description="Режим работы", required=False,
+                                            choices=["Справка", "Имя", "Копировать права", "DEBUG"]) = None,  #
+                               category: Option(discord.CategoryChannel, description="Категория для работы команды",
+                                                required=True) = None,
+                               value: Option(str, description="Значение", required=False) = "None",
+                               filters: Option(str, description="Фильтр",
+                                               choices=["все", "первый", "последний", "не первый", "не последний",
+                                                        "не крайний"], required=False) = "все",
+                               channel: Option(discord.TextChannel, description="Второй канал (см. справку.)",
+                                               required=False) = "None"
+                               ):  # "Выполнить"
 
         embed = discord.Embed(title="none", description="none")
 
@@ -191,49 +196,16 @@ class BotCog(commands.Cog):
         # await ctx.respond(embed=embed)
         # await ctx.respond("Учтите, что у Вас должно быть разрешение Администратора для использования этой команды!")
 
-    # @commands.slash_command(name="разрешения", description="Редактирование разрешений пользователя")
-    # async def editMemberPermissions(self, ctx, permission: Option(str, description="Разрешение. ? для списка",
-    #                                                               choises=permissions, required=True) = "none",
-    #                                 member: Option(discord.Member, description="Пользователь", required=True) = None,
-    #                                 value: Option(bool, description="Значение", required=True) = True,
-    #                                 ephemeral: Option(bool, description="Видно ли только вам?",
-    #                                                   required=False) = False):
-    #     if member is None:
-    #         member = ctx.author
-    #     perm_root = publicCoreData.parsePermissionFromUser(ctx.author.id, "root")
-    #     perm_edit = publicCoreData.parsePermissionFromUser(ctx.author.id, "edit_permissions")
-    #     if permission != "?":
-    #         if perm_root or perm_edit:
-    #             if permission != "root":
-    #                 await publicCoreData.setPermissionForUser(member.id, permission, value)
-    #                 embed = discord.Embed(title=f"Разрешение {permission} изменено успешно!",
-    #                                       description=f"Разрешение изменено у участника <@{member.id}> на **{value}**",
-    #                                       colour=publicCoreData.embedColors["Success"])
-    #                 await ctx.respond(embed=embed, ephemeral=ephemeral)
-    #             else:
-    #                 if perm_root:
-    #                     await publicCoreData.setPermissionForUser(member.id, permission, value)
-    #                     embed = discord.Embed(title=f"Разрешение {permission} изменено успешно!",
-    #                                           description=f"Разрешение изменено у участника <@{member.id}> на **{value}**",
-    #                                           colour=publicCoreData.embedColors["Success"])
-    #                     await ctx.respond(embed=embed, ephemeral=ephemeral)
-    #                 else:
-    #                     await utils.noPermission(ctx, "root")
-    #         else:
-    #             await utils.noPermission(ctx, "edit_permissions | root")
-    #     else:
-    #         await ctx.respond(json.dumps(publicCoreData.permissions_user))
 
-    @commands.slash_command(name="винжер",description="кодировщик-декодировщик в винжере")
-    async def vinger(self, ctx, input : Option(str, description="Текст на русском/английском", required=True)="none", key : Option(str, description="Ключ", required=True)="а", destination : Option(bool, description="True - шифровка, False - дешифровка", required=False)=True):
-
-
-
+    @commands.slash_command(name="винжер", description="кодировщик-декодировщик в винжере")
+    async def vinger(self, ctx, input: Option(str, description="Текст на русском/английском", required=True) = "none",
+                     key: Option(str, description="Ключ", required=True) = "а",
+                     destination: Option(bool, description="True - шифровка, False - дешифровка",
+                                         required=False) = True):
 
         def setupAlphabet():
 
-            return r'абвгдеёжзийклмнопрстуфхцчшщъыьэюя1234567890-=_+/\!.,:;"[]{}<>abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ`~ '
-
+            return r'абвгдеёжзийклмнопрстуфхцчшщъыьэюя1234567890-=_+/\!.,:;"[]{}<>abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ`~ ™°*±@#№$%&?()¤←→↖↗↑↔↙↘↓↕⁰³⁶⁹¹⁴⁷²⁵⁸ⁿ√∑ΔΩΨω∅∞≈†‡µ♪'
 
         def vigenere_cipher(alphabet, key, text, encode=True):
             result = ""
@@ -257,7 +229,8 @@ class BotCog(commands.Cog):
                     result += char
 
             return result
-        embed = discord.Embed(title="Винжер",description="Результат:",colour=0xffffff)
-        embed.add_field(name="Исходный текст",value=f"{input}",inline=False)
-        embed.add_field(name="Результат",value=f"{vigenere_cipher(setupAlphabet(), key, input, destination)}")
-        await ctx.respond(embed = embed, ephemeral=True)
+
+        embed = discord.Embed(title="Винжер", description="Результат:", colour=0xffffff)
+        embed.add_field(name="Исходный текст", value=f"{input}", inline=False)
+        embed.add_field(name="Результат", value=f"{vigenere_cipher(setupAlphabet(), key, input, destination)}")
+        await ctx.respond(embed=embed, ephemeral=True)
