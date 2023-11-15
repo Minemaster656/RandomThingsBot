@@ -95,11 +95,11 @@ class RP(commands.Cog):
                     "id": id
                 })
 
-                await ctx.respond(f"Страна {country_name} пользователя <@{userid}> записана с ID {id}!")
+                await ctx.respond(f"Страна ``{country_name}`` пользователя <@{userid}> записана с ID ``{id}``!")
             else:
                 whitelisted_user_name = " "
 
-                await ctx.respond(f"Вы не можете регистрировать страны. Попросите кого-нибудь из тех, кто может это сделать, например, <@{random.choice(publicCoreData.WPG_whitelist)}>")
+                await ctx.respond(f"Вы не можете регистрировать страны. Попросите кого-нибудь из тех, кто может это сделать, например, <@0000000000000000000>")
 
     @commands.slash_command(name="удаление-анкеты-впи", description="Удалить анкету ВПИ")
     async def WPG_unreg(self, ctx,

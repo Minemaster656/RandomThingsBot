@@ -98,9 +98,9 @@ def findServerInDB(ctx):
     ownerid = ctx.guild.owner_id
     serverid = ctx.guild.id
 
-    result = db.servers.find_one({"serverid": serverid})[0]
+    result = db.servers.find_one({"serverid": serverid})
 
-    if result is None:
+    if not result:
         db.servers.insert_one({"serverid": serverid, "ownerid": ownerid, "bumpcolor": None,
                                "bumptext": None,
                                "invitelink": None,

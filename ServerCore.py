@@ -11,7 +11,7 @@ from discord import Option
 from random import *
 
 import publicCoreData
-from publicCoreData import conn, cursor
+from publicCoreData import conn, cursor, db
 
 
 class ServerCore(commands.Cog):
@@ -25,7 +25,9 @@ class ServerCore(commands.Cog):
                                                          required=True) = "",
                                 channel: Option(typing.Union[discord.TextChannel, discord.Thread], description="Канал.",
                                                 required=True) = None, clear_field : Option(bool, description="Очистить настройку? Удалит значение вместо установки.", required=False)=False):
+
         publicCoreData.findServerInDB(ctx)
+
         if field == "игра Апокалипсис":
             if clear_field:
                 none = "none"
@@ -61,21 +63,16 @@ class ServerCore(commands.Cog):
                               value: Option(bool, description="Значение", required=True) = False):
         if field == "ссылка на сервер":
             if value:
-                cursor.execute("SELECT invitelink FROM servers WHERE serverid=?", (ctx.guild.id,))
-                result = cursor.fetchone()
-                if result == "" or result is None or result == " ":
+                result = db.servers.find_one({"serverid": ctx.guild.id}, {"invitelink": 1})
+                if not result["invitelink"]:
                     invite = await ctx.channel.create_invite(max_age=0)
-                    cursor.execute("UPDATE servers SET invitelink = ? WHERE serverid = ?",
-                                   (str(invite), int(ctx.guild.id)))
-                    conn.commit()
+                    db.servers.update_one({"serverid": ctx.guild.id}, {"$set": {"invitelink": str(invite)}})
                     await ctx.respond(f"Поле **{field}** установлено на {str(invite)}")
                 else:
                     await ctx.respond(
-                        f"На сервер уже есть ссылка-приглашение **{result}**. Если она недействительна, пожалуйста, повторите команду но с False, и потом снова True")
+                        f"На сервер уже есть ссылка-приглашение **{result['invitelink']}**. Если она недействительна, пожалуйста, повторите команду, но с False, а затем снова с True")
             else:
-                cursor.execute("UPDATE servers SET invitelink = ? WHERE serverid = ?",
-                               (" ", ctx.guild.id))
-                conn.commit()
+                db.servers.update_one({"serverid": ctx.guild.id}, {"$set": {"invitelink": ""}})
                 await ctx.respond(f"Поле **{field}** отчищено.")
 
         # if field == "автопубликация":
@@ -87,6 +84,11 @@ class ServerCore(commands.Cog):
     @commands.has_permissions(administrator=True)
     async def server_settings_str(self, ctx, field : Option(str, description="Поле",choices=["текст партнёрки"], required=True)="", value : Option(str, description="Значение", required=True)=" "):
         if field == "текст партнёрки":
-            cursor.execute("UPDATE servers SET text = ? WHERE serverid = ?", (value, ctx.guild.id))
-            conn.commit()
+            db.servers.update_one({"serverid": ctx.guild.id}, {"$set": {"text": value}})
+            srv = db.servers.find_one({"serverid":ctx.guild.id}, {"bumpcolor":1,"invitelink":1})
+            clr =srv["bumpcolor"]
+            lnk = srv["invitelink"]
+            embed = discord.Embed(title=f"{ctx.guild.name}",description=f"{value}",colour= publicCoreData.embedColors["Neutral"] if clr is None else int(clr))
+            embed.add_field(name="Ссылка на сервер",value=f"🔗{lnk}",inline=False)
+            await ctx.respond("Текст партнёрского соглашения сервера заменён на:", embed=embed)
 
