@@ -18,8 +18,8 @@ embedColors = {"Error": 0xf03255, "Exception": 0xff2f00, "Success": 0x29ff4d, "W
                "Neutral": discord.Color.blue(), "Economy": 0xffcc12}
 WPG_whitelist = [609348530498437140]
 permission_root_whitelist = [609348530498437140, 617243612857761803]
-# preffix = "!!"
-preffix = ".!!"  # TODO: SET IF BETA
+preffix = "!!"
+# preffix = ".!!"  # TODO: SET IF BETA
 currency = "<:catalist:1076130269867819099>"
 infectionRolesID = [1151515080219967498, 1135925890182807552, 1152163431869329468]
 apocalypseDLC = "Самый странный апокалипсис⁶™"
