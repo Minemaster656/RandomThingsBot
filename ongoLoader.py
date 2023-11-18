@@ -15,8 +15,8 @@ def import_data(collection_name, file_path):
         collection.insert_many(data)
 
 # Пример использования
-import_data('countries', 'private/RTB_data.countries.json')
-import_data('servers', 'private/RTB_data.servers.json')
+# import_data('countries', 'private/RTB_data.countries.json')
+# import_data('servers', 'private/RTB_data.servers.json')
 import_data('users', 'private/RTB_data.users.json')
 
 print("Импорт данных завершен!")
