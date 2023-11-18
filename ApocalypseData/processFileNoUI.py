@@ -23,7 +23,7 @@ itemsCursor.execute(
 items.commit()
 
 
-import tkinter as tk
+
 
 
 
