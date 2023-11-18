@@ -20,7 +20,7 @@ collections = ["users"]
 # import_data('countries', 'private/RTB_data.countries.json')
 # import_data('servers', 'private/RTB_data.servers.json')
 # import_data('users', 'private/RTB_data.users.json')
-clearOld = True
+clearOld = False
 for i in collections:
     import_data(i, f"private/RTB_data.{i}.json")
 
