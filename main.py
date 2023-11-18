@@ -27,6 +27,7 @@ import Apocalypse
 import ServerCore
 import _AI_Stuff
 import fun
+import voice
 from tests_and_utils import dbClone
 import economy
 import publicCoreData
@@ -465,6 +466,7 @@ bot.add_cog(Apocalypse.Apocalypse(bot))
 bot.add_cog(ServerCore.ServerCore(bot))
 bot.add_cog(_AI_Stuff._AI_Stuff(bot))
 bot.add_cog(fun.fun(bot))
+# bot.add_cog(voice.voice(bot))
 # bot.add_cog(paginator.PageTest(bot))
 # asyncio.run(loop())
 
