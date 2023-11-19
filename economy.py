@@ -76,5 +76,9 @@ class Economy(commands.Cog):
             it += 1
 
         await ctx.respond(embed=embed)
+    @commands.slash_command(name="перевод-денег",description="Пересылает деньги")
+    async def pay(self, ctx, member : Option(discord.Member, description="Кому переслать?", required=True)=None, value : Option(int, description="Сколько переслать?", required=True)=0):
+        ...
+
 
 

@@ -24,6 +24,7 @@ from pymongo import MongoClient
 # from stable_diffusion import DiffusionModel
 
 import Apocalypse
+import HetTol
 import ServerCore
 import _AI_Stuff
 import fun
@@ -469,6 +470,7 @@ bot.add_cog(fun.fun(bot))
 # bot.add_cog(voice.voice(bot))
 # bot.add_cog(paginator.PageTest(bot))
 # asyncio.run(loop())
+bot.add_cog(HetTol.PingCog(bot))
 
 # loop_thread = Thread(target=loopRunner())
 # loop_thread.start()
