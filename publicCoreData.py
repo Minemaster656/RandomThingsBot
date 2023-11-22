@@ -81,7 +81,7 @@ def insertRoot(id):
     # cursor = conn.cursor()
     # cursor.execute("UPDATE users SET permissions = ? WHERE userid = ?", ("root:True", 609348530498437140))
     # conn.commit()
-    db.users.update_one({"userid": id}, {"$set": {"permissions": '{"root":True}'}})
+    db.users.update_one({"userid": id}, {"$set": {"permissions": '{"root": true}'}})
     print(f"INSERTED ROOT TO {id}")
     # conn.close()
 
