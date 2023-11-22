@@ -55,7 +55,7 @@ class Economy(commands.Cog):
 
         rand = rd.randint(1, utils.throwDice(ctx.author.id, ctx.author.name))
 
-        db.users.update_one({"userid": ctx.author.id}, {"$inc": {"field": rand}})
+        db.users.update_one({"userid": ctx.author.id}, {"$inc": {"money": rand}})
         await ctx.send(f"Получено **{rand}{publicCoreData.currency}**")
 
     @commands.slash_command(name="лидеры", description="Лидеры экономики")
