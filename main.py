@@ -186,7 +186,7 @@ async def about(ctx, user: discord.Member = None):
         if user is None:
             user = ctx.author
         userid = user.id
-
+        print("finding result")
         result = db.users.find({"userid": userid})[0]
         print(result)
 
