@@ -188,8 +188,8 @@ async def about(ctx, user: discord.Member = None):
         userid = user.id
 
         result = db.users.find({"userid": userid})[0]
+        print(result)
 
-        #TODO: id теперь строка
 
         async def send_user_info_embed(color, about, age, timezone, karma, luck, permissions):
             def convertKarmaToEmoji(karma):
