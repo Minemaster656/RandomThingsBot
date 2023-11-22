@@ -34,7 +34,14 @@ collections = {"users": db["users"], "servers": db["servers"], "countries": ["co
 
 
 async def parsePermissionFromUser(id: int, permission: str):
-    string = db.users.find({"userid": id}, {"permissions": 1})[0]
+    usr = db.users.find({"userid": id})
+    if not usr:
+
+        return False
+    try:
+        string = db.users.find({"userid": id}, {"permissions": 1})[0]
+    except:
+        return False
 
     if string is None or string == "":
 
