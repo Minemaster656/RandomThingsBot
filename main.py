@@ -187,11 +187,13 @@ async def about(ctx, user: discord.Member = None):
             user = ctx.author
         userid = user.id
         print("finding result")
+        result = None
         try:
             result = db.users.find({"userid": userid})[0]
         except:
-            if not result:
-                publicCoreData.writeUserToDB(ctx.author.id, ctx.author.name)
+            print(result)
+            # if not result:
+            #     publicCoreData.writeUserToDB(ctx.author.id, ctx.author.name)
 
 
         async def send_user_info_embed(color, about, age, timezone, karma, luck, permissions):
