@@ -111,6 +111,10 @@ async def on_command_error(ctx, error):
         await ctx.send(f"Команда перезаряжается. Повторите через **{round(error.retry_after)}** секунд!")
     elif isinstance(error, commands.MissingPermissions):
         await ctx.send(f"Недостаточно прав!")
+    elif isinstance(error, IndexError):
+        print(db)
+        print(publicCoreData.client)
+        await ctx.send(error)
     if (sendAllExceptionsToChat):
         await ctx.send(error)
     # else:
