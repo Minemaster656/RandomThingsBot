@@ -252,7 +252,7 @@ async def about(ctx, user: discord.Member = None):
             result["age"] is None else str(result["age"])
             karma = 0 if result["karma"] is None else str(result["karma"])
             luck = 0 if result["luck"] is None else str(result["luck"])
-            await send_user_info_embed(clr, abt, age, tmz, int(karma), int(luck), result["permissions"] if result["permissions"] is None else '{}')
+            await send_user_info_embed(clr, abt, age, tmz, int(karma), int(luck), result["permissions"]) # if result["permissions"] is None else '{}'
         else:
             await ctx.send("Запись о пользователе не найдена. Добавление...")
             publicCoreData.writeUserToDB(user.id, user.name)
