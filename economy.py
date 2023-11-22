@@ -80,5 +80,10 @@ class Economy(commands.Cog):
     async def pay(self, ctx, member : Option(discord.Member, description="Кому переслать?", required=True)=None, value : Option(int, description="Сколько переслать?", required=True)=0):
         ...
 
+    @commands.slash_command(name="регистрация-предмета",description="Регистрирует новый товар в экономике.")
+    async def registerItem(self, ctx):
+        ...
+
+
 
 

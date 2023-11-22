@@ -13,7 +13,7 @@ from private import coreData
 secret_guilds = []
 
 webhook_avatar_url = "https://images-ext-2.discordapp.net/external/-1-6AJKBQh38RYGz6D3j-IgURlKEfFifX5LeJ8h-TBw/%3Fsize%3D4096/https/cdn.discordapp.com/avatars/1126887522690142359/0767783560eee507f86c95a4b09f120a.png?width=437&height=437"
-permissions_user = ["root", "edit_characters", "say_as_bot", "edit_permissions", "---"]
+permissions_user = ["root", "edit_characters", "say_as_bot", "edit_permissions", "---", "edit_economy"]
 embedColors = {"Error": 0xf03255, "Exception": 0xff2f00, "Success": 0x29ff4d, "Warp": 0x00b3ff,
                "Neutral": discord.Color.blue(), "Economy": 0xffcc12}
 WPG_whitelist = [609348530498437140]
