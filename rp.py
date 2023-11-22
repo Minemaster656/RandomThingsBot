@@ -424,7 +424,7 @@ class RP(commands.Cog):
         output = ""
 
         for doc in documents:
-            output+= f"- {doc['name']}, ID: ``{doc['id']}``\n"
+            output+= f"- **{doc['name']}** | **ID**: ``{doc['id']}``\n"
         if len(output) < 1:
             output = "Нет персонажей"
         embed = discord.Embed(title="Результаты поиска",description=f"Персонажи пользователя <@{member.id}>:\n{output}",colour=publicCoreData.embedColors["Neutral"])
