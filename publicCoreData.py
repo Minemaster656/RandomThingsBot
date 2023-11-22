@@ -47,11 +47,14 @@ async def parsePermissionFromUser(id: int, permission: str):
 
         return False
     else:
-        dictitonary = json.loads(string["permissions"])
-        if permission in dictitonary:
-            return dictitonary[permission]
-        else:
-            return False
+        if string["permissions"] > 2:
+            dictitonary = json.loads(string["permissions"])
+
+            if permission in dictitonary:
+                return dictitonary[permission]
+            else:
+                return False
+
 
     return False
 
