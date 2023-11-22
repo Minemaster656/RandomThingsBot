@@ -187,7 +187,7 @@ async def about(ctx, user: discord.Member = None):
 
         #TODO: id теперь строка
 
-        async def send_user_info_embed(color, about, age, timezone, karma, luck):
+        async def send_user_info_embed(color, about, age, timezone, karma, luck, permissions):
             def convertKarmaToEmoji(karma):
                 if karma < -1:
                     return "⬛"
@@ -224,6 +224,7 @@ async def about(ctx, user: discord.Member = None):
 
             embed.add_field(name="прочее", value=f"{convertKarmaToEmoji(karma)}{convertLuckToEmoji(luck)}",
                             inline=False)
+            embed.add_field(name="Разрешения",value=f"{str(permissions)}",inline=False)
             embed.set_footer(
                 text='Редактировтаь параметры - .редактировать <имяпараметра строчными буквами без пробелов и этих <> > \"значение\"')
             await ctx.send(embed=embed)
@@ -242,7 +243,7 @@ async def about(ctx, user: discord.Member = None):
             result["age"] is None else str(result["age"])
             karma = result["karma"]
             luck = result["luck"]
-            await send_user_info_embed(clr, abt, age, tmz, karma, luck)
+            await send_user_info_embed(clr, abt, age, tmz, karma, luck, result["permissions"] if result["permissions"] is None else '{}')
         else:
             await ctx.send("Запись о пользователе не найдена. Добавление...")
             publicCoreData.writeUserToDB(user.id, user.name)
