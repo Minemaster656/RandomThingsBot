@@ -19,7 +19,30 @@ import pymongo
 # from main import cursor
 # from main import conn
 
+class RemoveCharView(discord.ui.View):
+    def __init__(self, author,id, timeout=180):
+        super().__init__(timeout=timeout)
+        self.author = author
+        self.id = id
 
+    @discord.ui.button(label="Удалить", row=0, style=discord.ButtonStyle.danger,emoji="🚮")
+    async def first_button_callback(self, button, interaction):
+        db.characters.delete_one({"id": self.id})
+        await interaction.response.send_message(f"Удалён персонаж ``{self.id}``!")
+        # self.disable_all_items()
+        # await interaction.response.edit_message(view=self)
+
+
+    @discord.ui.button(label="Отмена", row=0, style=discord.ButtonStyle.green, emoji="⏹")
+    async def second_button_callback(self, button, interaction):
+
+        await interaction.response.send_message(f"Удаление персонажа ``{self.id}`` отменено!")
+        # self.disable_all_items()
+        #
+        # await interaction.response.edit_message(view=self)
+
+    async def interaction_check(self, interaction: discord.Interaction):
+        return interaction.user.id == self.author.id
 class RP(commands.Cog):
     result = db.countries.find({}, {"id": 1})  # Получение всех значений из коллекции "countries"
     choicesEditWPG = [str(value["id"]) for value in
@@ -350,19 +373,23 @@ class RP(commands.Cog):
                 oversizeKey = "Неверная ссылка! Она должна начинаться на http(s)://"
                 sizeLimit=True
                 break
-        if (await publicCoreData.parsePermissionFromUser(owner.id, "edit_characters")):
-            if not sizeLimit:
-                db.characters.insert_one(doc)
-                embed = discord.Embed(title="Персонаж зарегистрирован!",description=f"{name} зарегистрирован как ``{id}`` и принадлежит <@{owner.id}>",colour=publicCoreData.embedColors["Success"])
-                await ctx.respond(embed=embed)
-            else:
-                embed = discord.Embed(title="Превышение размера!",description=f"Ключ: {oversizeKey}",colour=publicCoreData.embedColors["Error"])
-                await ctx.respond(embed=embed)
-        else:
-            embed = discord.Embed(title="Нет прав!",
-                                  description="Необходимо право ``edit_characters`` для регистрации персонажа!",
-                                  colour=publicCoreData.embedColors["Error"])
+        if db.characters.find_one({"id":id}):
+            embed = discord.Embed(title="Конфликт имён!",description=f"ID {id} занят другой анкетой!",colour=publicCoreData.embedColors["Error"])
             await ctx.respond(embed=embed)
+        else:
+            if (await publicCoreData.parsePermissionFromUser(ctx.author.id, "edit_characters") or await publicCoreData.parsePermissionFromUser(ctx.author.id, "root")): #TODO: оптимизировать поиск прав
+                if not sizeLimit:
+                    db.characters.insert_one(doc)
+                    embed = discord.Embed(title="Персонаж зарегистрирован!",description=f"{name} зарегистрирован как ``{id}`` и принадлежит <@{owner.id}>",colour=publicCoreData.embedColors["Success"])
+                    await ctx.respond(embed=embed)
+                else:
+                    embed = discord.Embed(title="Превышение размера!",description=f"Ключ: {oversizeKey}",colour=publicCoreData.embedColors["Error"])
+                    await ctx.respond(embed=embed)
+            else:
+                embed = discord.Embed(title="Нет прав!",
+                                      description="Необходимо право ``edit_characters`` или ``root`` для регистрации персонажа!",
+                                      colour=publicCoreData.embedColors["Error"])
+                await ctx.respond(embed=embed)
     @commands.slash_command(name="песронаж",description="Открывает анкету персонажа по ID")
     async def inspectChar(self, ctx, id : Option(str, description="ID", required=True)=" ",ephemeral : Option(bool, description="Видно только вам?", required=False)=False):
         result = db.characters.find_one({"id": id})
@@ -382,3 +409,33 @@ class RP(commands.Cog):
             embed.set_thumbnail(url=result['art'])
             await ctx.respond(embed=embed, ephemeral=ephemeral)
             #TODO: поиск анкет
+    @commands.slash_command(name="поиск-персонажей",description="Ищет зарегистрированных на пользователя персонажей.")
+    async def searchChar(self, ctx, member : Option(discord.Member, description="У кого искать персонажей", required=True)=0, ephemeral : Option(bool, description="Видно ли только вам", required=False)=True):
+
+
+
+        documents = db.characters.find({"owner": member.id}, {"name": 1, "id": 1})
+
+        # result = []
+        #
+        # for doc in documents:
+        #     result.append((doc["name"], doc["id"]))
+
+        output = ""
+
+        for doc in documents:
+            output+= f"- {doc['name']}, ID: ``{doc['id']}``\n"
+        if len(output) < 1:
+            output = "Нет персонажей"
+        embed = discord.Embed(title="Результаты поиска",description=f"Персонажи пользователя <@{member.id}>:\n{output}",colour=publicCoreData.embedColors["Neutral"])
+        await ctx.respond(embed=embed,ephemeral=ephemeral)
+    @commands.slash_command(name="удалить-персонажа",description="Удаляет персонажа")
+    async def removeChar(self, ctx, id : Option(str, description="ID", required=True)=" "):
+        if await publicCoreData.parsePermissionFromUser(ctx.author.id, "root") or await publicCoreData.parsePermissionFromUser(ctx.author.id, "edit_characters"):
+            # view = RemoveCharView(ctx.author, id)  # or ctx.author/message.author where applicable
+            # await ctx.response.send_message(view=view)
+            db.characters.delete_one({"id": self.id})
+            await ctx.respond(f"Удалён персонаж ``{self.id}``!")
+        else:
+            await ctx.respond("У Вас нет права ``root`` или ``edit_characters`` для удаления персонажей!",ephemeral=True)
+
