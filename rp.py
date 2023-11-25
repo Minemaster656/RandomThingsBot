@@ -60,7 +60,8 @@ class RP(commands.Cog):
             karma = user_data.get("karma", 0)
             luck = user_data.get("luck", 0)
         else:
-            db.users.insert_one({"userid": author.id, "karma": 0, "luck": 0})
+            # db.users.insert_one({"userid": author.id, "karma": 0, "luck": 0})
+            publicCoreData.writeUserToDB(ctx.author.id, ctx.author.name)
             karma = 0
             luck = 0
 

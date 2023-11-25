@@ -8,7 +8,7 @@ import pymongo
 import requests
 
 import publicCoreData
-from publicCoreData import cursor
+from publicCoreData import cursor, db
 
 
 def invertY(y, maxY):
@@ -46,11 +46,12 @@ def convert_to_number(string):
         return int(string)
 def throwDice(id, name):
 
-    cursor.execute("SELECT karma, luck FROM users WHERE userid = ?", (id,))
-    result = cursor.fetchone()
+    # cursor.execute("SELECT karma, luck FROM users WHERE userid = ?", (id,))
+    # result = cursor.fetchone()
+    result = db.users.find_one({"userid":id}, {"karma":1, "luck":1})
     if result:
-        karma = result[0]
-        luck = result[1]
+        karma = result["karma"]
+        luck = result["luck"]
     else:
         publicCoreData.writeUserToDB(id, name)
         karma = 0

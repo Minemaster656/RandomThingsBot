@@ -1,4 +1,6 @@
 import random as rd
+import time
+
 import numpy as np
 import matplotlib.pyplot as plt
 import discord
@@ -53,7 +55,8 @@ class Economy(commands.Cog):
     @commands.cooldown(1, 60, commands.BucketType.user)
     async def findMoney(self, ctx):
 
-        rand = rd.randint(1, utils.throwDice(ctx.author.id, ctx.author.name))
+        # rand = rd.randint(0, utils.throwDice(ctx.author.id, ctx.author.name))
+        rand = utils.throwDice(ctx.author.id, ctx.author.name)
 
         db.users.update_one({"userid": ctx.author.id}, {"$inc": {"money": rand}})
         await ctx.send(f"Получено **{rand}{publicCoreData.currency}**")
@@ -81,8 +84,60 @@ class Economy(commands.Cog):
         ...
 
     @commands.slash_command(name="регистрация-предмета",description="Регистрирует новый товар в экономике.")
-    async def registerItem(self, ctx):
-        ...
+    async def registerItem(self, ctx, name: Option(str, description="Название предмета", required=True)=" ", description : Option(str, description="Описание предмета", required=True)=" ",id : Option(str, description="Уникальный ID предмета", required=True)=" ",
+                           type : Option(str, description="Тип предмета", required=True)=" ",
+                           base_price : Option(float, description="Базовая цена", required=True)=0,
+                           dynamic_price : Option(bool, description="Изменяется ли цена товара от покупок", required=False)=False,
+                           owner : Option(str, description="ID владельца бизнеса", required=True)=""
+
+
+                           ):
+
+        # buisness = db.buisnesses.find_one({"id":owner})
+        if publicCoreData.parsePermissionFromUser(ctx.author.id, "root") or publicCoreData.parsePermissionFromUser(ctx.author.id, "edit_economy"):
+
+            buisness = True
+            if buisness:
+                doc = {
+                    "id":id, "type":type, "base_price":base_price, "dynamic_price":dynamic_price, "price":base_price, "owner":owner,
+                    "timestamp":int(time.time()/1000), "creator":ctx.author.id, "purchased":0, "name":name, "description":description, "quality":0
+                }
+                db.items.insert_one(doc)
+            else:
+                embed = discord.Embed(title="Бизнес не найден!",description=f"Бизнесс {owner} не найден!",colour=publicCoreData.embedColors["Error"])
+                await ctx.respond(embed=embed)
+        else:
+            await ctx.respond("Нет прав на редактирование экономики!", ephemeral=True)
+    @commands.slash_command(name="осмотреть-предмет",description="Выводит информацию о предмете")
+    async def inspect_item(self, ctx, id : Option(str, description="ID предмета", required=True)=" "):
+        doc = db.items.find({"id":id})
+        if doc:
+            await ctx.respond(doc)
+        else:
+            await ctx.respond(f"Предмет {id} не найден!")
+    @commands.slash_command(name="регистрация-бизнеса",description="Регистрирует бизнес.")
+    async def registerBuisness(self, ctx, name: Option(str, description="Название", required=True)=" ", id: Option(str, description="ID", required=True)=" "
+                               , link: Option(str, description="Сайт бизнеса", required=False)=" ",
+                               server: Option(str, description="Сервер бизнеса", required=False)=" ",
+                               logo: Option(str, description="Логотип бизнесса (ссылка)", required=True)=" ",
+                               owner : Option(discord.Member, description="Владелец бизнеса", required=True)= 0):
+        if publicCoreData.parsePermissionFromUser(ctx.author.id, "root") or publicCoreData.parsePermissionFromUser(ctx.author.id, "edit_economy"):
+            res = db.buisnesses.find_one({"id":id})
+            if res:
+                await ctx.respond("ID не уникален!")
+            else:
+                delivers = {}
+                doc = {
+                    "name":name,"id":id,"link":link, "server":server, "logo":logo, "owner":owner.id,
+                    "timestamp": int(time.time() / 1000), "creator": ctx.author.id, "delivers":delivers,"employee":{f"{owner.id}":0}, "items":[], "money_last":0, "money":0,
+                    "storage":{}, "tech":0
+
+                }
+        else:
+            ...
+        #TODO: перки и прокачка, решить первичники
+
+
 
 
 

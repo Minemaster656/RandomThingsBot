@@ -92,18 +92,19 @@ def insertRoot(id):
 def writeUserToDB(id: int, name: str):
     # cursor.execute("INSERT INTO users (userid, username) VALUES (?, ?)", (id, name))
     # conn.commit()
-    db.users.insert_one({"userid": id, "username": name, "about": None, "age": None,
-                         "timezone": None,
-                         "color": None,
+    if not db.users.find_one({"userid" : id}):
+        db.users.insert_one({"userid": id, "username": name, "about": None, "age": None,
+                             "timezone": None,
+                             "color": None,
 
-                         "karma": 0,
-                         "luck":
-                             0,
-                         "permissions": None,
-                         "money":
-                             0,
-                         "money_bank":
-                             0})
+                             "karma": 0,
+                             "luck":
+                                 0,
+                             "permissions": None,
+                             "money":
+                                 0,
+                             "money_bank":
+                                 0})
 
 
 def findServerInDB(ctx):
