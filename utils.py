@@ -44,6 +44,7 @@ def convert_to_number(string):
         return float(string)
     else:
         return int(string)
+
 def throwDice(id, name):
 
     # cursor.execute("SELECT karma, luck FROM users WHERE userid = ?", (id,))
@@ -180,6 +181,26 @@ def zalgo_text(text, intensity):
             zalgo_text += random.choice(zalgo_chars)
 
     return zalgo_text
+def formatStringLength(string : str, maxLength : int):
+    strLen = len(string)
+    lenOutLimit = maxLength - strLen
+    if strLen <= maxLength:
+        return string
+    else:
+        if maxLength < lenOutLimit + 20:
+            if maxLength < lenOutLimit:
+                if maxLength > 0:
+                    return "."
+                else:
+                    return ""
+            else:
+
+                return str(lenOutLimit)
+        else:
+            return string[:maxLength-len(str(lenOutLimit))] + f"( и ещё {lenOutLimit+len(str(lenOutLimit))} символов...)"
+
+
+
 
 
 

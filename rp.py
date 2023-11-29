@@ -366,10 +366,10 @@ class RP(commands.Cog):
         sizeLimit = False
         oversizeKey = ""
         for k,v in doc.items():
-            if (len(str(v)) > 2000 and k!="bio") or (len(str(v)) > 4000 and k=="bio"):
-                oversizeKey=k
-                sizeLimit = True
-                break
+            # if (len(str(v)) > 2000 and k!="bio") or (len(str(v)) > 4000 and k=="bio"):
+            #     oversizeKey=k
+            #     sizeLimit = True
+            #     break
             if not "http" in art:
                 oversizeKey = "Неверная ссылка! Она должна начинаться на http(s)://"
                 sizeLimit=True
@@ -398,15 +398,15 @@ class RP(commands.Cog):
 
             await ctx.respond(f"Персонаж ``{id}`` не найден!")
         else:
-            embed = discord.Embed(title=f"Персонаж {result['name']}",description=f"{result['bio']}",colour=publicCoreData.embedColors["Warp"])
+            embed = discord.Embed(title=f"Персонаж {result['name']}",description=f"{utils.formatStringLength(result['bio'], 4000)}",colour=publicCoreData.embedColors["Warp"])
             embed.add_field(name="Данные",value=f"Автор: <@{result['owner']}>\nID: ``{id}``",inline=False)
             embed.add_field(name="Рост, вес, возраст, мир",value=f"{result['bodystats']}\n{result['age']} лет",inline=False)
-            embed.add_field(name="Способности",value=f"{result['abilities']}",inline=False)
-            embed.add_field(name="Слабости",value=f"{result['weaknesses']}",inline=False)
-            embed.add_field(name="Характер",value=f"{result['character']}",inline=False)
-            embed.add_field(name="Инвентарь",value=f"{result['inventory']}",inline=False)
-            embed.add_field(name="Внешность",value=f"{result['appearances']}",inline=False)
-            embed.add_field(name="Краткий пересказ",value=f"{result['shortened']}",inline=False)
+            embed.add_field(name="Способности",value=f"{utils.formatStringLength(result['abilities'], 1024)}",inline=False)
+            embed.add_field(name="Слабости",value=f"{utils.formatStringLength(result['weaknesses'], 1024)}",inline=False)
+            embed.add_field(name="Характер",value=f"{utils.formatStringLength(result['character'], 1024)}",inline=False)
+            embed.add_field(name="Инвентарь",value=f"{utils.formatStringLength(result['inventory'], 1024)}",inline=False)
+            embed.add_field(name="Внешность",value=f"{utils.formatStringLength(result['appearances'],1024)}",inline=False)
+            embed.add_field(name="Краткий пересказ",value=f"{utils.formatStringLength(result['shortened'],1024)}",inline=False)
             embed.set_thumbnail(url=result['art'])
             await ctx.respond(embed=embed, ephemeral=ephemeral)
             #TODO: поиск анкет
