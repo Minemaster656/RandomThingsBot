@@ -391,14 +391,14 @@ class RP(commands.Cog):
                                       description="Необходимо право ``edit_characters`` или ``root`` для регистрации персонажа!",
                                       colour=publicCoreData.embedColors["Error"])
                 await ctx.respond(embed=embed)
-    @commands.slash_command(name="песронаж",description="Открывает анкету персонажа по ID")
+    @commands.slash_command(name="персонаж",description="Открывает анкету персонажа по ID")
     async def inspectChar(self, ctx, id : Option(str, description="ID", required=True)=" ",ephemeral : Option(bool, description="Видно только вам?", required=False)=False):
         result = db.characters.find_one({"id": id})
         if not result:
 
             await ctx.respond(f"Персонаж ``{id}`` не найден!")
         else:
-            embed = discord.Embed(title=f"Персонаж {result['name']}",description=f"{utils.formatStringLength(result['bio'], 4000)}",colour=publicCoreData.embedColors["Warp"])
+            embed = discord.Embed(title=f"Персонаж {utils.formatStringLength(result['name'], 120)}",description=f"{utils.formatStringLength(result['bio'], 4000)}",colour=publicCoreData.embedColors["Warp"])
             embed.add_field(name="Данные",value=f"Автор: <@{result['owner']}>\nID: ``{id}``",inline=False)
             embed.add_field(name="Рост, вес, возраст, мир",value=f"{result['bodystats']}\n{result['age']} лет",inline=False)
             embed.add_field(name="Способности",value=f"{utils.formatStringLength(result['abilities'], 1024)}",inline=False)

@@ -11,7 +11,7 @@ from private import coreData
 # from discord.app_commands import commands
 
 secret_guilds = []
-
+test_guilds = [1019180616731873290, 1076117733428711434, 855045703235928094, 1033752522306883715, 1111235284558950402, 1153367008247812188]
 webhook_avatar_url = "https://images-ext-2.discordapp.net/external/-1-6AJKBQh38RYGz6D3j-IgURlKEfFifX5LeJ8h-TBw/%3Fsize%3D4096/https/cdn.discordapp.com/avatars/1126887522690142359/0767783560eee507f86c95a4b09f120a.png?width=437&height=437"
 permissions_user = ["root", "edit_characters", "say_as_bot", "edit_permissions", "---", "edit_economy"]
 embedColors = {"Error": 0xf03255, "Exception": 0xff2f00, "Success": 0x29ff4d, "Warp": 0x00b3ff,
@@ -40,21 +40,23 @@ async def parsePermissionFromUser(id: int, permission: str):
         return False
     try:
         string = db.users.find({"userid": id}, {"permissions": 1})[0]
+        if string:
+            if len(string["permissions"]) > 2:
+                print(string["permissions"])
+                dictitonary = json.loads(string["permissions"])
+
+                if permission in dictitonary:
+                    return dictitonary[permission]
+                else:
+                    return False
+        else:
+            return False
     except:
         return False
 
-    if string is None or string == "":
 
-        return False
-    else:
-        if len(string["permissions"]) > 2:
-            print(string["permissions"])
-            dictitonary = json.loads(string["permissions"])
 
-            if permission in dictitonary:
-                return dictitonary[permission]
-            else:
-                return False
+
 
 
     return False

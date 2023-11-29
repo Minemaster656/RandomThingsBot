@@ -182,22 +182,27 @@ def zalgo_text(text, intensity):
 
     return zalgo_text
 def formatStringLength(string : str, maxLength : int):
-    strLen = len(string)
-    lenOutLimit = maxLength - strLen
+    strLen = int(len(string))
+    lenOutLimit = int(maxLength) - int(strLen)
+    r = ""
+    if maxLength < 1:
+        return ""
     if strLen <= maxLength:
         return string
     else:
-        if maxLength < lenOutLimit + 20:
-            if maxLength < lenOutLimit:
-                if maxLength > 0:
-                    return "."
-                else:
-                    return ""
-            else:
-
-                return str(lenOutLimit)
-        else:
-            return string[:maxLength-len(str(lenOutLimit))] + f"( и ещё {lenOutLimit+len(str(lenOutLimit))} символов...)"
+        return string[:maxLength-1]+"…"
+    # else:
+    #     if maxLength < lenOutLimit + 20:
+    #         if maxLength < lenOutLimit:
+    #             if maxLength > 0:
+    #                 return "."
+    #             else:
+    #                 return ""
+    #         else:
+    #
+    #             return int(str(lenOutLimit))
+    #     else:
+    #         return string[:maxLength-int(len(str(lenOutLimit)))] + f"( и ещё {lenOutLimit+len(str(lenOutLimit))} символов...)"
 
 
 

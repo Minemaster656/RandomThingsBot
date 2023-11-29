@@ -12,6 +12,10 @@ from io import BytesIO
 
 from discord.ui import Button
 
+import publicCoreData
+import utils
+
+
 class MyView(discord.ui.View):  # Create a class called MyView that subclasses discord.ui.View
     @discord.ui.button(label="Click me!", style=discord.ButtonStyle.primary,
                        emoji="😎")  # Create a button with the label "😎 Click me!" with color Blurple
@@ -75,6 +79,11 @@ class Tests(commands.Cog):
     async def button(self, ctx):
         await ctx.respond("This is a button!",
                           view=MyView())  # Send a message with our View class that contains the button
+    @commands.slash_command(name="тест-форматтера",description="Тестирование форматирования строк", guilds=publicCoreData.test_guilds)
+    async def test_formatter(self, ctx, text : Option(str, description="Строка", required=True)=" ", length : Option(int, description="Максимальная длина", required=True)=10):
+        embed = discord.Embed(title="Информация о строке",description=f"Длина исходной строки - {len(text)}"
+                                                                      f"\nДлина выходной строки - {len(str(utils.formatStringLength(text, length)))}",colour=0xffffff)
+        await ctx.respond(utils.formatStringLength(text, length),embed=embed)
 
 
 
