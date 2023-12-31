@@ -519,8 +519,7 @@ async def on_message(message):
     # await bot.process_commands(message)  # Обязательно добавь эту строку, чтобы обработать другие команды и события
 
 
-@bot.event
-async def on_message_delete(message):
+async def interdeletion(message):
     async def interchat_delete(name, message, mode):
         # print("CALLED DELETE FUNC")
         leng = len(publicCoreData.interchats[mode])
@@ -584,6 +583,13 @@ async def on_message_delete(message):
                     # print("FOUND pair rp")
                     break
                     # print("BROKEN")
+@bot.event
+async def on_message_delete(message):
+    await interdeletion(message)
+@bot.event
+async def on_bulk_message_delete(messages):
+    for m in messages:
+        await interdeletion(m)
 
 
 # if message.content.lower() in commands:
