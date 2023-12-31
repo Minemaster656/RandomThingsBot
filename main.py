@@ -455,8 +455,8 @@ async def on_message(message):
                         send = True
                 if i >= leng:
                     # print("ITERATION COMPLETE. BREAKING")
-                    if not isInterchatter:
-                        await message.add_reaction("🚀")
+
+                    await message.add_reaction("🚀")
                     break
 
     target = [message.guild.id, message.channel.id]
