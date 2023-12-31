@@ -432,7 +432,7 @@ async def on_message(message):
     target = [message.guild.id, message.channel.id]
     if "normal" in publicCoreData.interchats:
         for pair in publicCoreData.interchats["normal"]:
-            if target[0] in pair or target[1] in pair:
+            if target[0] in pair and target[1] in pair:
                 # найдено
                 await interchat("normal", message, " ", " ")
                 # print("FOUND pair normal")
@@ -440,7 +440,7 @@ async def on_message(message):
                 # print("BROKEN")
     if "rp" in publicCoreData.interchats:
         for pair in publicCoreData.interchats["rp"]:
-            if target[0] in pair or target[1] in pair:
+            if target[0] in pair and target[1] in pair:
                 # найдено
                 await interchat("rp", message, " ", " ")
                 # print("FOUND pair rp")
