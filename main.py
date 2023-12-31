@@ -460,24 +460,25 @@ async def on_message(message):
                     break
 
     target = [message.guild.id, message.channel.id]
-    name = utils.formatStringLength(message.author.name, 32) + " | " + utils.formatStringLength(message.guild.name, 20)
+    name = ">» "+ utils.formatStringLength(message.author.name, 32) + " | " + utils.formatStringLength(message.guild.name, 20)
     avatar = message.author.avatar.url if message.author.avatar else message.author.default_avatar.url
-    if "normal" in publicCoreData.interchats:
-        for pair in publicCoreData.interchats["normal"]:
-            if target[0] in pair and target[1] in pair:
-                # найдено
-                await interchat("normal", message, name, avatar)
-                # print("FOUND pair normal")
-                break
-                # print("BROKEN")
-    if "rp" in publicCoreData.interchats:
-        for pair in publicCoreData.interchats["rp"]:
-            if target[0] in pair and target[1] in pair:
-                # найдено
-                await interchat("rp", message, name, avatar)
-                # print("FOUND pair rp")
-                break
-                # print("BROKEN")
+    if not str(message.author.name).startswith(">» "):
+        if "normal" in publicCoreData.interchats:
+            for pair in publicCoreData.interchats["normal"]:
+                if target[0] in pair and target[1] in pair:
+                    # найдено
+                    await interchat("normal", message, name, avatar)
+                    # print("FOUND pair normal")
+                    break
+                    # print("BROKEN")
+        if "rp" in publicCoreData.interchats:
+            for pair in publicCoreData.interchats["rp"]:
+                if target[0] in pair and target[1] in pair:
+                    # найдено
+                    await interchat("rp", message, name, avatar)
+                    # print("FOUND pair rp")
+                    break
+                    # print("BROKEN")
 
     # ИНФЕКЦИОННАЯ РОЛЬ И КАКАЯ-ТО ДИЧЬ!!!
 
