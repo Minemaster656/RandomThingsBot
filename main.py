@@ -8,7 +8,7 @@ import aiohttp
 # -*- coding: utf-8 -*-
 import discord
 # from discord_components import DiscordComponents, Button
-from discord import Option, Webhook
+from discord import Option, Webhook, Forbidden
 import pymongo
 from pymongo import MongoClient
 
@@ -403,25 +403,55 @@ async def on_message(message):
                 i += 1
                 server_id = array[0]
                 channel_id = array[1]
-                isInterchatter = message.author.id == bot.user.id
+
+                send = False
+                found = True
+                # Поиск сервера по ID
+                server = bot.get_guild(server_id)
+                if server is None:
+                    found = False
+
+                # Поиск канала по ID
+                channel = server.get_channel(channel_id)
+                if channel is None:
+                    found = False
+
+                isBotHook = False
+                try:
+                    hooks = await channel.webhooks()
+                    for hook in hooks:
+                        isBotHook = hook.user.id == bot.user.id
+                        break
+                except Forbidden:
+                    isBotHook = True
+
+                isInterchatter = message.author.id == bot.user.id or isBotHook
+
+
                 if channel_id != message.channel.id and server_id != message.guild.id and not isInterchatter:
                     # print("Iteration guild: ", server_id, " Iteration channel: ", channel_id, " Channel: ",
                     #       message.channel.id, " Guild: ", message.guild.id)
-                    send = False
-                    found = True
-                    # Поиск сервера по ID
-                    server = bot.get_guild(server_id)
-                    if server is None:
-                        found = False
 
-                    # Поиск канала по ID
-                    channel = server.get_channel(channel_id)
-                    if channel is None:
-                        found = False
 
                     if found and not send:
+
                         # Отправка сообщения в найденный канал
-                        await channel.send(message.content)
+                        try:
+                            hooks = await channel.webhooks()
+                            for hook in hooks:
+                                if hook.user.id == bot.user.id:
+                                    await hook.send(content=message.content, username=hname, avatar_url=havatar)
+                                    send=True
+                                    break
+                            if not send:
+                                hook = await channel.create_webhook(name="RTB hook")
+                                await hook.send(content=message.content, username=hname, avatar_url=havatar)
+                                send = True
+                        except Forbidden:
+                            ...
+
+
+                        # await channel.send(message.content)
                         send = True
                 if i >= leng:
                     # print("ITERATION COMPLETE. BREAKING")
@@ -430,11 +460,13 @@ async def on_message(message):
                     break
 
     target = [message.guild.id, message.channel.id]
+    name = utils.formatStringLength(message.author.name, 32) + " | " + utils.formatStringLength(message.guild.name, 20)
+    avatar = message.author.avatar.url if message.author.avatar else message.author.default_avatar.url
     if "normal" in publicCoreData.interchats:
         for pair in publicCoreData.interchats["normal"]:
             if target[0] in pair and target[1] in pair:
                 # найдено
-                await interchat("normal", message, " ", " ")
+                await interchat("normal", message, name, avatar)
                 # print("FOUND pair normal")
                 break
                 # print("BROKEN")
@@ -442,7 +474,7 @@ async def on_message(message):
         for pair in publicCoreData.interchats["rp"]:
             if target[0] in pair and target[1] in pair:
                 # найдено
-                await interchat("rp", message, " ", " ")
+                await interchat("rp", message, name, avatar)
                 # print("FOUND pair rp")
                 break
                 # print("BROKEN")
