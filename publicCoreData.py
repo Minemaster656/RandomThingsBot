@@ -35,6 +35,8 @@ collections = {"users": db["users"], "servers": db["servers"], "countries": ["co
 
 file_path = os.path.join('private', 'interchats.json')
 interchats = {}
+
+botIDs = [1126887522690142359, 1169691387562835968]
 if not os.path.exists(file_path):
     interchats = {}
 else:

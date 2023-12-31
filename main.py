@@ -420,7 +420,7 @@ async def on_message(message):
                 try:
                     hooks = await channel.webhooks()
                     for hook in hooks:
-                        isBotHook = hook.user.id == bot.user.id
+                        isBotHook = hook.user.id in publicCoreData.botIDs
                         break
                 except Forbidden:
                     isBotHook = True
