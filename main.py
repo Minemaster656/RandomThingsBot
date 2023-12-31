@@ -459,7 +459,10 @@ async def on_message(message):
                         ...
                     break
 
-    target = [message.guild.id, message.channel.id]
+    try:
+        target = [message.guild.id, message.channel.id]
+    except:
+        target = [0, 0]
     name = ">» " + utils.formatStringLength(message.author.name, 32) + " | " + utils.formatStringLength(
         message.guild.name, 20)
     avatar = message.author.avatar.url if message.author.avatar else message.author.default_avatar.url
