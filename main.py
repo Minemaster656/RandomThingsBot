@@ -426,7 +426,7 @@ async def on_message(message):
                 except Forbidden:
                     isBotHook = True
 
-                isInterchatter = message.author.id == bot.user.id or isBotHook
+                isInterchatter = str(message.author.name).startswith(">» ")#message.author.id == bot.user.id or isBotHook
 
                 if channel_id != message.channel.id and server_id != message.guild.id and not isInterchatter:
                     # print("Iteration guild: ", server_id, " Iteration channel: ", channel_id, " Channel: ",
@@ -453,8 +453,10 @@ async def on_message(message):
                         send = True
                 if i >= leng:
                     # print("ITERATION COMPLETE. BREAKING")
-
-                    await message.add_reaction("🚀")
+                    try:
+                        await message.add_reaction("🚀")
+                    except:
+                        ...
                     break
 
     target = [message.guild.id, message.channel.id]
@@ -520,6 +522,7 @@ async def on_message(message):
 @bot.event
 async def on_message_delete(message):
     async def interchat_delete(name, message, mode):
+        # print("CALLED DELETE FUNC")
         leng = len(publicCoreData.interchats[mode])
         i = 0
         for array in publicCoreData.interchats[mode]:
@@ -539,30 +542,37 @@ async def on_message_delete(message):
             if channel is None:
                 found = False
             if found:
+                # print("FOUND")
                 msgs = list()
                 async for x in channel.history(limit=32):
+                    # print("FETCHING... ", (x.content == message.content and x.author.name == name), " ", datetime.datetime.now(x.created_at.tzinfo) - x.created_at <= datetime.timedelta(
+                    #             days=14))
+                    # print(x.content, "           ", message.content, "                             ", x.author.name, "      ", name)
                     if ((x.content == message.content and x.author.name == name)
                             # and "⭐" not in [i.emoji for i in x.reactions]
                             and datetime.datetime.now(x.created_at.tzinfo) - x.created_at <= datetime.timedelta(
                                 days=14) and not x.pinned):
                         msgs.append(x)
+                        # print("APPENDED")
                         break
 
                 for i in range(0, len(msgs), 100):
                     await channel.delete_messages(msgs[i:i + 100], reason="Удаление межсерверного сообщения")
+                    # print("DELETED")
 
         ...
 
     target = [message.guild.id, message.channel.id]
     name = ">» " + utils.formatStringLength(message.author.name, 32) + " | " + utils.formatStringLength(
         message.guild.name, 20)
-
+    # print("DELETION")
     if not str(message.author.name).startswith(">» "):
+        # print("SOURCE FOUND")
         if "normal" in publicCoreData.interchats:
             for pair in publicCoreData.interchats["normal"]:
                 if target[0] in pair and target[1] in pair:
                     # найдено
-                    await interchat_delete(message.author.name, message, "normal")
+                    await interchat_delete(name, message, "normal")
                     # print("FOUND pair normal")
                     break
                     # print("BROKEN")
@@ -570,7 +580,7 @@ async def on_message_delete(message):
             for pair in publicCoreData.interchats["rp"]:
                 if target[0] in pair and target[1] in pair:
                     # найдено
-                    await interchat_delete(message.author.name, message, "rp")
+                    await interchat_delete(name, message, "rp")
                     # print("FOUND pair rp")
                     break
                     # print("BROKEN")
