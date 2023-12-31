@@ -7,6 +7,7 @@ from pymongo import MongoClient
 
 import INIT
 from private import coreData
+import os
 
 # from discord.app_commands import commands
 
@@ -31,6 +32,18 @@ cursor = conn.cursor()
 client = MongoClient(coreData.mongo_url)
 db = client[coreData.mongo_db_name]
 collections = {"users": db["users"], "servers": db["servers"], "countries": ["countries"]}
+
+file_path = os.path.join('private', 'interchats.json')
+interchats = {}
+if not os.path.exists(file_path):
+    interchats = {}
+else:
+    with open(file_path, 'r') as file:
+        try:
+            interchats = json.load(file)
+        except json.JSONDecodeError:
+            interchats = {}
+
 
 
 async def parsePermissionFromUser(id: int, permission: str):
@@ -65,12 +78,14 @@ async def parsePermissionFromUser(id: int, permission: str):
 async def setPermissionForUser(id: int, permission: str, value: bool):
     # cursor.execute('SELECT permissions FROM users WHERE userid = ?', (id,))
     perms = db.users.find({"userid": id}, {"permissions": 1})[0]  # cursor.fetchone()
+    dictionary = {}
     if perms[0] is None or perms[0] == "":
         dictionary = {permission: value}
     else:
         dictionary = json.loads(perms[0])
 
         dictionary[permission] = value
+
     _dictstr = json.dumps(dictionary)
     # cursor.execute('UPDATE users SET permissions = ? WHERE userid = ?', (_dictstr, id))
     # conn.commit()
