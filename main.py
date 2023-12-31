@@ -1,4 +1,5 @@
 import asyncio
+import datetime
 import platform
 # TODO: add transformers to requirements
 import json
@@ -427,11 +428,9 @@ async def on_message(message):
 
                 isInterchatter = message.author.id == bot.user.id or isBotHook
 
-
                 if channel_id != message.channel.id and server_id != message.guild.id and not isInterchatter:
                     # print("Iteration guild: ", server_id, " Iteration channel: ", channel_id, " Channel: ",
                     #       message.channel.id, " Guild: ", message.guild.id)
-
 
                     if found and not send:
 
@@ -441,7 +440,7 @@ async def on_message(message):
                             for hook in hooks:
                                 if hook.user.id == bot.user.id:
                                     await hook.send(content=message.content, username=hname, avatar_url=havatar)
-                                    send=True
+                                    send = True
                                     break
                             if not send:
                                 hook = await channel.create_webhook(name="RTB hook")
@@ -449,7 +448,6 @@ async def on_message(message):
                                 send = True
                         except Forbidden:
                             ...
-
 
                         # await channel.send(message.content)
                         send = True
@@ -460,7 +458,8 @@ async def on_message(message):
                     break
 
     target = [message.guild.id, message.channel.id]
-    name = ">» "+ utils.formatStringLength(message.author.name, 32) + " | " + utils.formatStringLength(message.guild.name, 20)
+    name = ">» " + utils.formatStringLength(message.author.name, 32) + " | " + utils.formatStringLength(
+        message.guild.name, 20)
     avatar = message.author.avatar.url if message.author.avatar else message.author.default_avatar.url
     if not str(message.author.name).startswith(">» "):
         if "normal" in publicCoreData.interchats:
@@ -516,6 +515,65 @@ async def on_message(message):
     # await message.add_reaction("❤")
 
     # await bot.process_commands(message)  # Обязательно добавь эту строку, чтобы обработать другие команды и события
+
+
+@bot.event
+async def on_message_delete(message):
+    async def interchat_delete(name, message, mode):
+        leng = len(publicCoreData.interchats[mode])
+        i = 0
+        for array in publicCoreData.interchats[mode]:
+            i += 1
+            server_id = array[0]
+            channel_id = array[1]
+
+            send = False
+            found = True
+            # Поиск сервера по ID
+            server = bot.get_guild(server_id)
+            if server is None:
+                found = False
+
+            # Поиск канала по ID
+            channel = server.get_channel(channel_id)
+            if channel is None:
+                found = False
+            if found:
+                msgs = list()
+                async for x in channel.history(limit=32):
+                    if ((x.content == message.content and x.author.name == name)
+                            # and "⭐" not in [i.emoji for i in x.reactions]
+                            and datetime.datetime.now(x.created_at.tzinfo) - x.created_at <= datetime.timedelta(
+                                days=14) and not x.pinned):
+                        msgs.append(x)
+                        break
+
+                for i in range(0, len(msgs), 100):
+                    await channel.delete_messages(msgs[i:i + 100], reason="Удаление межсерверного сообщения")
+
+        ...
+
+    target = [message.guild.id, message.channel.id]
+    name = ">» " + utils.formatStringLength(message.author.name, 32) + " | " + utils.formatStringLength(
+        message.guild.name, 20)
+
+    if not str(message.author.name).startswith(">» "):
+        if "normal" in publicCoreData.interchats:
+            for pair in publicCoreData.interchats["normal"]:
+                if target[0] in pair and target[1] in pair:
+                    # найдено
+                    await interchat_delete(message.author.name, message, "normal")
+                    # print("FOUND pair normal")
+                    break
+                    # print("BROKEN")
+        if "rp" in publicCoreData.interchats:
+            for pair in publicCoreData.interchats["rp"]:
+                if target[0] in pair and target[1] in pair:
+                    # найдено
+                    await interchat_delete(message.author.name, message, "rp")
+                    # print("FOUND pair rp")
+                    break
+                    # print("BROKEN")
 
 
 # if message.content.lower() in commands:
