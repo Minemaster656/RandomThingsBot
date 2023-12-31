@@ -345,8 +345,8 @@ async def editMemberPermissions(ctx, permission: Option(str, description="Раз
                                                   required=False) = False):
     if member is None:
         member = ctx.author
-    perm_root = publicCoreData.parsePermissionFromUser(ctx.author.id, "root")
-    perm_edit = publicCoreData.parsePermissionFromUser(ctx.author.id, "edit_permissions")
+    perm_root = await publicCoreData.parsePermissionFromUser(ctx.author.id, "root")
+    perm_edit = await publicCoreData.parsePermissionFromUser(ctx.author.id, "edit_permissions")
     if permission != "?":
         if perm_root or perm_edit:
             if permission != "root":
