@@ -46,7 +46,7 @@ else:
         except json.JSONDecodeError:
             interchats = {}
 
-
+interhubs=["normal", "rp", "rp2", "rp_bottomOfTheAbbyss", "rp_void", "admins", "normal2", "normal_en", "rp_tavern","rp_cafe"]
 
 async def parsePermissionFromUser(id: int, permission: str):
     usr = db.users.find({"userid": id})

@@ -467,22 +467,16 @@ async def on_message(message):
         message.guild.name, 20)
     avatar = message.author.avatar.url if message.author.avatar else message.author.default_avatar.url
     if not str(message.author.name).startswith(">» "):
-        if "normal" in publicCoreData.interchats:
-            for pair in publicCoreData.interchats["normal"]:
-                if target[0] in pair and target[1] in pair:
-                    # найдено
-                    await interchat("normal", message, name, avatar)
-                    # print("FOUND pair normal")
-                    break
-                    # print("BROKEN")
-        if "rp" in publicCoreData.interchats:
-            for pair in publicCoreData.interchats["rp"]:
-                if target[0] in pair and target[1] in pair:
-                    # найдено
-                    await interchat("rp", message, name, avatar)
-                    # print("FOUND pair rp")
-                    break
-                    # print("BROKEN")
+        for hub in publicCoreData.interhubs:
+            if hub in publicCoreData.interchats:
+                for pair in publicCoreData.interchats[hub]:
+                    if target[0] in pair and target[1] in pair:
+                        # найдено
+                        await interchat(hub, message, name, avatar)
+                        # print("FOUND pair normal")
+                        break
+                        # print("BROKEN")
+        
 
     # ИНФЕКЦИОННАЯ РОЛЬ И КАКАЯ-ТО ДИЧЬ!!!
 
@@ -570,22 +564,16 @@ async def interdeletion(message):
     # print("DELETION")
     if not str(message.author.name).startswith(">» "):
         # print("SOURCE FOUND")
-        if "normal" in publicCoreData.interchats:
-            for pair in publicCoreData.interchats["normal"]:
-                if target[0] in pair and target[1] in pair:
-                    # найдено
-                    await interchat_delete(name, message, "normal")
-                    # print("FOUND pair normal")
-                    break
-                    # print("BROKEN")
-        if "rp" in publicCoreData.interchats:
-            for pair in publicCoreData.interchats["rp"]:
-                if target[0] in pair and target[1] in pair:
-                    # найдено
-                    await interchat_delete(name, message, "rp")
-                    # print("FOUND pair rp")
-                    break
-                    # print("BROKEN")
+        for hub in publicCoreData.interhubs:
+            if hub in publicCoreData.interchats:
+                for pair in publicCoreData.interchats["normal"]:
+                    if target[0] in pair and target[1] in pair:
+                        # найдено
+                        await interchat_delete(name, message, "normal")
+                        # print("FOUND pair normal")
+                        break
+                        # print("BROKEN")
+        
 @bot.event
 async def on_message_delete(message):
     await interdeletion(message)
