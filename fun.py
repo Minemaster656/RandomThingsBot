@@ -26,7 +26,7 @@ class fun(commands.Cog):
 
     @commands.slash_command(name="интерсервер",description="Помечает канал как интерсервер")
     async def interserver(self, ctx, channel : Option(discord.TextChannel, description="Канал", required=True)=0, type: Option(str, description="Тип канала. Можно иметь одновременно несколько на сервер.",choices=publicCoreData.interhubs, required=True)=0,reset : Option(bool, description="True для отчистки поля", required=False)=False):
-        if publicCoreData.parsePermissionFromUser(ctx.author.id, "root"):
+        if publicCoreData.parsePermissionFromUser(ctx.author.id, "root") or (publicCoreData.parsePermissionFromUser(ctx.author.id, "verified") and(ctx.author.permissions.administrator or ctx.author.permissions.manage_channels) ):
             # with open('private/data.json', 'r') as file:
             #     try:
             #         data = json.load(file)
@@ -93,7 +93,7 @@ class fun(commands.Cog):
             update_json((ctx.guild.id, channel.id), type, reset)
             await ctx.respond("Успешно!",ephemeral=True)
         else:
-            await ctx.respond("У Вас нет прав на это!!!",ephemeral=True)
+            await ctx.respond("У Вас недостаточно прав для этого действия!!!\nНеобходима верификация пользователя (в боте, не в Discord) и право управления каналами/администратор",ephemeral=True)
 
 
 

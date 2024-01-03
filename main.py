@@ -388,7 +388,20 @@ async def code(ctx, length):
     else:
         await ctx.send(utils.hashgen(16))
 
-
+def inter_formatContent(content : str):
+    content = content.replace("@everyone", "@еvеryonе")
+    content = content.replace("@here", "@hеrе")
+    return content
+def inter_formatName(message):
+    type = ""
+    if message.webhook_id:
+        type = "⚓"
+    elif message.author.bot:
+        type="🤖"
+    else:
+        type = "😎"
+    return ">» " + utils.formatStringLength(message.author.name, 32) + " | " + utils.formatStringLength(
+        message.guild.name, 20) + " | " + type
 @bot.event
 async def on_message(message):
     await bot.process_commands(message)
@@ -437,15 +450,31 @@ async def on_message(message):
                         # Отправка сообщения в найденный канал
                         try:
                             hooks = await channel.webhooks()
+                            async def send():
+                                if message.reference:
+
+                                    embed = discord.Embed(title="⤴️ Reply",description=f"{message.reference.resolved.content}",colour=publicCoreData.embedColors["Neutral"]
+                                                          )
+                                    embed.set_author(name=message.reference.resolved.author.name, icon_url=message.reference.resolved.author.avatar.url if message.reference.resolved.author.avatar else message.reference.resolved.author.default_avatar.url)
+                                    await hook.send(content=message.content, username=hname, avatar_url=havatar,embed=embed
+                                                    )
+                                else:
+
+
+                                    await hook.send(content=message.content, username=hname, avatar_url=havatar,
+                                                    allowed_mentions=discord.AllowedMentions.none()
+                                                    , files=[await i.to_file() for i in message.attachments])
+
+                                send = True
                             for hook in hooks:
                                 if hook.user.id == bot.user.id:
-                                    await hook.send(content=message.content, username=hname, avatar_url=havatar)
-                                    send = True
+                                    await send()
                                     break
                             if not send:
+
                                 hook = await channel.create_webhook(name="RTB hook")
-                                await hook.send(content=message.content, username=hname, avatar_url=havatar)
-                                send = True
+                                await send()
+
                         except Forbidden:
                             ...
 
@@ -454,7 +483,8 @@ async def on_message(message):
                 if i >= leng:
                     # print("ITERATION COMPLETE. BREAKING")
                     try:
-                        await message.add_reaction("🚀")
+                        # await message.add_reaction("🚀")
+                        ...
                     except:
                         ...
                     break
@@ -463,8 +493,7 @@ async def on_message(message):
         target = [message.guild.id, message.channel.id]
     except:
         target = [0, 0]
-    name = ">» " + utils.formatStringLength(message.author.name, 32) + " | " + utils.formatStringLength(
-        message.guild.name, 20)
+    name = inter_formatName(message)
     avatar = message.author.avatar.url if message.author.avatar else message.author.default_avatar.url
     if not str(message.author.name).startswith(">» "):
         for hub in publicCoreData.interhubs:
@@ -559,8 +588,7 @@ async def interdeletion(message):
         ...
 
     target = [message.guild.id, message.channel.id]
-    name = ">» " + utils.formatStringLength(message.author.name, 32) + " | " + utils.formatStringLength(
-        message.guild.name, 20)
+    name = inter_formatName(message)
     # print("DELETION")
     if not str(message.author.name).startswith(">» "):
         # print("SOURCE FOUND")
