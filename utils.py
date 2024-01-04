@@ -1,4 +1,5 @@
 import asyncio
+import math
 import random
 import time
 from random import randint
@@ -206,6 +207,17 @@ def formatStringLength(string : str, maxLength : int):
 
 
 
+def calc_levelByXP(xp):
+    '''Returns tuple: [0] - current level, [1] - xp - minimal this level xp, [2] - next level xp - current level min xp
+    Current level - int
+
+    Thanks to PavelG for the formula!
+    '''
+    DIFFICULTY = 1.6
+    level = int(math.log((xp * (DIFFICULTY-1) / 100) + 1, DIFFICULTY)) + 0
+    xp_current = round(xp - ((100 * (DIFFICULTY ** (level - 1) - 1)) / (DIFFICULTY-1)))
+    xp_next = round(100 * (DIFFICULTY ** (level - 1)))
+    return (level,xp_current,xp_next)
 
 
 

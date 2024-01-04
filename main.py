@@ -28,6 +28,7 @@ import Apocalypse
 import HetTol
 import ServerCore
 import _AI_Stuff
+import d
 import fun
 import voice
 from tests_and_utils import dbClone
@@ -204,12 +205,13 @@ async def about(ctx, user: discord.Member = None):
         result = None
         try:
             result = db.users.find({"userid": userid})[0]
+            result = d.schema(result, d.Schemes.user)
         except:
             print(result)
             # if not result:
             #     publicCoreData.writeUserToDB(ctx.author.id, ctx.author.name)
 
-        async def send_user_info_embed(color, about, age, timezone, karma, luck, permissions):
+        async def send_user_info_embed(color, about, age, timezone, karma, luck, permissions, xp):
             def convertKarmaToEmoji(karma):
                 if karma < -1:
                     return "⬛"
@@ -247,6 +249,8 @@ async def about(ctx, user: discord.Member = None):
             embed.add_field(name="прочее", value=f"{convertKarmaToEmoji(karma)}{convertLuckToEmoji(luck)}",
                             inline=False)
             embed.add_field(name="Разрешения", value=f"{str(permissions)}", inline=False)
+            xps = utils.calc_levelByXP(xp)
+            embed.add_field(name="Опыт",value=f"Всего опыта: {xp}\nУровень: {xps[0]}\nОпыта до следующего уровня: {xps[2]}",inline=False)
             embed.set_footer(
                 text='Редактировтаь параметры - .редактировать <имяпараметра строчными буквами без пробелов и этих <> > \"значение\"')
             await ctx.send(embed=embed)
@@ -264,14 +268,14 @@ async def about(ctx, user: discord.Member = None):
             karma = 0 if result["karma"] is None else str(result["karma"])
             luck = 0 if result["luck"] is None else str(result["luck"])
             await send_user_info_embed(clr, abt, age, tmz, int(karma), int(luck),
-                                       result["permissions"])  # if result["permissions"] is None else '{}'
+                                       result["permissions"], result["xp"])  # if result["permissions"] is None else '{}'
         else:
             await ctx.send("Запись о пользователе не найдена. Добавление...")
             publicCoreData.writeUserToDB(user.id, user.name)
 
             await send_user_info_embed("#5865F2", "Задать поле 'О себе' можно командой .редактировать осебе",
                                        "Задать поле 'Возраст' можно командой `.редактировать возраст`\nПожалуйста, ставьте только свой реальный возраст, не смотря на то, сколько вам лет.",
-                                       "UTC+?. Задать часовой пояс можно командой `.редактировать часовойпояс`. Укажите свой часовой пояс относительно Гринвича.")
+                                       "UTC+?. Задать часовой пояс можно командой `.редактировать часовойпояс`. Укажите свой часовой пояс относительно Гринвича.", 0,0,None,0)
 
 
 @bot.command(aliases=["редактировать"])
@@ -456,14 +460,19 @@ async def on_message(message):
                                     embed = discord.Embed(title="⤴️ Reply",description=f"{message.reference.resolved.content}",colour=publicCoreData.embedColors["Neutral"]
                                                           )
                                     embed.set_author(name=message.reference.resolved.author.name, icon_url=message.reference.resolved.author.avatar.url if message.reference.resolved.author.avatar else message.reference.resolved.author.default_avatar.url)
-                                    await hook.send(content=message.content, username=hname, avatar_url=havatar,embed=embed
+                                    try:
+                                        await hook.send(content=message.content, username=hname, avatar_url=havatar,embed=embed
                                                     )
+                                    except:
+                                        ...
                                 else:
 
-
-                                    await hook.send(content=message.content, username=hname, avatar_url=havatar,
+                                    try:
+                                        await hook.send(content=message.content, username=hname, avatar_url=havatar,
                                                     allowed_mentions=discord.AllowedMentions.none()
                                                     , files=[await i.to_file() for i in message.attachments])
+                                    except:
+                                        ...
 
                                 send = True
                             for hook in hooks:

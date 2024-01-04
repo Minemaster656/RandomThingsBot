@@ -123,7 +123,7 @@ def writeUserToDB(id: int, name: str):
                              "money":
                                  0,
                              "money_bank":
-                                 0})
+                                 0, "xp":0})
 
 
 def findServerInDB(ctx):

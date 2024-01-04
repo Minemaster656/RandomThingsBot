@@ -234,3 +234,8 @@ class BotCog(commands.Cog):
         embed.add_field(name="Исходный текст", value=f"{input}", inline=False)
         embed.add_field(name="Результат", value=f"{vigenere_cipher(setupAlphabet(), key, input, destination)}")
         await ctx.respond(embed=embed, ephemeral=True)
+
+    @commands.slash_command(name="добавить-опыт",description="Добавляет опыт")
+    async def addXp(self, ctx):
+        ...
+    #TODO: сделать это.
