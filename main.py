@@ -454,7 +454,7 @@ async def on_message(message):
                         # Отправка сообщения в найденный канал
                         try:
                             hooks = await channel.webhooks()
-                            async def send():
+                            async def send(hook):
                                 if message.reference:
 
                                     embed = discord.Embed(title="⤴️ Reply",description=f"{message.reference.resolved.content}",colour=publicCoreData.embedColors["Neutral"]
@@ -464,7 +464,7 @@ async def on_message(message):
                                         await hook.send(content=message.content, username=hname, avatar_url=havatar,embed=embed
                                                     )
                                     except:
-                                        ...
+                                        print("No hook?")
                                 else:
 
                                     try:
@@ -472,17 +472,17 @@ async def on_message(message):
                                                     allowed_mentions=discord.AllowedMentions.none()
                                                     , files=[await i.to_file() for i in message.attachments])
                                     except:
-                                        ...
+                                        print("No hook?")
 
                                 send = True
                             for hook in hooks:
                                 if hook.user.id == bot.user.id:
-                                    await send()
+                                    await send(hook)
                                     break
                             if not send:
 
-                                hook = await channel.create_webhook(name="RTB hook")
-                                await send()
+                                _hook = await channel.create_webhook(name="RTB hook")
+                                await send(_hook)
 
                         except Forbidden:
                             ...

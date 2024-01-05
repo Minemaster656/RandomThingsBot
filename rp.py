@@ -43,6 +43,42 @@ class RemoveCharView(discord.ui.View):
 
     async def interaction_check(self, interaction: discord.Interaction):
         return interaction.user.id == self.author.id
+class SelectBlankScheme(discord.ui.View):
+
+    @discord.ui.select(  # the decorator that lets you specify the properties of the select menu
+        placeholder="Choose a Flavor!",  # the placeholder text that will be displayed if nothing is selected
+        min_values=1,  # the minimum number of values that must be selected by the users
+        max_values=1,  # the maximum number of values that can be selected by the users
+        options=[  # the list of options from which users can choose, a required field
+            discord.SelectOption(
+                label="ATK 3",
+                description=""
+            ),
+            discord.SelectOption(
+                label="Список макетов",
+                description="Даёт список макетов."
+            ),
+            discord.SelectOption(
+                label="Руины",
+                description=""
+            )
+        ]
+    )
+    async def select_callback(self, select,
+                              interaction):  # the function called when the user is done selecting options
+        # await interaction.response.send_message(f"Awesome! I like {select.values[0]} too!")
+        if select.values[0] == "Список макетов":
+            embed = discord.Embed(title="Список макетов анкет",description="Список макетов",colour=0xffffff)
+            embed.add_field(name="АТК",value='''1. Имя, фамилия и отчество персонажа (второе и тем более третье по желанию)
+Возраст, телосложение, рост, вес, родной мир
+Способности
+Слабости
+Характер
+Инвентарь
+Биография
+Внешность. Можно с артом.
+Сокращённая версия. Не обязательно, для маленьких анкет не нужно, для больших настоятельно рекомендуется.''',inline=False)
+            await interaction.response.send_message(embed=embed, ephemeral=True)
 class RP(commands.Cog):
     result = db.countries.find({}, {"id": 1})  # Получение всех значений из коллекции "countries"
     choicesEditWPG = [str(value["id"]) for value in
@@ -440,3 +476,8 @@ class RP(commands.Cog):
         else:
             await ctx.respond("У Вас нет права ``root`` или ``edit_characters`` для удаления персонажей!",ephemeral=True)
 
+
+
+    @commands.message_command(name="Распарсить анкету персонажа")
+    async def parse_blank(self, ctx, message):
+        await ctx.respond(f"В разРАБотке!",view=SelectBlankScheme())
