@@ -480,7 +480,7 @@ async def on_message(message):
                                     await send(hook)
                                     break
                             if not send:
-
+                                print("No hook.")
                                 _hook = await channel.create_webhook(name="RTB hook")
                                 await send(_hook)
 
