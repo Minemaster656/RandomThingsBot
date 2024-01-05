@@ -91,6 +91,12 @@ class fun(commands.Cog):
                 with open(file_path, 'w') as file:
                     json.dump(json_data, file)
             update_json((ctx.guild.id, channel.id), type, reset)
+            found = False
+            for hook in await ctx.channel.webhooks():
+                if hook.user.id == self.bot.user.id:
+                    found = True
+            if not found:
+                await channel.create_webhook(name="RTB hook")
             await ctx.respond("Успешно!",ephemeral=True)
         else:
             await ctx.respond("У Вас недостаточно прав для этого действия!!!\nНеобходима верификация пользователя (в боте, не в Discord) и право управления каналами/администратор",ephemeral=True)
