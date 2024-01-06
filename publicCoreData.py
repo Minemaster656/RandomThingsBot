@@ -85,7 +85,7 @@ async def setPermissionForUser(id: int, permission: str, value: bool):
     if perms is None or perms == "":
         dictionary = {permission: value}
     else:
-        print(perms)
+        print("Perms: ",perms)
         dictionary = json.loads(perms)
 
         dictionary[permission] = value
