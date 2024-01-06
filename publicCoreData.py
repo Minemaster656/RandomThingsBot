@@ -35,7 +35,8 @@ collections = {"users": db["users"], "servers": db["servers"], "countries": ["co
 
 file_path = os.path.join('private', 'interchats.json')
 interchats = {}
-
+team_server_id = 1019180616731873290
+blanks_moderation_channel_id = 1193178847923929108
 botIDs = [1126887522690142359, 1169691387562835968]
 if not os.path.exists(file_path):
     interchats = {}
@@ -46,7 +47,7 @@ else:
         except json.JSONDecodeError:
             interchats = {}
 
-interhubs=["normal", "rp", "rp2", "rp_bottomOfTheAbbyss", "rp_void", "admins", "normal2", "normal_en", "rp_tavern","rp_cafe","tests","rp_mysteriousShop"]
+interhubs=["normal", "rp", "rp2", "rp_bottomOfTheAbyss", "rp_void", "admins", "normal2", "normal_en", "rp_tavern","rp_cafe","tests","rp_mysteriousShop"]
 
 async def parsePermissionFromUser(id: int, permission: str):
     usr = db.users.find({"userid": id})

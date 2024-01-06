@@ -1,4 +1,7 @@
+import json
 import random
+import re
+
 # import numpy as np
 # import matplotlib.pyplot as plt
 import discord
@@ -461,7 +464,7 @@ class RP(commands.Cog):
         output = ""
 
         for doc in documents:
-            output+= f"- **{doc['name']}** | **ID**: ``{doc['id']}``\n"
+            output+= f"- **{doc['name']}** {'| (***__НА ПРОВЕРКЕ__***) ' if str(doc['id']).endswith('$temp') else ''}| **ID**: ``{doc['id']}``\n"
         if len(output) < 1:
             output = "Нет персонажей"
         embed = discord.Embed(title="Результаты поиска",description=f"Персонажи пользователя <@{member.id}>:\n{output}",colour=publicCoreData.embedColors["Neutral"])
@@ -476,8 +479,156 @@ class RP(commands.Cog):
         else:
             await ctx.respond("У Вас нет права ``root`` или ``edit_characters`` для удаления персонажей!",ephemeral=True)
 
-
-
+    @commands.cooldown(1, 60, commands.BucketType.user)
     @commands.message_command(name="Распарсить анкету персонажа")
     async def parse_blank(self, ctx, message):
-        await ctx.respond(f"В разРАБотке!",view=SelectBlankScheme())
+
+        if len(message.attachments) > 0:
+            # Проверяем каждое вложение в сообщении
+            found = False
+            for attachment in message.attachments:
+
+                if re.match(r'blank.*\.json', attachment.filename):
+                    found = True
+                    # Читаем содержимое файла в виде строки
+                    file_contents = await attachment.read()
+
+                    # Преобразуем содержимое в объект JSON
+
+                    try:
+                        blank_data = json.loads((await attachment.read()).decode("utf-8"))
+                        # Здесь blank_data будет объектом JSON с полями {"field1":1, "field2":"a", "aaa":["", ""]}
+                        # Дальнейшая работа с данными
+                        # ...
+                        if db.characters.find_one({"id": str(blank_data["id"])}):
+
+                            embed = discord.Embed(title="Персонаж уже зарегестрирован!", description=f"ID {str(blank_data['id'])} уже занят одобренной анкетой!",
+                                                  colour=publicCoreData.embedColors["Error"])
+                            await ctx.respond(embed=embed)
+                        elif db.characters.find_one({"id": str(blank_data["id"])+"$temp"}):
+                            embed = discord.Embed(title="Персонаж уже на рассмотрении!",
+                                                  description=f"ID {str(blank_data['id'])+'$temp'} уже занят анкетой на рассмотрении!",
+                                                  colour=publicCoreData.embedColors["Error"])
+                            await ctx.respond(embed=embed)
+                        else:
+                            id = str(blank_data["id"]) + "$temp"
+                            try:
+                                age = float(blank_data["age"])
+                            except:
+                                await ctx.respond("Неверное значение возраста!")
+                                return
+                            doc = {
+                                "name": blank_data["name"], "bodystats": blank_data["bodystats"], "age":age ,
+                                "abilities": blank_data["abilities"], "weaknesses": blank_data["weaknesses"],
+                                "character": blank_data["character"], "inventory": blank_data["inventory"], "bio": blank_data["bio"],
+                                "appearances": blank_data["appearances"], "art": blank_data["art"] if blank_data["art"] and blank_data["art"]!="" and str(blank_data["art"]).startswith("http") and blank_data["art"]!=" " else "https://media.discordapp.net/attachments/1018886769619505212/1176561157939662978/ad643992b38e34e2.png", "shortened": blank_data["shortened"], "id": str(blank_data["id"])+"$temp",
+                                "owner": ctx.author.id}
+                            for k in doc.keys():
+                                if not doc[k] or doc[k] == "":
+                                    doc[k]=" "
+                            print(doc)
+                            embed = discord.Embed(title=f"Персонаж {utils.formatStringLength(doc['name'], 120)}",
+                                                  description=f"{utils.formatStringLength(doc['bio'], 4000)}",
+                                                  colour=publicCoreData.embedColors["Warp"])
+                            embed.add_field(name="Данные", value=f"Автор: <@{doc['owner']}>\nID: ``{id}``",
+                                            inline=False)
+                            embed.add_field(name="Рост, вес, возраст, мир",
+                                            value=f"{doc['bodystats']}\n{doc['age']} лет", inline=False)
+                            embed.add_field(name="Способности",
+                                            value=f"{utils.formatStringLength(doc['abilities'], 1024)}",
+                                            inline=False)
+                            embed.add_field(name="Слабости",
+                                            value=f"{utils.formatStringLength(doc['weaknesses'], 1024)}",
+                                            inline=False)
+                            embed.add_field(name="Характер",
+                                            value=f"{utils.formatStringLength(doc['character'], 1024)}",
+                                            inline=False)
+                            embed.add_field(name="Инвентарь",
+                                            value=f"{utils.formatStringLength(doc['inventory'], 1024)}",
+                                            inline=False)
+                            embed.add_field(name="Внешность",
+                                            value=f"{utils.formatStringLength(doc['appearances'], 1024)}",
+                                            inline=False)
+                            embed.add_field(name="Краткий пересказ",
+                                            value=f"{utils.formatStringLength(doc['shortened'], 1024)}",
+                                            inline=False)
+                            embed.set_thumbnail(url=doc['art'])
+                            await ctx.respond(embed=embed)
+                            server = self.bot.get_guild(publicCoreData.team_server_id)
+                            if server is None:
+                                found = False
+                            else:
+                                channel = server.get_channel(publicCoreData.blanks_moderation_channel_id)
+                                message = f"# Новая заявка на регистрацию!!!\nСервер: {ctx.guild.name} (`{ctx.guild.id}`)\nПользователь: {ctx.author.name} (`{ctx.author.id}`)\nКанал: {ctx.channel.name} (`{ctx.channel.id}`)"
+
+                                await channel.send(message, embed=embed)
+                            db.characters.insert_one(doc)
+
+
+                    except json.JSONDecodeError:
+                        await ctx.respond(f"Невозможно считать содержимое файла {attachment.filename}!")
+                    break
+                if not found:
+                    await ctx.respond("Вложение не найдено!\nУчтите, что вложение должно быть названо blank.json! (допустимы символы между blank и .json)!")
+        else:
+            await ctx.respond("Вложения не найдены!")
+    @commands.slash_command(name="одобрить-регистрацию-рп",description="Одобряет регистрацию рп персонажа")
+    async def approve_registration(self,ctx,id: Option(str, description="ID персонажа (можно без $temp, можно с ним)", required=True)=" "):
+        hasTemp = str(id).endswith("$temp")
+        if hasTemp:
+            id_temp = id
+            id_notemp = str(id)[:-5]
+        else:
+            id_temp=id+"$temp"
+            id_notemp=id
+        if db.characters.find_one({"id": id_temp}):
+            if (await publicCoreData.parsePermissionFromUser(ctx.author.id,
+                                                             "edit_characters") or await publicCoreData.parsePermissionFromUser(
+                    ctx.author.id, "root")):  # TODO: оптимизировать поиск прав
+
+                db.characters.update_one({"id": id_temp}, {"$set": {"id": id_notemp}})
+                embed = discord.Embed(title="Успешно!", description=f"Успешно одобрена анкета ``{id_temp}``!",
+                                      colour=publicCoreData.embedColors["Success"])
+                await ctx.respond(embed=embed)
+
+            else:
+                embed = discord.Embed(title="Нет прав!",
+                                      description="Необходимо право ``edit_characters`` или ``root`` для подтверждения регистрации персонажа!",
+                                      colour=publicCoreData.embedColors["Error"])
+                await ctx.respond(embed=embed,ephemeral=True)
+        else:
+            embed = discord.Embed(title="Не найдено!",
+                                  description=f"Неподтверждённая анкета с ID ``{id_temp}`` не найдена!",
+                                  colour=publicCoreData.embedColors["Error"])
+            await ctx.respond(embed=embed, ephemeral=True) #TODO: добавить "искромётную" шутку в сообщение об ненайденной анкете: "... да и к тому же у вас нет прав для этого действия!"
+
+    @commands.slash_command(name="отклонить-регистрацию-рп", description="Отклоняет регистрацию рп персонажа")
+    async def reject_registration(self, ctx, id: Option(str, description="ID персонажа (можно без $temp, можно с ним)",
+                                                         required=True) = " "):
+        hasTemp = str(id).endswith("$temp")
+        if hasTemp:
+            id_temp = id
+            id_notemp = str(id)[:-5]
+        else:
+            id_temp = id + "$temp"
+            id_notemp = id
+        if db.characters.find_one({"id":id_temp}):
+
+            if (await publicCoreData.parsePermissionFromUser(ctx.author.id,
+                                                             "edit_characters") or await publicCoreData.parsePermissionFromUser(
+                    ctx.author.id, "root")):  # TODO: оптимизировать поиск прав
+
+                db.characters.delete_one({"id": id_temp})
+                embed = discord.Embed(title="Успешно!",description=f"Успешно отклонена анкета ``{id_temp}``!",colour=publicCoreData.embedColors["Success"])
+                await ctx.respond(embed=embed)
+
+            else:
+                embed = discord.Embed(title="Нет прав!",
+                                      description="Необходимо право ``edit_characters`` или ``root`` для отклонения регистрации персонажа!",
+                                      colour=publicCoreData.embedColors["Error"])
+                await ctx.respond(embed=embed,ephemeral=True)
+        else:
+            embed = discord.Embed(title="Не найдено!",
+                                  description=f"Неподтверждённая анкета с ID ``{id_temp}`` не найдена!",
+                                  colour=publicCoreData.embedColors["Error"])
+            await ctx.respond(embed=embed, ephemeral=True) #TODO: добавить "искромётную" шутку в сообщение об ненайденной анкете: "... да и к тому же у вас нет прав для этого действия!"

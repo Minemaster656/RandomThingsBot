@@ -380,7 +380,7 @@ async def info(ctx):
                           description=f"[Пригласить бота на сервер](https://discord.com/api/oauth2/authorize?client_id=1126887522690142359&permissions=8&scope=bot)"
                                       f"\n[Пригласить бота на сервер (BETA-тесты)](https://discord.com/api/oauth2/authorize?client_id=1169691387562835968&permissions=8&scope=bot)"
                                       f"\n[Исходники](https://github.com/Minemaster656/RandomThingsBot)\n"
-                                      f"[Сайт](http://glitchdev.ru)"
+                                      f"[Сайт](https://glitchdev.ru)"
                                       f"", colour=publicCoreData.embedColors["Neutral"])
     await ctx.respond(embed=embed)
 

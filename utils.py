@@ -1,6 +1,8 @@
 import asyncio
+import codecs
 import math
 import random
+import re
 import time
 from random import randint
 
@@ -206,7 +208,12 @@ def formatStringLength(string : str, maxLength : int):
     #         return string[:maxLength-int(len(str(lenOutLimit)))] + f"( и ещё {lenOutLimit+len(str(lenOutLimit))} символов...)"
 
 
+def decode_unicode_escape(sequence):
+    return codecs.decode(sequence, 'unicode_escape')
 
+def convert_unicode_escape(input_string):
+    pattern = re.compile(r'\\u([0-9a-fA-F]{4})')
+    return re.sub(pattern, lambda x: decode_unicode_escape(x.group(0)), input_string)
 def calc_levelByXP(xp):
     '''Returns tuple: [0] - current level, [1] - xp - minimal this level xp, [2] - next level xp - current level min xp
     Current level - int
