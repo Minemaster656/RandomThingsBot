@@ -373,7 +373,24 @@ async def editMemberPermissions(ctx, permission: Option(str, description="Раз
     else:
         await ctx.respond(json.dumps(publicCoreData.permissions_user))
 
-
+@bot.slash_command(name="обавить-опыт",description="Даёт опыт пользователю")
+async def addXP(ctx, user : Option(discord.Member, description="Пользователь", required=True)=0,
+                value : Option(float, description="Количество. Отрицательное для уменьшения", required=True)=0):
+    if await publicCoreData.parsePermissionFromUser(ctx.author.id, "root"):
+        if db.users.find_one({"id":user.id}):
+            doc = db.users.find_one({"id":user.id})
+            doc = d.schema(doc, d.Schemes.user)
+            doc["xp"]+=value
+            db.users.update_one({"id":user.id}, {"$set" : doc})
+        else:
+            publicCoreData.writeUserToDB(user.id, user.name)
+            doc = db.users.find_one({"id": user.id})
+            doc = d.schema(doc, d.Schemes.user)
+            doc["xp"] += value
+            db.users.update_one({"id": user.id}, {"$set": doc})
+        await ctx.respond("Успешно!",ephemeral=True)
+    else:
+        await ctx.respond("Недостаточно прав!",ephemeral=True)
 @bot.slash_command(name="инфо", description="Информация о боте")
 async def info(ctx):
     embed = discord.Embed(title="Информация о боте",
