@@ -80,14 +80,14 @@ async def parsePermissionFromUser(id: int, permission: str):
 
 async def setPermissionForUser(id: int, permission: str, value: bool):
     # cursor.execute('SELECT permissions FROM users WHERE userid = ?', (id,))
-    perms = db.users.find({"userid": id}, {"permissions": 1})[0]  # cursor.fetchone()
+    perms = db.users.find({"userid": id})  # cursor.fetchone()
     dictionary = {}
-    if not perms or perms == "" or perms == " ":
+    if not perms["permissions"] or perms["permissions"] == "" or perms["permissions"] == " ":
         dictionary = {permission: value}
     else:
         # print("Perms: ",perms)
         try:
-            dictionary = json.loads(perms)
+            dictionary = json.loads(perms["permissions"])
         except:
             ...
         dictionary[permission] = value
