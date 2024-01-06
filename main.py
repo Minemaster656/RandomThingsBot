@@ -412,7 +412,7 @@ async def on_message(message):
 
     # ИНТЕРСЕРВЕР!!!
 
-    async def interchat(mode, message, hname, havatar):  # h - webHook
+    async def interchat(mode, message, hname, havatar, data_pair):  # h - webHook
 
         if mode in publicCoreData.interchats:
             leng = len(publicCoreData.interchats[mode])
@@ -461,16 +461,28 @@ async def on_message(message):
                                                           )
                                     embed.set_author(name=message.reference.resolved.author.name, icon_url=message.reference.resolved.author.avatar.url if message.reference.resolved.author.avatar else message.reference.resolved.author.default_avatar.url)
                                     try:
-                                        await hook.send(content=message.content, username=hname, avatar_url=havatar,embed=embed
+                                        if len(data_pair)>=3:
+                                            await hook.send(content=message.content, username=hname, avatar_url=havatar,
+                                                            embed=embed,thread=discord.Object(data_pair[2]), files=[await i.to_file() for i in message.attachments]
+                                                            )
+                                        else:
+                                            await hook.send(content=message.content, username=hname, avatar_url=havatar,embed=embed, files=[await i.to_file() for i in message.attachments]
                                                     )
                                     except:
                                         print("No hook?")
                                 else:
 
                                     try:
-                                        await hook.send(content=message.content, username=hname, avatar_url=havatar,
+                                        if len(data_pair) >= 3:
+                                            print("3!!!")
+                                            #TODO: ветки
+                                            await hook.send(content=message.content, username=hname, avatar_url=havatar,
                                                     allowed_mentions=discord.AllowedMentions.none()
-                                                    , files=[await i.to_file() for i in message.attachments])
+                                                    , files=[await i.to_file() for i in message.attachments],thread=discord.Object(data_pair[2]))
+                                        else:
+                                            await hook.send(content=message.content, username=hname, avatar_url=havatar,
+                                                            allowed_mentions=discord.AllowedMentions.none()
+                                                            , files=[await i.to_file() for i in message.attachments])
                                     except:
                                         print("No hook?")
 
@@ -510,7 +522,7 @@ async def on_message(message):
                 for pair in publicCoreData.interchats[hub]:
                     if target[0] in pair and target[1] in pair:
                         # найдено
-                        await interchat(hub, message, name, avatar)
+                        await interchat(hub, message, name, avatar, target)
                         # print("FOUND pair normal")
                         break
                         # print("BROKEN")
@@ -555,7 +567,7 @@ async def on_message(message):
 
 
 async def interdeletion(message):
-    async def interchat_delete(name, message, mode):
+    async def interchat_delete(name, message, mode,data_pair):
         # print("CALLED DELETE FUNC")
         leng = len(publicCoreData.interchats[mode])
         i = 0
@@ -573,6 +585,9 @@ async def interdeletion(message):
 
             # Поиск канала по ID
             channel = server.get_channel(channel_id)
+            if len(data_pair)==3:
+
+                channel=channel.get_thread(data_pair[2])
             if channel is None:
                 found = False
             if found:
@@ -606,7 +621,7 @@ async def interdeletion(message):
                 for pair in publicCoreData.interchats["normal"]:
                     if target[0] in pair and target[1] in pair:
                         # найдено
-                        await interchat_delete(name, message, "normal")
+                        await interchat_delete(name, message, "normal",target)
                         # print("FOUND pair normal")
                         break
                         # print("BROKEN")

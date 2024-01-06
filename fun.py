@@ -1,4 +1,6 @@
 import random
+import typing
+
 # import numpy as np
 # import matplotlib.pyplot as plt
 import discord
@@ -25,7 +27,7 @@ class fun(commands.Cog):
 
 
     @commands.slash_command(name="интерсервер",description="Помечает канал как интерсервер")
-    async def interserver(self, ctx, channel : Option(discord.TextChannel, description="Канал", required=True)=0, type: Option(str, description="Тип канала. Можно иметь одновременно несколько на сервер.",choices=publicCoreData.interhubs, required=True)=0,reset : Option(bool, description="True для отчистки поля", required=False)=False):
+    async def interserver(self, ctx, channel : Option(typing.Union[discord.TextChannel, discord.Thread], description="Канал", required=True)=0, type: Option(str, description="Тип канала. Можно иметь одновременно несколько на сервер.",choices=publicCoreData.interhubs, required=True)=0,reset : Option(bool, description="True для отчистки поля", required=False)=False):
         if publicCoreData.parsePermissionFromUser(ctx.author.id, "root") or (publicCoreData.parsePermissionFromUser(ctx.author.id, "verified") and(ctx.author.permissions.administrator or ctx.author.permissions.manage_channels) ):
             # with open('private/data.json', 'r') as file:
             #     try:
@@ -90,13 +92,20 @@ class fun(commands.Cog):
                 # Записываем обновленные данные в файл
                 with open(file_path, 'w') as file:
                     json.dump(json_data, file)
-            update_json((ctx.guild.id, channel.id), type, reset)
+            isThread = isinstance(channel, discord.Thread)
+            if isThread:
+                data=(ctx.guild.id, channel.parent_id, channel.id)
+            else:
+                data=(ctx.guild.id, channel.id)
+            update_json(data, type, reset)
             found = False
-            for hook in await ctx.channel.webhooks():
+            hooks = await ctx.channel.webhooks() if isinstance(channel, discord.TextChannel) else await ctx.channel.parent.webhooks()
+            hook_channel = ctx.channel if isinstance(channel, discord.TextChannel) else ctx.channel.parent
+            for hook in hooks:
                 if hook.user.id == self.bot.user.id:
                     found = True
             if not found:
-                await channel.create_webhook(name="RTB hook")
+                await hook_channel.create_webhook(name="RTB hook")
             await ctx.respond("Успешно!",ephemeral=True)
         else:
             await ctx.respond("У Вас недостаточно прав для этого действия!!!\nНеобходима верификация пользователя (в боте, не в Discord) и право управления каналами/администратор",ephemeral=True)
