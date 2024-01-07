@@ -10,8 +10,8 @@ import discord
 import pymongo
 import requests
 
-import publicCoreData
-from publicCoreData import cursor, db
+import Data
+from Data import cursor, db
 
 
 def invertY(y, maxY):
@@ -57,7 +57,7 @@ def throwDice(id, name):
         karma = result["karma"]
         luck = result["luck"]
     else:
-        publicCoreData.writeUserToDB(id, name)
+        Data.writeUserToDB(id, name)
         karma = 0
         luck = 0
 
@@ -85,7 +85,7 @@ async def noPermission(ctx, permissions):
     permissions = permissions.replace("&", "и")
     permissions = "`"+permissions+"`"
     embed = discord.Embed(title="У Вас нет прав!", description="Нет разрешения!",
-                          color=publicCoreData.embedColors["Error"])
+                          color=Data.embedColors["Error"])
     embed.add_field(name="Нет разрешения!", value=f"Вам необходимо(ы) разрешение(я): \n> {permissions}\n<@{ctx.author.id}>\n"
                                                   f"Ваши текущие разрешения: \n"
                                                   f"> {perms}")
@@ -236,4 +236,4 @@ def calc_levelByXP(xp):
 # load_from_json(json_str)
 # while True:
 #     print(format_number((convert_to_number(input(">")))))
-# asyncio.run(publicCoreData.setPermissionForUser(609348530498437140, "root", True))
+# asyncio.run(Data.setPermissionForUser(609348530498437140, "root", True))

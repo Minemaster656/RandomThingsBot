@@ -1,0 +1,5 @@
+coreData.py
+data.db
+private/
+/.idea
+venv

@@ -9,11 +9,11 @@ import perlin_noise
 from discord import Option
 from random import *
 
-import publicCoreData
-from publicCoreData import db
+import Data
+from Data import db
 import utils
-from publicCoreData import cursor
-from publicCoreData import conn
+from Data import cursor
+from Data import conn
 
 
 class Economy(commands.Cog):
@@ -30,14 +30,14 @@ class Economy(commands.Cog):
 
             data = db.users.find_one({"userid":member.id})
             if not data:
-                publicCoreData.writeUserToDB(member.id, member.name)
+                Data.writeUserToDB(member.id, member.name)
                 data = db.users.find_one({"userid": member.id})
                 # data['money'] = 0
                 # data['money_bank'] = 0
             # data = (0,0)
 
             embed = discord.Embed(title="Баланс",description=f"Баланс пользователя <@{member.id}>:"
-                                                             , colour=publicCoreData.embedColors["Economy"])
+                                                             , colour=Data.embedColors["Economy"])
             embed.add_field(name="Баланс на руках", value=f"{data['money']}")
             embed.add_field(name="Баланс в банке",value=f"{data['money_bank']}")
 
@@ -48,7 +48,7 @@ class Economy(commands.Cog):
                                                                         f""
                                                                         f""
                                                                         f"")
-        embed.add_field(name=f"{publicCoreData.preffix}искатьДеньги", value="Даёт вам случайное количество деняк. КД раз в минуту.")
+        embed.add_field(name=f"{Data.preffix}искатьДеньги", value="Даёт вам случайное количество деняк. КД раз в минуту.")
         await ctx.respond(embed=embed)
 
     @commands.command(aliases=["искатьДеньги"])
@@ -59,7 +59,7 @@ class Economy(commands.Cog):
         rand = utils.throwDice(ctx.author.id, ctx.author.name)
 
         db.users.update_one({"userid": ctx.author.id}, {"$inc": {"money": rand}})
-        await ctx.send(f"Получено **{rand}{publicCoreData.currency}**")
+        await ctx.send(f"Получено **{rand}{Data.currency}**")
 
     @commands.slash_command(name="лидеры", description="Лидеры экономики")
     async def ec_leaders(self, ctx):
@@ -69,13 +69,13 @@ class Economy(commands.Cog):
         it = 0
         # Вывод результатов
         embed = discord.Embed(title="Лидеры экономики", description="Топ-10 в экономике",
-                              colour=publicCoreData.embedColors["Economy"])
+                              colour=Data.embedColors["Economy"])
 
         for row in result:
 
-            # out +=f"`{it}`. @{row[0]} {row[1]}{publicCoreData.currency}:moneybag: + {row[2]}{publicCoreData.currency}:bank:. И того {row[1]+row[2]}{publicCoreData.currency}\n"
+            # out +=f"`{it}`. @{row[0]} {row[1]}{Data.currency}:moneybag: + {row[2]}{Data.currency}:bank:. И того {row[1]+row[2]}{Data.currency}\n"
             embed.add_field(name=f"`{it+1}`. @{row['username']}",
-                            value=f"{row['money'] + row['money_bank']}{publicCoreData.currency}", inline=False)
+                            value=f"{row['money'] + row['money_bank']}{Data.currency}", inline=False)
             it += 1
 
         await ctx.respond(embed=embed)
@@ -94,7 +94,7 @@ class Economy(commands.Cog):
                            ):
 
         # buisness = db.buisnesses.find_one({"id":owner})
-        if publicCoreData.parsePermissionFromUser(ctx.author.id, "root") or publicCoreData.parsePermissionFromUser(ctx.author.id, "edit_economy"):
+        if await Data.parsePermissionFromUser(ctx.author.id, "root") or Data.parsePermissionFromUser(ctx.author.id, "edit_economy"):
 
             buisness = True
             if buisness:
@@ -104,7 +104,7 @@ class Economy(commands.Cog):
                 }
                 db.items.insert_one(doc)
             else:
-                embed = discord.Embed(title="Бизнес не найден!",description=f"Бизнесс {owner} не найден!",colour=publicCoreData.embedColors["Error"])
+                embed = discord.Embed(title="Бизнес не найден!",description=f"Бизнесс {owner} не найден!",colour=Data.embedColors["Error"])
                 await ctx.respond(embed=embed)
         else:
             await ctx.respond("Нет прав на редактирование экономики!", ephemeral=True)
@@ -121,7 +121,7 @@ class Economy(commands.Cog):
                                server: Option(str, description="Сервер бизнеса", required=False)=" ",
                                logo: Option(str, description="Логотип бизнесса (ссылка)", required=True)=" ",
                                owner : Option(discord.Member, description="Владелец бизнеса", required=True)= 0):
-        if publicCoreData.parsePermissionFromUser(ctx.author.id, "root") or publicCoreData.parsePermissionFromUser(ctx.author.id, "edit_economy"):
+        if await Data.parsePermissionFromUser(ctx.author.id, "root") or await Data.parsePermissionFromUser(ctx.author.id, "edit_economy"):
             res = db.buisnesses.find_one({"id":id})
             if res:
                 await ctx.respond("ID не уникален!")
@@ -141,4 +141,5 @@ class Economy(commands.Cog):
 
 
 
-
+def setup(bot):
+    bot.add_cog(Economy(bot))

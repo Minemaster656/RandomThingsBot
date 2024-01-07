@@ -1,4 +1,4 @@
-import publicCoreData
+import Data
 
-id = int(input("User ID"))
-publicCoreData.insertRoot(id)
+id = int(input("User ID: "))
+Data.insertRoot(id)

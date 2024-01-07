@@ -24,32 +24,33 @@ from pymongo import MongoClient
 # import torchvision
 # from stable_diffusion import DiffusionModel
 
-import Apocalypse
-import HetTol
+# import Apocalypse
+# import HetTol
 import ServerCore
 import _AI_Stuff
 import d
-import fun
+# import fun
 import voice
 from tests_and_utils import dbClone
-import economy
-import publicCoreData
-import utilities
+# import economy
+import Data
+# import utilities
 import utils
 
 # cogs
-import game
-import rp
-import tests
+# import game
+# import rp
+# import tests
 
 from private import coreData
-from publicCoreData import cursor
-from publicCoreData import conn
-from publicCoreData import db
-from publicCoreData import collections
+from Data import cursor
+from Data import conn
+from Data import db
+from Data import collections
 
 # db = MongoClient(coreData.mongo_url)
 # mongo_db = db[coreData.mongo_db_name]
+import os
 
 
 whitelist = [609348530498437140, 617243612857761803]
@@ -78,7 +79,7 @@ intents.reactions = True
 # Задаём префикс и интенты
 runtime = time.time()
 loopCounter = 0
-bot = commands.Bot(command_prefix=publicCoreData.preffix, intents=intents)
+bot = commands.Bot(command_prefix=Data.preffix, intents=intents)
 
 
 @bot.event
@@ -100,7 +101,7 @@ async def noPermission(ctx, permissions):
     permissions = permissions.replace("|", "или").replace("&", "и")
     permissions = f"`{permissions}`"
     embed = discord.Embed(title="У Вас нет прав!", description="Нет разрешения!",
-                          color=publicCoreData.embedColors["Error"])
+                          color=Data.embedColors["Error"])
     embed.add_field(name="Нет разрешения!",
                     value=f"Вам необходимо(ы) разрешение(я): \n> {permissions}\n<@{ctx.author.id}>\n"
                           f"Ваши текущие разрешения: \n"
@@ -114,7 +115,7 @@ async def on_command_error(ctx, error):
     none = "None"
     if isinstance(error, commands.MissingPermissions):
         embed = discord.Embed(title="У Вас нет прав!", description="Нет разрешения!",
-                              color=publicCoreData.embedColors["Error"])
+                              color=Data.embedColors["Error"])
         embed.add_field(name="Нет разрешения!", value=f"Вам необходимо(ы) разрешение(я): {none}")
         await ctx.send(embed=embed, ephemeral=False)
     elif isinstance(error, commands.CommandOnCooldown):
@@ -123,7 +124,7 @@ async def on_command_error(ctx, error):
         await ctx.send(f"Недостаточно прав!")
     elif isinstance(error, IndexError):
         print(db)
-        print(publicCoreData.client)
+        print(Data.client)
         await ctx.send(error)
     if (sendAllExceptionsToChat):
         await ctx.send(error)
@@ -141,26 +142,26 @@ async def set_settings(ctx, field: Option(str, description="Поле", required=
                                       required=False) = None):
     """Настройки и приколы бота для админов БОТА."""
     hasPermission = False
-    hasPermission = await publicCoreData.parsePermissionFromUser(ctx.author.id, "root")
+    hasPermission = await Data.parsePermissionFromUser(ctx.author.id, "root")
     if member is None:
         member = ctx.author
     if hasPermission == True:
         embed = discord.Embed(title="В разработке...", description="Вам необходимо разрешение root для использования.",
-                              color=publicCoreData.embedColors["Warp"])
+                              color=Data.embedColors["Warp"])
         if field == "SQL+commit":
             # cursor.execute(value)
             # conn.commit()
             embed = discord.Embed(title="Не поддерживается!",
                                   description=f"БАЗА ДАННЫХ ПЕРЕЕЗЖАЕТ НА MONGODB! Запрос: {value}",
-                                  color=publicCoreData.embedColors["Exception"])
+                                  color=Data.embedColors["Exception"])
         elif field == "eval":
             eval(value)
             embed = discord.Embed(title="Код выполнен!", description=f"Код: {value}",
-                                  color=publicCoreData.embedColors["Success"])
+                                  color=Data.embedColors["Success"])
         elif field == "Таблицы":
             embed = discord.Embed(title="Таблицы получены!",
                                   description=f"БАЗА ДАННЫХ ПЕРЕЕЗЖАЕТ НА MONGODB! Запросы: \n=====\n\n{dbClone.getSQLs(False)}",
-                                  color=publicCoreData.embedColors["Exception"])
+                                  color=Data.embedColors["Exception"])
 
         await ctx.respond(embed=embed, ephemeral=ephemeral)
     else:
@@ -170,7 +171,7 @@ async def set_settings(ctx, field: Option(str, description="Поле", required=
 @bot.command(aliases=['me', 'я', '>'])
 async def sendMsg(ctx, *, args):
     """Отправка сообщения от лица бота."""
-    if publicCoreData.parsePermissionFromUser(ctx.author.id, "say_as_bot"):
+    if Data.parsePermissionFromUser(ctx.author.id, "say_as_bot"):
         if ctx.message.reference:
             await ctx.send(args, reference=ctx.message.reference)
         else:
@@ -187,7 +188,7 @@ async def help(ctx):
 
 # @bot.slash_command(description="Сообщение от лица бота.", name="бот")
 # async def me(ctx, text):
-#     if publicCoreData.parsePermissionFromUser(ctx.author.id, "say_as_bot"):
+#     if Data.parsePermissionFromUser(ctx.author.id, "say_as_bot"):
 #         if ctx.message.reference:
 #             await ctx.send(text, reference=ctx.message.reference)
 #         else:
@@ -209,7 +210,7 @@ async def about(ctx, user: discord.Member = None):
         except:
             print(result)
             # if not result:
-            #     publicCoreData.writeUserToDB(ctx.author.id, ctx.author.name)
+            #     Data.writeUserToDB(ctx.author.id, ctx.author.name)
 
         async def send_user_info_embed(color, about, age, timezone, karma, luck, permissions, xp):
             def convertKarmaToEmoji(karma):
@@ -241,7 +242,18 @@ async def about(ctx, user: discord.Member = None):
                 else:
                     return "⬜"
 
-            embed = discord.Embed(title=user.display_name, description=user.name, color=discord.Colour.blue())
+            icons = " "
+            try:
+                perms = json.loads(permissions)
+            except:
+                perms={}
+            if "verified" in perms.keys():
+                icons+=Data.icons[Data.Icons.verified] if perms["verified"] else ""
+            if "root" in perms.keys():
+                icons+=Data.icons[Data.Icons.root] if perms["root"] else ""
+            if "edit_characters" in perms.keys():
+                icons+=Data.icons[Data.Icons.edit_characters] if perms["edit_characters"] else ""
+            embed = discord.Embed(title=user.display_name+icons, description=user.name, color=color)
             embed.add_field(name="О себе", value="> *" + about + "*", inline=False)
             embed.add_field(name="Личные данные", value="- Возраст: " + age + "\n- Часовой пояс: UTC+" + timezone,
                             inline=True)
@@ -252,13 +264,13 @@ async def about(ctx, user: discord.Member = None):
             xps = utils.calc_levelByXP(xp)
             embed.add_field(name="Опыт",value=f"Всего опыта: {xp}\nУровень: {xps[0]}\nОпыта до следующего уровня: {xps[2]}",inline=False)
             embed.set_footer(
-                text='Редактировтаь параметры - .редактировать <имяпараметра строчными буквами без пробелов и этих <> > \"значение\"')
+                text='Редактировтаь параметры - !!редактировать <имяпараметра строчными буквами без пробелов и этих <> > \"значение\"')
             await ctx.send(embed=embed)
 
         if result:
             await ctx.send("Запись найдена")
 
-            clr = "#5865F2" if result["color"] is None else result["color"]
+            clr = 0x5865F2 if result["color"] is None else result["color"]
             abt = "Задать поле 'О себе' можно командой `!!редактировать осебе`" if result["about"] is None else result[
                 "about"]
             tmz = "UTC+?. Задать часовой пояс можно командой `.редактировать часовойпояс`. Укажите свой часовой пояс относительно Гринвича." if \
@@ -271,11 +283,12 @@ async def about(ctx, user: discord.Member = None):
                                        result["permissions"], result["xp"])  # if result["permissions"] is None else '{}'
         else:
             await ctx.send("Запись о пользователе не найдена. Добавление...")
-            publicCoreData.writeUserToDB(user.id, user.name)
+            Data.writeUserToDB(user.id, user.name)
 
-            await send_user_info_embed("#5865F2", "Задать поле 'О себе' можно командой .редактировать осебе",
+            await send_user_info_embed(0x5865F2, "Задать поле 'О себе' можно командой .редактировать осебе",
                                        "Задать поле 'Возраст' можно командой `.редактировать возраст`\nПожалуйста, ставьте только свой реальный возраст, не смотря на то, сколько вам лет.",
                                        "UTC+?. Задать часовой пояс можно командой `.редактировать часовойпояс`. Укажите свой часовой пояс относительно Гринвича.", 0,0,None,0)
+            #TODO: прогрессбар уровня
 
 
 @bot.command(aliases=["редактировать"])
@@ -341,7 +354,7 @@ async def keyboard_layout_switcher(ctx, text):
 
 @bot.slash_command(name="разрешения", description="Редактирование разрешений пользователя")
 async def editMemberPermissions(ctx, permission: Option(str, description="Разрешение. ? для списка",
-                                                        choises=publicCoreData.permissions_user,
+                                                        choises=Data.permissions_user,
                                                         required=True) = "none",
                                 member: Option(discord.Member, description="Пользователь", required=True) = None,
                                 value: Option(bool, description="Значение", required=True) = True,
@@ -349,45 +362,48 @@ async def editMemberPermissions(ctx, permission: Option(str, description="Раз
                                                   required=False) = False):
     if member is None:
         member = ctx.author
-    perm_root = await publicCoreData.parsePermissionFromUser(ctx.author.id, "root")
-    perm_edit = await publicCoreData.parsePermissionFromUser(ctx.author.id, "edit_permissions")
+    perm_root = await Data.parsePermissionFromUser(ctx.author.id, "root")
+    perm_edit = await Data.parsePermissionFromUser(ctx.author.id, "edit_permissions")
     if permission != "?":
         if perm_root or perm_edit:
             if permission != "root":
-                await publicCoreData.setPermissionForUser(member.id, permission, value)
+                await Data.setPermissionForUser(member.id, permission, value)
                 embed = discord.Embed(title=f"Разрешение {permission} изменено успешно!",
                                       description=f"Разрешение изменено у участника <@{member.id}> на **{value}**",
-                                      colour=publicCoreData.embedColors["Success"])
+                                      colour=Data.embedColors["Success"])
                 await ctx.respond(embed=embed, ephemeral=ephemeral)
             else:
                 if perm_root:
-                    await publicCoreData.setPermissionForUser(member.id, permission, value)
+                    await Data.setPermissionForUser(member.id, permission, value)
                     embed = discord.Embed(title=f"Разрешение {permission} изменено успешно!",
                                           description=f"Разрешение изменено у участника <@{member.id}> на **{value}**",
-                                          colour=publicCoreData.embedColors["Success"])
+                                          colour=Data.embedColors["Success"])
                     await ctx.respond(embed=embed, ephemeral=ephemeral)
                 else:
                     await noPermission(ctx, "root")
         else:
             await noPermission(ctx, "root | edit_permissions")
     else:
-        await ctx.respond(json.dumps(publicCoreData.permissions_user))
+        await ctx.respond(json.dumps(Data.permissions_user))
 
-@bot.slash_command(name="обавить-опыт",description="Даёт опыт пользователю")
+@bot.slash_command(name="добавить-опыт",description="Даёт опыт пользователю")
 async def addXP(ctx, user : Option(discord.Member, description="Пользователь", required=True)=0,
                 value : Option(float, description="Количество. Отрицательное для уменьшения", required=True)=0):
-    if await publicCoreData.parsePermissionFromUser(ctx.author.id, "root"):
-        if db.users.find_one({"id":user.id}):
-            doc = db.users.find_one({"id":user.id})
+    if await Data.parsePermissionFromUser(ctx.author.id, "root"):
+        doc = db.users.find_one({"userid":user.id})
+        if doc:
+            # doc = db.users.find_one({"id":user.id})
             doc = d.schema(doc, d.Schemes.user)
             doc["xp"]+=value
-            db.users.update_one({"id":user.id}, {"$set" : doc})
+            db.users.update_one({"userid":user.id}, {"$set" : doc})
+            print("Found")
         else:
-            publicCoreData.writeUserToDB(user.id, user.name)
-            doc = db.users.find_one({"id": user.id})
+            Data.writeUserToDB(user.id, user.name)
+            doc = db.users.find_one({"userid": user.id})
             doc = d.schema(doc, d.Schemes.user)
             doc["xp"] += value
             db.users.update_one({"id": user.id}, {"$set": doc})
+            print("None")
         await ctx.respond("Успешно!",ephemeral=True)
     else:
         await ctx.respond("Недостаточно прав!",ephemeral=True)
@@ -398,7 +414,7 @@ async def info(ctx):
                                       f"\n[Пригласить бота на сервер (BETA-тесты)](https://discord.com/api/oauth2/authorize?client_id=1169691387562835968&permissions=8&scope=bot)"
                                       f"\n[Исходники](https://github.com/Minemaster656/RandomThingsBot)\n"
                                       f"[Сайт](https://glitchdev.ru)"
-                                      f"", colour=publicCoreData.embedColors["Neutral"])
+                                      f"", colour=Data.embedColors["Neutral"])
     await ctx.respond(embed=embed)
 
 
@@ -414,6 +430,10 @@ def inter_formatContent(content : str):
     content = content.replace("@here", "@hеrе")
     return content
 def inter_formatName(message):
+    if not message:
+        return ">» ???"
+    if not message.guild:
+        return ">» [???]"
     type = ""
     if message.webhook_id:
         type = "⚓"
@@ -431,10 +451,10 @@ async def on_message(message):
 
     async def interchat(mode, message, hname, havatar, data_pair):  # h - webHook
 
-        if mode in publicCoreData.interchats:
-            leng = len(publicCoreData.interchats[mode])
+        if mode in Data.interchats:
+            leng = len(Data.interchats[mode])
             i = 0
-            for array in publicCoreData.interchats[mode]:
+            for array in Data.interchats[mode]:
                 i += 1
                 server_id = array[0]
                 channel_id = array[1]
@@ -455,7 +475,7 @@ async def on_message(message):
                 try:
                     hooks = await channel.webhooks()
                     for hook in hooks:
-                        isBotHook = hook.user.id in publicCoreData.botIDs
+                        isBotHook = hook.user.id in Data.botIDs
                         break
                 except Forbidden:
                     isBotHook = True
@@ -474,7 +494,7 @@ async def on_message(message):
                             async def send(hook):
                                 if message.reference:
 
-                                    embed = discord.Embed(title="⤴️ Reply",description=f"{message.reference.resolved.content}",colour=publicCoreData.embedColors["Neutral"]
+                                    embed = discord.Embed(title="⤴️ Reply",description=f"{message.reference.resolved.content}",colour=Data.embedColors["Neutral"]
                                                           )
                                     embed.set_author(name=message.reference.resolved.author.name, icon_url=message.reference.resolved.author.avatar.url if message.reference.resolved.author.avatar else message.reference.resolved.author.default_avatar.url)
                                     try:
@@ -534,9 +554,9 @@ async def on_message(message):
     name = inter_formatName(message)
     avatar = message.author.avatar.url if message.author.avatar else message.author.default_avatar.url
     if not str(message.author.name).startswith(">» "):
-        for hub in publicCoreData.interhubs:
-            if hub in publicCoreData.interchats:
-                for pair in publicCoreData.interchats[hub]:
+        for hub in Data.interhubs:
+            if hub in Data.interchats:
+                for pair in Data.interchats[hub]:
                     if target[0] in pair and target[1] in pair:
                         # найдено
                         await interchat(hub, message, name, avatar, target)
@@ -550,9 +570,9 @@ async def on_message(message):
     # if message.mention_roles:  # Проверяем, были ли упомянуты роли в сообщении
     #         mentioned_roles = message.role_mentions  # Получаем список упомянутых ролей
     #         for role in mentioned_roles:
-    #             if role.id in publicCoreData.infectionRolesID:  # Замени 'YOUR_ROLE_ID' на фактический ID роли
+    #             if role.id in Data.infectionRolesID:  # Замени 'YOUR_ROLE_ID' на фактический ID роли
     #                 await message.author.add_roles(role)  # Даем автору сообщения эту роль
-    for i in publicCoreData.infectionRolesID:
+    for i in Data.infectionRolesID:
         # if str(i) in message.content:
         try:
             role = message.guild.get_role(i)
@@ -569,7 +589,7 @@ async def on_message(message):
         ...
     # if message.mentions:  # Проверяем, были ли упомянуты пользователи в сообщении
     #     mentioned_users = message.mentions  # Получаем список упомянутых пользователей
-    #     for role_id in publicCoreData.infectionRolesID:
+    #     for role_id in Data.infectionRolesID:
     #     # role_id = 1234567890  # Замени на фактический ID роли
     #         role = message.guild.get_role(role_id)  # Получаем объект роли по ID
     #
@@ -586,9 +606,9 @@ async def on_message(message):
 async def interdeletion(message):
     async def interchat_delete(name, message, mode,data_pair):
         # print("CALLED DELETE FUNC")
-        leng = len(publicCoreData.interchats[mode])
+        leng = len(Data.interchats[mode])
         i = 0
-        for array in publicCoreData.interchats[mode]:
+        for array in Data.interchats[mode]:
             i += 1
             server_id = array[0]
             channel_id = array[1]
@@ -633,9 +653,9 @@ async def interdeletion(message):
     # print("DELETION")
     if not str(message.author.name).startswith(">» "):
         # print("SOURCE FOUND")
-        for hub in publicCoreData.interhubs:
-            if hub in publicCoreData.interchats:
-                for pair in publicCoreData.interchats["normal"]:
+        for hub in Data.interhubs:
+            if hub in Data.interchats:
+                for pair in Data.interchats["normal"]:
                     if target[0] in pair and target[1] in pair:
                         # найдено
                         await interchat_delete(name, message, "normal",target)
@@ -700,31 +720,40 @@ async def statusLoop():
         loopCounter = 0
 
 
-# voice:.idea/1696585352512.wav
-# voice:.idea/1696530559952.wav
-# bot.add_cog(Weather(bot))
-bot.add_cog(game.Game(bot))
-# for f in os.listdir("./cogs"):
-#     if f.endswith(".py"):
-#         bot.load_extension("cogs." + f[:-3])
-bot.add_cog(tests.Tests(bot))
-bot.add_cog(rp.RP(bot))
-bot.add_cog(economy.Economy(bot))
-bot.add_cog(utilities.BotCog(bot))
-bot.add_cog(Apocalypse.Apocalypse(bot))
-bot.add_cog(ServerCore.ServerCore(bot))
-bot.add_cog(_AI_Stuff._AI_Stuff(bot))
-bot.add_cog(fun.fun(bot))
-# bot.add_cog(voice.voice(bot))
-# bot.add_cog(paginator.PageTest(bot))
-# asyncio.run(loop())
-bot.add_cog(HetTol.PingCog(bot))
+# # voice:.idea/1696585352512.wav
+# # voice:.idea/1696530559952.wav
+# # bot.add_cog(Weather(bot))
+# bot.add_cog(game.Game(bot))
+# # for f in os.listdir("./cogs"):
+# #     if f.endswith(".py"):
+# #         bot.load_extension("cogs." + f[:-3])
+# bot.add_cog(tests.Tests(bot))
+# bot.add_cog(rp.RP(bot))
+# bot.add_cog(economy.Economy(bot))
+# bot.add_cog(utilities.BotCog(bot))
+# bot.add_cog(Apocalypse.Apocalypse(bot))
+# bot.add_cog(ServerCore.ServerCore(bot))
+# bot.add_cog(_AI_Stuff._AI_Stuff(bot))
+# bot.add_cog(fun.fun(bot))
+# # bot.add_cog(voice.voice(bot))
+# # bot.add_cog(paginator.PageTest(bot))
+# # asyncio.run(loop())
+# bot.add_cog(HetTol.PingCog(bot))
+#
+# # loop_thread = Thread(target=loopRunner())
+# # loop_thread.start()
+#
+# # client = discord.Client()
+#
+# # client.loop.create_task(loop())
+# bot.run(token)
+# # asyncio.run(statusLoop())
+def main():
+    for f in os.listdir("./cogs"):
+        if f.endswith("py"):
+            bot.load_extension("cogs." + f[:-3])
+    bot.run(token)
+if __name__ == "__main__":
+    main()
 
-# loop_thread = Thread(target=loopRunner())
-# loop_thread.start()
 
-# client = discord.Client()
-
-# client.loop.create_task(loop())
-bot.run(token)
-# asyncio.run(statusLoop())

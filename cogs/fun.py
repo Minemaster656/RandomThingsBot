@@ -11,8 +11,9 @@ from random import *
 import json
 import os
 
-import publicCoreData
+import Data
 import utils
+
 
 
 class fun(commands.Cog):
@@ -27,8 +28,8 @@ class fun(commands.Cog):
 
 
     @commands.slash_command(name="интерсервер",description="Помечает канал как интерсервер")
-    async def interserver(self, ctx, channel : Option(typing.Union[discord.TextChannel, discord.Thread], description="Канал", required=True)=0, type: Option(str, description="Тип канала. Можно иметь одновременно несколько на сервер.",choices=publicCoreData.interhubs, required=True)=0,reset : Option(bool, description="True для отчистки поля", required=False)=False):
-        if publicCoreData.parsePermissionFromUser(ctx.author.id, "root") or (publicCoreData.parsePermissionFromUser(ctx.author.id, "verified") and(ctx.author.permissions.administrator or ctx.author.permissions.manage_channels) ):
+    async def interserver(self, ctx, channel : Option(typing.Union[discord.TextChannel, discord.Thread], description="Канал", required=True)=0, type: Option(str, description="Тип канала. Можно иметь одновременно несколько на сервер.",choices=Data.interhubs, required=True)=0,reset : Option(bool, description="True для отчистки поля", required=False)=False):
+        if await Data.parsePermissionFromUser(ctx.author.id, "root") or (await Data.parsePermissionFromUser(ctx.author.id, "verified") and(ctx.author.permissions.administrator or ctx.author.permissions.manage_channels) ):
             # with open('private/data.json', 'r') as file:
             #     try:
             #         data = json.load(file)
@@ -88,7 +89,7 @@ class fun(commands.Cog):
                 else:
                     # Добавление элемента в массив, если delete=False
                     json_data[array_name].append(data)
-                publicCoreData.interchats = json_data
+                data.interchats = json_data
                 # Записываем обновленные данные в файл
                 with open(file_path, 'w') as file:
                     json.dump(json_data, file)
@@ -113,3 +114,5 @@ class fun(commands.Cog):
 
 
 
+def setup(bot):
+    bot.add_cog(fun(bot))

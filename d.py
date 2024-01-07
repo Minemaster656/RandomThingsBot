@@ -1,6 +1,6 @@
 import enum
 
-from publicCoreData import db
+from Data import db
 
 
 class Schemes(enum.Enum):
@@ -15,9 +15,11 @@ def schema(document, scheme):
                   "karma":0, "luck":0, "permissions":None,
                   "money":0, "money_bank":0, "xp":0}
         fields_check = {}
+        if not document:
+            document = fields
         for k in fields.keys():
             fields_check[k] = False
-        for k in document:
+        for k in document.keys():
             if k in fields.keys():
                 fields_check[k]=True
         for k in fields_check:

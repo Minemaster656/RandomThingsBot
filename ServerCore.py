@@ -10,8 +10,8 @@ from discord.ext import commands
 from discord import Option
 from random import *
 
-import publicCoreData
-from publicCoreData import conn, cursor, db
+import Data
+from Data import conn, cursor, db
 
 
 class ServerCore(commands.Cog):
@@ -26,7 +26,7 @@ class ServerCore(commands.Cog):
                                 channel: Option(typing.Union[discord.TextChannel, discord.Thread], description="Канал.",
                                                 required=True) = None, clear_field : Option(bool, description="Очистить настройку? Удалит значение вместо установки.", required=False)=False):
 
-        publicCoreData.findServerInDB(ctx)
+        Data.findServerInDB(ctx)
 
         if field == "игра Апокалипсис":
             if clear_field:
@@ -39,7 +39,7 @@ class ServerCore(commands.Cog):
                 parent = channel
                 if isinstance(channel, discord.Thread):
                     parent = channel.parent
-                avatar_url = publicCoreData.webhook_avatar_url
+                avatar_url = Data.webhook_avatar_url
                 webhook_name = str("RTBot's webhook")
                 channel = ctx.channel
                 webhooks = await parent.webhooks()
@@ -86,7 +86,7 @@ class ServerCore(commands.Cog):
             srv = db.servers.find_one({"serverid":ctx.guild.id}, {"bumpcolor":1,"invitelink":1})
             clr =srv["bumpcolor"]
             lnk = srv["invitelink"]
-            embed = discord.Embed(title=f"{ctx.guild.name}",description=f"{value}",colour= publicCoreData.embedColors["Neutral"] if clr is None else int(clr))
+            embed = discord.Embed(title=f"{ctx.guild.name}",description=f"{value}",colour= Data.embedColors["Neutral"] if clr is None else int(clr))
             embed.add_field(name="Ссылка на сервер",value=f"🔗{lnk}",inline=False)
             await ctx.respond("Текст партнёрского соглашения сервера заменён на:", embed=embed)
 

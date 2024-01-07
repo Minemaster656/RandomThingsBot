@@ -11,7 +11,7 @@ from discord.ext import commands
 from discord import Option
 from random import *
 
-import publicCoreData
+import Data
 import utils
 
 def genApocalypseItems():
@@ -37,7 +37,7 @@ def genApocalypseItems():
     for i in ex_tasks:
         ex_tasks_out += "\n- " + i
     # await ctx.respond("Отправка...", ephemeral=True)
-    guide = f"\n\nЭто список предметов для игры {publicCoreData.apocalypseDLC}. \n" \
+    guide = f"\n\nЭто список предметов для игры {Data.apocalypseDLC}. \n" \
             f"Правила игры - У Вас есть список предметов. Можно гипертрофировать их смысл, использовать мемный или прямой смысл. " \
             f"\nПо умолчанию Вы не можете использовать предметы не из списка. Обычно цель - уничтожить планету/мир/человечество, однако могут быть другие типы заданий.\n" \
             f"Так же есть дополнительные эффекты, изменяющие правила игры.\n" \
@@ -52,8 +52,8 @@ def genApocalypseItems():
               #f"\n{guide}", )
 
     return output
-class Apocalypse(commands.Cog):
-    currentDLC = publicCoreData.apocalypseDLC  # "Самый странный апокалипсис⁶™"
+class apocalypse(commands.Cog):
+    currentDLC = Data.apocalypseDLC  # "Самый странный апокалипсис⁶™"
 
     def __init__(self, bot):
         self.bot = bot
@@ -65,3 +65,5 @@ class Apocalypse(commands.Cog):
             list = genApocalypseItems()
             await ctx.respond(list[0], embed=list[1])
 
+# def setup(bot):
+#     bot.add_cog(apocalypse(bot))

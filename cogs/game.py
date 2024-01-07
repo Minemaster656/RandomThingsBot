@@ -120,3 +120,5 @@ class Game(commands.Cog):
             arr1 = arrays[1]
             arr2 = arrays[2]
             await ctx.respond(print_array_with_emoji(arr0, arr1, arr2))
+def setup(bot):
+    bot.add_cog(Game(bot))

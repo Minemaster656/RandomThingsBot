@@ -8,7 +8,7 @@ from discord import Option
 from random import *
 
 import AI
-import publicCoreData
+import Data
 
 
 class _AI_Stuff(commands.Cog):

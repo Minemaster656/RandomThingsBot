@@ -11,10 +11,10 @@ from discord import Option
 from random import *
 # import sqlite3
 
-import publicCoreData
+import Data
 import utils
 
-from publicCoreData import db
+from Data import db
 from PIL import Image, ImageFilter, ImageDraw, ImageOps
 import pymongo
 
@@ -100,7 +100,7 @@ class RP(commands.Cog):
             luck = user_data.get("luck", 0)
         else:
             # db.users.insert_one({"userid": author.id, "karma": 0, "luck": 0})
-            publicCoreData.writeUserToDB(ctx.author.id, ctx.author.name)
+            Data.writeUserToDB(ctx.author.id, ctx.author.name)
             karma = 0
             luck = 0
 
@@ -138,7 +138,7 @@ class RP(commands.Cog):
 
                       ):
         with ctx.typing():
-            if ctx.author.id in publicCoreData.WPG_whitelist:
+            if ctx.author.id in Data.WPG_whitelist:
                 if user is None:
                     user = ctx.author
                 await ctx.respond(f"Запись страны {country_name}...")
@@ -169,14 +169,14 @@ class RP(commands.Cog):
 
                         ):
         with ctx.typing():
-            if ctx.author.id in publicCoreData.WPG_whitelist:
+            if ctx.author.id in Data.WPG_whitelist:
                 db.countries.delete_one({"id": id})
                 await ctx.respond(f"Страна {id} удалена!")
             else:
                 whitelisted_user_name = " "
 
                 await ctx.respond(
-                    f"Вы не можете удалять страны. Попросите кого-нибудь из тех, кто может это сделать, например, <@{random.choice(publicCoreData.WPG_whitelist)}>")
+                    f"Вы не можете удалять страны. Попросите кого-нибудь из тех, кто может это сделать, например, <@{random.choice(Data.WPG_whitelist)}>")
 
     @commands.slash_command(name="редактировать-впи-статы", description="Редактирует статы ВПИ государства")
     async def editWPGStats(self, ctx,
@@ -193,7 +193,7 @@ class RP(commands.Cog):
                                          required=True) = 0,
                            ephemeral: Option(bool, description="Видно лишь вам или нет", required=False) = False):
 
-        if ctx.author.id in publicCoreData.WPG_whitelist:
+        if ctx.author.id in Data.WPG_whitelist:
             with ctx.typing():
                 column = ""
                 if field == "деньги":
@@ -239,7 +239,7 @@ class RP(commands.Cog):
 
         else:
             await ctx.respond(
-                f"Вы не можете удалять страны. Попросите кого-нибудь из тех, кто может это сделать, например, <@{random.choice(publicCoreData.WPG_whitelist)}>",
+                f"Вы не можете удалять страны. Попросите кого-нибудь из тех, кто может это сделать, например, <@{random.choice(Data.WPG_whitelist)}>",
                 ephemeral=ephemeral)
 
     choisesWPGButWithList = choicesEditWPG
@@ -414,21 +414,21 @@ class RP(commands.Cog):
                 sizeLimit=True
                 break
         if db.characters.find_one({"id":id}):
-            embed = discord.Embed(title="Конфликт имён!",description=f"ID {id} занят другой анкетой!",colour=publicCoreData.embedColors["Error"])
+            embed = discord.Embed(title="Конфликт имён!",description=f"ID {id} занят другой анкетой!",colour=Data.embedColors["Error"])
             await ctx.respond(embed=embed)
         else:
-            if (await publicCoreData.parsePermissionFromUser(ctx.author.id, "edit_characters") or await publicCoreData.parsePermissionFromUser(ctx.author.id, "root")): #TODO: оптимизировать поиск прав
+            if (await Data.parsePermissionFromUser(ctx.author.id, "edit_characters") or await Data.parsePermissionFromUser(ctx.author.id, "root")): #TODO: оптимизировать поиск прав
                 if not sizeLimit:
                     db.characters.insert_one(doc)
-                    embed = discord.Embed(title="Персонаж зарегистрирован!",description=f"{name} зарегистрирован как ``{id}`` и принадлежит <@{owner.id}>",colour=publicCoreData.embedColors["Success"])
+                    embed = discord.Embed(title="Персонаж зарегистрирован!",description=f"{name} зарегистрирован как ``{id}`` и принадлежит <@{owner.id}>",colour=Data.embedColors["Success"])
                     await ctx.respond(embed=embed)
                 else:
-                    embed = discord.Embed(title="Превышение размера!",description=f"Ключ: {oversizeKey}",colour=publicCoreData.embedColors["Error"])
+                    embed = discord.Embed(title="Превышение размера!",description=f"Ключ: {oversizeKey}",colour=Data.embedColors["Error"])
                     await ctx.respond(embed=embed)
             else:
                 embed = discord.Embed(title="Нет прав!",
                                       description="Необходимо право ``edit_characters`` или ``root`` для регистрации персонажа!",
-                                      colour=publicCoreData.embedColors["Error"])
+                                      colour=Data.embedColors["Error"])
                 await ctx.respond(embed=embed)
     @commands.slash_command(name="персонаж",description="Открывает анкету персонажа по ID")
     async def inspectChar(self, ctx, id : Option(str, description="ID", required=True)=" ",ephemeral : Option(bool, description="Видно только вам?", required=False)=False):
@@ -437,7 +437,7 @@ class RP(commands.Cog):
 
             await ctx.respond(f"Персонаж ``{id}`` не найден!")
         else:
-            embed = discord.Embed(title=f"Персонаж {utils.formatStringLength(result['name'], 120)}",description=f"{utils.formatStringLength(result['bio'], 4000)}",colour=publicCoreData.embedColors["Warp"])
+            embed = discord.Embed(title=f"Персонаж {utils.formatStringLength(result['name'], 120)}",description=f"{utils.formatStringLength(result['bio'], 4000)}",colour=Data.embedColors["Warp"])
             embed.add_field(name="Данные",value=f"Автор: <@{result['owner']}>\nID: ``{id}``",inline=False)
             embed.add_field(name="Рост, вес, возраст, мир",value=f"{result['bodystats']}\n{result['age']} лет",inline=False)
             embed.add_field(name="Способности",value=f"{utils.formatStringLength(result['abilities'], 1024)}",inline=False)
@@ -467,11 +467,11 @@ class RP(commands.Cog):
             output+= f"- **{doc['name']}** {'| (***__НА ПРОВЕРКЕ__***) ' if str(doc['id']).endswith('$temp') else ''}| **ID**: ``{doc['id']}``\n"
         if len(output) < 1:
             output = "Нет персонажей"
-        embed = discord.Embed(title="Результаты поиска",description=f"Персонажи пользователя <@{member.id}>:\n{output}",colour=publicCoreData.embedColors["Neutral"])
+        embed = discord.Embed(title="Результаты поиска",description=f"Персонажи пользователя <@{member.id}>:\n{output}",colour=Data.embedColors["Neutral"])
         await ctx.respond(embed=embed,ephemeral=ephemeral)
     @commands.slash_command(name="удалить-персонажа",description="Удаляет персонажа")
     async def removeChar(self, ctx, id : Option(str, description="ID", required=True)=" "):
-        if await publicCoreData.parsePermissionFromUser(ctx.author.id, "root") or await publicCoreData.parsePermissionFromUser(ctx.author.id, "edit_characters"):
+        if await Data.parsePermissionFromUser(ctx.author.id, "root") or await Data.parsePermissionFromUser(ctx.author.id, "edit_characters"):
             # view = RemoveCharView(ctx.author, id)  # or ctx.author/message.author where applicable
             # await ctx.response.send_message(view=view)
             db.characters.delete_one({"id": self.id})
@@ -503,12 +503,12 @@ class RP(commands.Cog):
                         if db.characters.find_one({"id": str(blank_data["id"])}):
 
                             embed = discord.Embed(title="Персонаж уже зарегестрирован!", description=f"ID {str(blank_data['id'])} уже занят одобренной анкетой!",
-                                                  colour=publicCoreData.embedColors["Error"])
+                                                  colour=Data.embedColors["Error"])
                             await ctx.respond(embed=embed)
                         elif db.characters.find_one({"id": str(blank_data["id"])+"$temp"}):
                             embed = discord.Embed(title="Персонаж уже на рассмотрении!",
                                                   description=f"ID {str(blank_data['id'])+'$temp'} уже занят анкетой на рассмотрении!",
-                                                  colour=publicCoreData.embedColors["Error"])
+                                                  colour=Data.embedColors["Error"])
                             await ctx.respond(embed=embed)
                         else:
                             id = str(blank_data["id"]) + "$temp"
@@ -529,7 +529,7 @@ class RP(commands.Cog):
                             print(doc)
                             embed = discord.Embed(title=f"Персонаж {utils.formatStringLength(doc['name'], 120)}",
                                                   description=f"{utils.formatStringLength(doc['bio'], 4000)}",
-                                                  colour=publicCoreData.embedColors["Warp"])
+                                                  colour=Data.embedColors["Warp"])
                             embed.add_field(name="Данные", value=f"Автор: <@{doc['owner']}>\nID: ``{id}``",
                                             inline=False)
                             embed.add_field(name="Рост, вес, возраст, мир",
@@ -554,11 +554,11 @@ class RP(commands.Cog):
                                             inline=False)
                             embed.set_thumbnail(url=doc['art'])
                             await ctx.respond(embed=embed)
-                            server = self.bot.get_guild(publicCoreData.team_server_id)
+                            server = self.bot.get_guild(Data.team_server_id)
                             if server is None:
                                 found = False
                             else:
-                                channel = server.get_channel(publicCoreData.blanks_moderation_channel_id)
+                                channel = server.get_channel(Data.blanks_moderation_channel_id)
                                 message = f"# Новая заявка на регистрацию!!!\nСервер: {ctx.guild.name} (`{ctx.guild.id}`)\nПользователь: {ctx.author.name} (`{ctx.author.id}`)\nКанал: {ctx.channel.name} (`{ctx.channel.id}`)"
 
                                 await channel.send(message, embed=embed)
@@ -582,24 +582,24 @@ class RP(commands.Cog):
             id_temp=id+"$temp"
             id_notemp=id
         if db.characters.find_one({"id": id_temp}):
-            if (await publicCoreData.parsePermissionFromUser(ctx.author.id,
-                                                             "edit_characters") or await publicCoreData.parsePermissionFromUser(
+            if (await Data.parsePermissionFromUser(ctx.author.id,
+                                                             "edit_characters") or await Data.parsePermissionFromUser(
                     ctx.author.id, "root")):  # TODO: оптимизировать поиск прав
 
                 db.characters.update_one({"id": id_temp}, {"$set": {"id": id_notemp}})
                 embed = discord.Embed(title="Успешно!", description=f"Успешно одобрена анкета ``{id_temp}``!",
-                                      colour=publicCoreData.embedColors["Success"])
+                                      colour=Data.embedColors["Success"])
                 await ctx.respond(embed=embed)
 
             else:
                 embed = discord.Embed(title="Нет прав!",
                                       description="Необходимо право ``edit_characters`` или ``root`` для подтверждения регистрации персонажа!",
-                                      colour=publicCoreData.embedColors["Error"])
+                                      colour=Data.embedColors["Error"])
                 await ctx.respond(embed=embed,ephemeral=True)
         else:
             embed = discord.Embed(title="Не найдено!",
                                   description=f"Неподтверждённая анкета с ID ``{id_temp}`` не найдена!",
-                                  colour=publicCoreData.embedColors["Error"])
+                                  colour=Data.embedColors["Error"])
             await ctx.respond(embed=embed, ephemeral=True) #TODO: добавить "искромётную" шутку в сообщение об ненайденной анкете: "... да и к тому же у вас нет прав для этого действия!"
 
     @commands.slash_command(name="отклонить-регистрацию-рп", description="Отклоняет регистрацию рп персонажа")
@@ -614,21 +614,24 @@ class RP(commands.Cog):
             id_notemp = id
         if db.characters.find_one({"id":id_temp}):
 
-            if (await publicCoreData.parsePermissionFromUser(ctx.author.id,
-                                                             "edit_characters") or await publicCoreData.parsePermissionFromUser(
+            if (await Data.parsePermissionFromUser(ctx.author.id,
+                                                             "edit_characters") or await Data.parsePermissionFromUser(
                     ctx.author.id, "root")):  # TODO: оптимизировать поиск прав
 
                 db.characters.delete_one({"id": id_temp})
-                embed = discord.Embed(title="Успешно!",description=f"Успешно отклонена анкета ``{id_temp}``!",colour=publicCoreData.embedColors["Success"])
+                embed = discord.Embed(title="Успешно!",description=f"Успешно отклонена анкета ``{id_temp}``!",colour=Data.embedColors["Success"])
                 await ctx.respond(embed=embed)
 
             else:
                 embed = discord.Embed(title="Нет прав!",
                                       description="Необходимо право ``edit_characters`` или ``root`` для отклонения регистрации персонажа!",
-                                      colour=publicCoreData.embedColors["Error"])
+                                      colour=Data.embedColors["Error"])
                 await ctx.respond(embed=embed,ephemeral=True)
         else:
             embed = discord.Embed(title="Не найдено!",
                                   description=f"Неподтверждённая анкета с ID ``{id_temp}`` не найдена!",
-                                  colour=publicCoreData.embedColors["Error"])
+                                  colour=Data.embedColors["Error"])
             await ctx.respond(embed=embed, ephemeral=True) #TODO: добавить "искромётную" шутку в сообщение об ненайденной анкете: "... да и к тому же у вас нет прав для этого действия!"
+
+def setup(bot):
+    bot.add_cog(RP(bot))

@@ -5,13 +5,13 @@ import aiohttp
 import discord
 from discord import Webhook
 
-import publicCoreData
+import data
 import utils
 from private import coreData
 
 from private import coreData
-from publicCoreData import cursor
-from publicCoreData import conn
+from data import cursor
+from data import conn
 def sendNewsOfApocalypse():
     cursor.execute(
         "SELECT apocalypseChannelHook, apocalypseLastSendDay, serverid, isThread, apocalypseChannel FROM servers")

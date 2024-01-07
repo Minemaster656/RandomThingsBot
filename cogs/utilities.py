@@ -11,15 +11,15 @@ from discord import Option, Webhook
 from random import *
 
 import Apocalypse
-import publicCoreData
-from publicCoreData import db
+import Data
+from Data import db
 import re
 
 import utils
 
 
-class BotCog(commands.Cog):
-    permissions = publicCoreData.permissions_user
+class Utilities(commands.Cog):
+    permissions = Data.permissions_user
 
     def __init__(self, bot):
         self.bot = bot
@@ -60,13 +60,13 @@ class BotCog(commands.Cog):
                                 webhook = Webhook.from_url(str(url), session=session)
 
                                 if hook_url["isThread"]:
-                                    await webhook.send(list[0], username=publicCoreData.hook_names["apocalypse"],
+                                    await webhook.send(list[0], username=Data.hook_names["apocalypse"],
                                                        embed=list[1],
                                                        thread=discord.Object(hook_url["apocalypseChannel"]))
                                 else:
-                                    await webhook.send(list[0], username=publicCoreData.hook_names["apocalypse"],
+                                    await webhook.send(list[0], username=Data.hook_names["apocalypse"],
                                                        embed=list[1])
-                                await webhook.send(list[0], username=publicCoreData.hook_names["apocalypse"],
+                                await webhook.send(list[0], username=Data.hook_names["apocalypse"],
                                                    embed=list[1])
 
                     except:
@@ -95,7 +95,7 @@ class BotCog(commands.Cog):
 
         if mode == "Справка":
             embed = discord.Embed(title="Режимы массового редактирования каналов",
-                                  colour=publicCoreData.embedColors["Neutral"],
+                                  colour=Data.embedColors["Neutral"],
                                   description=f"Справка по режимам команды"
                                   )
             embed.add_field(inline=False, name="Параметры", value=f"- Режим работы\n"
@@ -235,7 +235,9 @@ class BotCog(commands.Cog):
         embed.add_field(name="Результат", value=f"{vigenere_cipher(setupAlphabet(), key, input, destination)}")
         await ctx.respond(embed=embed, ephemeral=True)
 
-    @commands.slash_command(name="добавить-опыт",description="Добавляет опыт")
-    async def addXp(self, ctx):
-        ...
+    # @commands.slash_command(name="добавить-опыт",description="Добавляет опыт")
+    # async def addXp(self, ctx):
+    #     ...
     #TODO: сделать это.
+def setup(bot):
+    bot.add_cog(Utilities(bot))
