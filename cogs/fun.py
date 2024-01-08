@@ -89,7 +89,7 @@ class fun(commands.Cog):
                 else:
                     # Добавление элемента в массив, если delete=False
                     json_data[array_name].append(data)
-                data.interchats = json_data
+                Data.interchats = json_data
                 # Записываем обновленные данные в файл
                 with open(file_path, 'w') as file:
                     json.dump(json_data, file)
