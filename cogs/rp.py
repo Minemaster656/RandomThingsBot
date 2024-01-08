@@ -480,7 +480,7 @@ class RP(commands.Cog):
             await ctx.respond("У Вас нет права ``root`` или ``edit_characters`` для удаления персонажей!",ephemeral=True)
 
     @commands.cooldown(1, 60, commands.BucketType.user)
-    @commands.message_command(name="Распарсить анкету персонажа")
+    @commands.message_command(name="Обработать анкету персонажа")
     async def parse_blank(self, ctx, message):
 
         if len(message.attachments) > 0:
