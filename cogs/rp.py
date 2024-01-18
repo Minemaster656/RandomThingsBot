@@ -474,8 +474,8 @@ class RP(commands.Cog):
         if await Data.parsePermissionFromUser(ctx.author.id, "root") or await Data.parsePermissionFromUser(ctx.author.id, "edit_characters"):
             # view = RemoveCharView(ctx.author, id)  # or ctx.author/message.author where applicable
             # await ctx.response.send_message(view=view)
-            db.characters.delete_one({"id": self.id})
-            await ctx.respond(f"Удалён персонаж ``{self.id}``!")
+            db.characters.delete_one({"id": id})
+            await ctx.respond(f"Удалён персонаж ``{id}``!")
         else:
             await ctx.respond("У Вас нет права ``root`` или ``edit_characters`` для удаления персонажей!",ephemeral=True)
 

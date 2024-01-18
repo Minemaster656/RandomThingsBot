@@ -108,6 +108,8 @@ class fun(commands.Cog):
             if not found:
                 await hook_channel.create_webhook(name="RTB hook")
             await ctx.respond("Успешно!",ephemeral=True)
+            embed = discord.Embed(title=f"Обновление интерчата",description=f"В канале {channel.name} {'установлен' if not reset else 'убран'} хаб межсерверного чата `{type}`!"        ,colour=0xffffff)                                                               
+            await ctx.respond(embed=embed)
         else:
             await ctx.respond("У Вас недостаточно прав для этого действия!!!\nНеобходима верификация пользователя (в боте, не в Discord) и право управления каналами/администратор",ephemeral=True)
 
