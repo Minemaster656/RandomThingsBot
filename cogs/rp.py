@@ -420,8 +420,11 @@ class RP(commands.Cog):
             if (await Data.parsePermissionFromUser(ctx.author.id, "edit_characters") or await Data.parsePermissionFromUser(ctx.author.id, "root")): #TODO: оптимизировать поиск прав
                 if not sizeLimit:
                     db.characters.insert_one(doc)
-                    embed = discord.Embed(title="Персонаж зарегистрирован!",description=f"{name} зарегистрирован как ``{id}`` и принадлежит <@{owner.id}>",colour=Data.embedColors["Success"])
+                    embed = discord.Embed(title="Персонаж зарегистрирован!",description=f"{name} зарегистрирован как ``{id}`` и принадлежит <@{owner.id}>\nТак же начислено 25 едениц опыта.",colour=Data.embedColors["Success"])
                     await ctx.respond(embed=embed)
+                    await Data.addXP(ctx.author.id, 25, ctx.author.name)
+                    await Data.addXP(owner.id, 25, owner.name)
+
                 else:
                     embed = discord.Embed(title="Превышение размера!",description=f"Ключ: {oversizeKey}",colour=Data.embedColors["Error"])
                     await ctx.respond(embed=embed)

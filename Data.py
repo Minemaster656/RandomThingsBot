@@ -205,3 +205,47 @@ def initTables():  # SQL ONLY!!!
     invitelink TEXT,
     ownerid    INTEGER
 );'''
+
+
+
+
+
+
+async def addXP(userid : int,
+                value : float, username : str):
+    '''Добавляет опыт пользователю'''
+    def schema(doc):
+        fields = {"userid":0, "username":" ", "about":None,
+                  "age":None, "timezone":None, "color":None,
+                  "karma":0, "luck":0, "permissions":None,
+                  "money":0, "money_bank":0, "xp":0}
+        fields_check = {}
+        if not document:
+            document = fields
+        for k in fields.keys():
+            fields_check[k] = False
+        for k in document.keys():
+            if k in fields.keys():
+                fields_check[k]=True
+        for k in fields_check:
+            if not fields_check[k]:
+                document[k]=fields[k]
+                fields_check[k]=True
+        return doc
+ 
+    
+    doc = db.users.find_one({"userid":userid})
+    if doc:
+        # doc = db.users.find_one({"id":user.id})
+        doc = schema(doc)
+        doc["xp"]+=value
+        db.users.update_one({"userid":userid}, {"$set" : doc})
+        print("Found")
+    else:
+        writeUserToDB(userid, username)
+        doc = db.users.find_one({"userid": userid})
+        doc = schema(doc)
+        doc["xp"] += value
+        db.users.update_one({"id": userid}, {"$set": doc})
+
+
