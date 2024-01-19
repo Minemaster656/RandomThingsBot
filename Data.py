@@ -46,6 +46,7 @@ interchats = {}
 team_server_id = 1019180616731873290
 blanks_moderation_channel_id = 1193178847923929108
 botIDs = [1126887522690142359, 1169691387562835968]
+
 if not os.path.exists(file_path):
     interchats = {}
 else:

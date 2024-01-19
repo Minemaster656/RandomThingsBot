@@ -11,6 +11,7 @@ from random import *
 import json
 import os
 
+import AI
 import Data
 import utils
 
@@ -112,6 +113,14 @@ class fun(commands.Cog):
             await ctx.respond(embed=embed)
         else:
             await ctx.respond("У Вас недостаточно прав для этого действия!!!\nНеобходима верификация пользователя (в боте, не в Discord) и право управления каналами/администратор",ephemeral=True)
+    @commands.slash_command(name="ии-художник",description="Отправляет запрос на генерацию изображения")
+    async def ai_draw(self, ctx, prompt : Option(str, description="Промпт", required=True)="Банан",
+                      model : Option(str, description="Модель", required=True, choices=["Кандинский 3"])=""
+                      ):
+        if model == "Кандинский 3":
+            # AI.Text2ImageAPI.generate(prompt=prompt)
+            ...
+
 
 
 

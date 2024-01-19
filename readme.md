@@ -5,7 +5,9 @@ token_tg = "Токен бота Telegram"
 tokens = {"OWM":'токен для OWM'}
 mongo_url = "mongodb://localhost:27017/"
 mongo_db_name = 'RTB_data'
-
+API_KEYS={
+"kandinskiy3":{"public":'your_public_key', "secret":'your_secret_key'}
+}
 ```
 На данный момент из них используется только токен для Discord, название и URL базы данных. Замените URL базы данных если используете не локальную базу, а удалённый доступ.
 Спасибо Pavelg за мотивацию создать бота и самую различную помощь.
