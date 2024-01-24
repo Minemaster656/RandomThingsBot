@@ -71,7 +71,7 @@ class fun(commands.Cog):
                         if len(json_data[type]) > 0:
                             i = 0
                             for arr in json_data[type]:
-                                if arr[0] == ctx.guild.id:
+                                if arr['guild'] == ctx.guild.id:
                                     json_data[type].pop(i)
                                     break
                                 i += 1
@@ -83,7 +83,7 @@ class fun(commands.Cog):
                             if len(json_data[type]) > 0:
                                 i = 0
                                 for arr in json_data[type]:
-                                    if arr[1] == channel.id:
+                                    if arr['channel'] == channel.id:
                                         json_data[type].pop(i)
                                         break
                                     i += 1
@@ -96,9 +96,9 @@ class fun(commands.Cog):
                     json.dump(json_data, file)
             isThread = isinstance(channel, discord.Thread)
             if isThread:
-                data=(ctx.guild.id, channel.parent_id, channel.id)
+                data={'guild':ctx.guild.id, 'channel':channel.parent_id, 'thread':channel.id}
             else:
-                data=(ctx.guild.id, channel.id)
+                data={'guild':ctx.guild.id, 'channel':channel.id}
             update_json(data, type, reset)
             found = False
             hooks = await ctx.channel.webhooks() if isinstance(channel, discord.TextChannel) else await ctx.channel.parent.webhooks()
@@ -119,7 +119,7 @@ class fun(commands.Cog):
                       ):
         if model == "Кандинский 3":
             # AI.Text2ImageAPI.generate(prompt=prompt)
-            ...
+            await ctx.respond("В разработке...")
 
 
 

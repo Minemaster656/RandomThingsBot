@@ -352,6 +352,7 @@ async def keyboard_layout_switcher(ctx, text):
     await ctx.respond(result, ephemeral=True)
 
 
+
 @bot.slash_command(name="разрешения", description="Редактирование разрешений пользователя")
 async def editMemberPermissions(ctx, permission: Option(str, description="Разрешение. ? для списка",
                                                         choises=Data.permissions_user,
@@ -429,6 +430,7 @@ def inter_formatContent(content : str):
     content = content.replace("@everyone", "@еvеryonе")
     content = content.replace("@here", "@hеrе")
     return content
+#TODO: REMOVE THIS!!!
 def inter_formatName(message):
     if not message:
         return ">» ???"
@@ -443,164 +445,8 @@ def inter_formatName(message):
         type = "😎"
     return ">» " + utils.formatStringLength(message.author.name, 32) + " | " + utils.formatStringLength(
         message.guild.name, 20) + " | " + type
-@bot.event
-async def on_message(message):
-    await bot.process_commands(message)
+# @bot.event
 
-    # ИНТЕРСЕРВЕР!!!
-
-    async def interchat(mode, message, hname, havatar, data_pair):  # h - webHook
-
-        if mode in Data.interchats:
-            leng = len(Data.interchats[mode])
-            i = 0
-            for array in Data.interchats[mode]:
-                i += 1
-                server_id = array[0]
-                channel_id = array[1]
-
-                send = False
-                found = True
-                # Поиск сервера по ID
-                server = bot.get_guild(server_id)
-                if server is None:
-                    found = False
-
-                # Поиск канала по ID
-                channel = server.get_channel(channel_id)
-                if channel is None:
-                    found = False
-
-                isBotHook = False
-                try:
-                    hooks = await channel.webhooks()
-                    for hook in hooks:
-                        isBotHook = hook.user.id in Data.botIDs
-                        break
-                except Forbidden:
-                    isBotHook = True
-
-                isInterchatter = str(message.author.name).startswith(">» ")#message.author.id == bot.user.id or isBotHook
-
-                if channel_id != message.channel.id and server_id != message.guild.id and not isInterchatter:
-                    # print("Iteration guild: ", server_id, " Iteration channel: ", channel_id, " Channel: ",
-                    #       message.channel.id, " Guild: ", message.guild.id)
-
-                    if found and not send:
-
-                        # Отправка сообщения в найденный канал
-                        try:
-                            hooks = await channel.webhooks()
-                            async def send(hook):
-                                if message.reference:
-
-                                    embed = discord.Embed(title="⤴️ Reply",description=f"{message.reference.resolved.content}",colour=Data.embedColors["Neutral"]
-                                                          )
-                                    embed.set_author(name=message.reference.resolved.author.name, icon_url=message.reference.resolved.author.avatar.url if message.reference.resolved.author.avatar else message.reference.resolved.author.default_avatar.url)
-                                    try:
-                                        if len(data_pair)>=3:
-                                            await hook.send(content=message.content, username=hname, avatar_url=havatar,
-                                                            embed=embed,thread=discord.Object(data_pair[2]), files=[await i.to_file() for i in message.attachments]
-                                                            )
-                                        else:
-                                            await hook.send(content=message.content, username=hname, avatar_url=havatar,embed=embed, files=[await i.to_file() for i in message.attachments]
-                                                    )
-                                    except:
-                                        print("No hook?")
-                                else:
-
-                                    try:
-                                        if len(data_pair) >= 3:
-                                            print("3!!!")
-                                            #TODO: ветки
-                                            await hook.send(content=message.content, username=hname, avatar_url=havatar,
-                                                    allowed_mentions=discord.AllowedMentions.none()
-                                                    , files=[await i.to_file() for i in message.attachments],thread=discord.Object(data_pair[2]))
-                                        else:
-                                            await hook.send(content=message.content, username=hname, avatar_url=havatar,
-                                                            allowed_mentions=discord.AllowedMentions.none()
-                                                            , files=[await i.to_file() for i in message.attachments])
-                                    except:
-                                        print("No hook?")
-
-                                send = True
-                            for hook in hooks:
-                                if hook.user.id == bot.user.id:
-                                    await send(hook)
-                                    break
-                            if not send:
-                                print("No hook.")
-                                _hook = await channel.create_webhook(name="RTB hook")
-                                await send(_hook)
-
-                        except Forbidden:
-                            ...
-
-                        # await channel.send(message.content)
-                        send = True
-                if i >= leng:
-                    # print("ITERATION COMPLETE. BREAKING")
-                    try:
-                        # await message.add_reaction("🚀")
-                        ...
-                    except:
-                        ...
-                    break
-
-    try:
-        target = [message.guild.id, message.channel.id]
-    except:
-        target = [0, 0]
-    name = inter_formatName(message)
-    avatar = message.author.avatar.url if message.author.avatar else message.author.default_avatar.url
-    if not str(message.author.name).startswith(">» "):
-        for hub in Data.interhubs:
-            if hub in Data.interchats:
-                for pair in Data.interchats[hub]:
-                    if target[0] in pair and target[1] in pair:
-                        # найдено
-                        await interchat(hub, message, name, avatar, target)
-                        # print("FOUND pair normal")
-                        break
-                        # print("BROKEN")
-        
-
-    # ИНФЕКЦИОННАЯ РОЛЬ И КАКАЯ-ТО ДИЧЬ!!!
-
-    # if message.mention_roles:  # Проверяем, были ли упомянуты роли в сообщении
-    #         mentioned_roles = message.role_mentions  # Получаем список упомянутых ролей
-    #         for role in mentioned_roles:
-    #             if role.id in Data.infectionRolesID:  # Замени 'YOUR_ROLE_ID' на фактический ID роли
-    #                 await message.author.add_roles(role)  # Даем автору сообщения эту роль
-    for i in Data.infectionRolesID:
-        # if str(i) in message.content:
-        try:
-            role = message.guild.get_role(i)
-            for j in message.role_mentions:
-                # print(str(j.id) + "   " + str(i))
-                if j.id == i:
-                    await message.author.add_roles(role)
-        except:
-            ...
-
-    try:
-        await message.publish()
-    except:
-        ...
-    # if message.mentions:  # Проверяем, были ли упомянуты пользователи в сообщении
-    #     mentioned_users = message.mentions  # Получаем список упомянутых пользователей
-    #     for role_id in Data.infectionRolesID:
-    #     # role_id = 1234567890  # Замени на фактический ID роли
-    #         role = message.guild.get_role(role_id)  # Получаем объект роли по ID
-    #
-    #         for user in mentioned_users:
-    #             if role in user.roles and not message.reference:  # Проверяем наличие роли и отсутствие ответа на другое сообщение
-    #                 # Выполняем нужные действия
-    #                 # await message.channel.send(f"{user.mention}, у тебя есть роль с нужным ID!")
-    #                 role = message.guild.get_role(role_id)
-    # await message.add_reaction("❤")
-
-    # await bot.process_commands(message)  # Обязательно добавь эту строку, чтобы обработать другие команды и события
 
 
 async def interdeletion(message):
@@ -610,8 +456,12 @@ async def interdeletion(message):
         i = 0
         for array in Data.interchats[mode]:
             i += 1
-            server_id = array[0]
-            channel_id = array[1]
+            server_id = array['guild']
+            channel_id = array['channel']
+            if 'thread' in array.keys():
+                thread = array["thread"]
+            else:
+                thread = None
 
             send = False
             found = True
@@ -622,9 +472,9 @@ async def interdeletion(message):
 
             # Поиск канала по ID
             channel = server.get_channel(channel_id)
-            if len(data_pair)==3:
+            if thread:
 
-                channel=channel.get_thread(data_pair[2])
+                channel=channel.get_thread(thread)
             if channel is None:
                 found = False
             if found:
@@ -648,7 +498,10 @@ async def interdeletion(message):
 
         ...
 
-    target = [message.guild.id, message.channel.id]
+    target = {'guild': message.guild.id, 'channel': message.channel.id}
+    if isinstance(message.channel, discord.Thread):
+        target['thread'] = message.channel.id
+        target['channel'] = message.channel.parent.id
     name = inter_formatName(message)
     # print("DELETION")
     if not str(message.author.name).startswith(">» "):
@@ -656,7 +509,7 @@ async def interdeletion(message):
         for hub in Data.interhubs:
             if hub in Data.interchats:
                 for pair in Data.interchats["normal"]:
-                    if target[0] in pair and target[1] in pair:
+                    if target['guild'] in pair and target['channel'] in pair:
                         # найдено
                         await interchat_delete(name, message, "normal",target)
                         # print("FOUND pair normal")
@@ -665,11 +518,17 @@ async def interdeletion(message):
         
 @bot.event
 async def on_message_delete(message):
-    await interdeletion(message)
+    try:
+        await interdeletion(message)
+    except:
+        ...
 @bot.event
 async def on_bulk_message_delete(messages):
     for m in messages:
-        await interdeletion(m)
+        try:
+            await interdeletion(m)
+        except:
+            ...
 
 
 # if message.content.lower() in commands:
