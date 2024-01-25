@@ -57,7 +57,7 @@ else:
             interchats = {}
 
 interhubs = ["normal", "rp", "rp2", "rp_bottomOfTheAbyss", "rp_void", "admins", "normal2", "normal_en", "rp_tavern",
-             "rp_cafe", "tests", "rp_mysteriousShop"]
+             "rp_cafe", "tests", "rp_mysteriousShop", "memes", "rp_space", "media"]
 
 
 async def parsePermissionFromUser(id: int, permission: str):
