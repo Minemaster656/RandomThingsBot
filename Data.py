@@ -58,6 +58,7 @@ else:
 
 interhubs = ["normal", "rp", "rp2", "rp_bottomOfTheAbyss", "rp_void", "admins", "normal2", "normal_en", "rp_tavern",
              "rp_cafe", "tests", "rp_mysteriousShop", "memes", "rp_space", "media"]
+interbans = [897193427479973961]
 
 
 async def parsePermissionFromUser(id: int, permission: str):

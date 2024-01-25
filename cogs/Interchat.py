@@ -164,9 +164,11 @@ class Interchat(commands.Cog):
                     for object in Data.interchats[hub]:
                         if target['guild'] == object['guild'] and target['channel'] == object['channel']:
                             # найдено
-                            print("THIS IS INTERCHAT")
-
-                            await interchat(hub, message, name, avatar, target)
+                            #print("THIS IS INTERCHAT")
+                            if message.author.id in Data.interbans:
+                                await message.add_reaction("🔒")
+                            else:
+                                await interchat(hub, message, name, avatar, target)
                             # print("FOUND pair normal")
                             break
                             # print("BROKEN")
