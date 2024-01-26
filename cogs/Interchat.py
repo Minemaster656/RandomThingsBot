@@ -168,7 +168,8 @@ class Interchat(commands.Cog):
                             if message.author.id in Data.interbans:
                                 await message.add_reaction("🔒")
                             else:
-                                await interchat(hub, message, name, avatar, target)
+                                if ("thread" in object.keys() and "thread" in target.keys()) or (not "thread" in object.keys() and not "thread" in target.keys()):
+                                    await interchat(hub, message, name, avatar, target)
                             # print("FOUND pair normal")
                             break
                             # print("BROKEN")
