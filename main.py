@@ -405,7 +405,8 @@ async def addXP(ctx, user : Option(discord.Member, description="Пользова
             doc["xp"] += value
             db.users.update_one({"id": user.id}, {"$set": doc})
             print("None")
-        await ctx.respond("Успешно!",ephemeral=True)
+        embed = discord.Embed(title="Выдан опыт!",description=f"Выдано {value} опыта пользователю <@{user.id}>.",colour=Data.embedColors["Success"])
+        await ctx.respond(embed=embed)
     else:
         await ctx.respond("Недостаточно прав!",ephemeral=True)
 @bot.slash_command(name="инфо", description="Информация о боте")
