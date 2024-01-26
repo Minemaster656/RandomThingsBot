@@ -6,25 +6,31 @@ from Data import db
 class Schemes(enum.Enum):
     user = 0
     character = 1
+    logconfig = 2
 
 
 def schema(document, scheme):
+    fields = {}
     if scheme == Schemes.user:
         fields = {"userid":0, "username":" ", "about":None,
                   "age":None, "timezone":None, "color":None,
                   "karma":0, "luck":0, "permissions":None,
                   "money":0, "money_bank":0, "xp":0}
-        fields_check = {}
-        if not document:
-            document = fields
-        for k in fields.keys():
-            fields_check[k] = False
-        for k in document.keys():
-            if k in fields.keys():
-                fields_check[k]=True
-        for k in fields_check:
-            if not fields_check[k]:
-                document[k]=fields[k]
-                fields_check[k]=True
+
+    if scheme == Schemes.logconfig:
+        fields = {"id":0}
+
+    fields_check = {}
+    if not document:
+        document = fields
+    for k in fields.keys():
+        fields_check[k] = False
+    for k in document.keys():
+        if k in fields.keys():
+            fields_check[k] = True
+    for k in fields_check:
+        if not fields_check[k]:
+            document[k] = fields[k]
+            fields_check[k] = True
     return document
 

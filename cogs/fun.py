@@ -29,7 +29,8 @@ class fun(commands.Cog):
 
 
     @commands.slash_command(name="интерсервер",description="Помечает канал как интерсервер")
-    async def interserver(self, ctx, channel : Option(typing.Union[discord.TextChannel, discord.Thread], description="Канал", required=True)=0, type: Option(str, description="Тип канала. Можно иметь одновременно несколько на сервер.",choices=Data.interhubs, required=True)=0,reset : Option(bool, description="True для отчистки поля", required=False)=False):
+    async def interserver(self, ctx, type: Option(str, description="Тип канала. Можно иметь одновременно несколько на сервер.",choices=Data.interhubs, required=True)=0,reset : Option(bool, description="True для отчистки поля", required=False)=False):
+        channel = ctx.channel
         if await Data.parsePermissionFromUser(ctx.author.id, "root") or (await Data.parsePermissionFromUser(ctx.author.id, "verified") and(ctx.author.permissions.administrator or ctx.author.permissions.manage_channels) ):
             # with open('private/data.json', 'r') as file:
             #     try:

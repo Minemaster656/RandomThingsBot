@@ -62,11 +62,11 @@ interbans = [897193427479973961]
 
 
 async def parsePermissionFromUser(id: int, permission: str):
-    usr = db.users.find({"userid": id})
+    usr = db.users.find_one({"userid": id})
     if not usr:
         return False
     try:
-        string = db.users.find({"userid": id}, {"permissions": 1})[0]
+        string = db.users.find_one({"userid": id}, {"permissions": 1})
         if string:
             if len(string["permissions"]) > 2:
                 print(string["permissions"])
@@ -222,16 +222,16 @@ async def addXP(userid : int,
                   "karma":0, "luck":0, "permissions":None,
                   "money":0, "money_bank":0, "xp":0}
         fields_check = {}
-        if not document:
+        if not doc:
             document = fields
         for k in fields.keys():
             fields_check[k] = False
-        for k in document.keys():
+        for k in doc.keys():
             if k in fields.keys():
                 fields_check[k]=True
         for k in fields_check:
             if not fields_check[k]:
-                document[k]=fields[k]
+                doc[k]=fields[k]
                 fields_check[k]=True
         return doc
  
