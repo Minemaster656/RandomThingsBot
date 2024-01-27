@@ -7,18 +7,50 @@ class Schemes(enum.Enum):
     user = 0
     character = 1
     logconfig = 2
+    server = 3
 
 
 def schema(document, scheme):
     fields = {}
     if scheme == Schemes.user:
-        fields = {"userid":0, "username":" ", "about":None,
-                  "age":None, "timezone":None, "color":None,
-                  "karma":0, "luck":0, "permissions":None,
-                  "money":0, "money_bank":0, "xp":0}
+        fields = {"userid": None, "username": " ", "about": None,
+                  "age": None, "timezone": None, "color": None,
+                  "karma": None, "luck": None, "permissions": None,
+                  "money": None, "money_bank": None, "xp": 0}
 
-    if scheme == Schemes.logconfig:
-        fields = {"id":0}
+    # if scheme == Schemes.logconfig:
+    #     fields = {"id":0}
+    if scheme == Schemes.server:
+        fields = {
+
+            "serverid": None,
+            "name":None, "icon":None,
+
+            "muteroleid": None,
+
+            "mutes": None,
+
+            "bumpcolor": None,
+
+            "bumptext": None,
+
+            "invitelink": None,
+
+            "ownerid": None, "ownername":None,
+
+            "apocalypseChannel": None,
+
+            "apocalypseChannelHook": None,
+
+            "apocalypseLastSendDay": None,
+
+            "parentID": None,
+
+            "autoPublish": None,
+
+            "isAPchannelThread": None
+
+        }
 
     fields_check = {}
     if not document:
@@ -33,4 +65,3 @@ def schema(document, scheme):
             document[k] = fields[k]
             fields_check[k] = True
     return document
-

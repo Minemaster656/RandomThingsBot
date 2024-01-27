@@ -249,9 +249,40 @@ def UTC2UNIX(UTC_string):
     # Преобразование времени в UNIX-таймстамп в миллисекундах
     unix_timestamp_ms = unix_timestamp_sec * 1000
     return unix_timestamp_ms
+def parseColorTo0xHEX(color_string: str) -> int:
+    '''Input: 0xHEX, #HEX, RGB(0-1), RGB(0-255) with spaces between colors.
+    Output: 0xHEX'''
+
+
+    try:
+        # Проверяем, является ли строка HEX-записью через 0x
+        if color_string.startswith('0x'):
+            color = int(color_string, 16)
+        # Проверяем, является ли строка HEX-записью через #
+        elif color_string.startswith('#'):
+            color = int(color_string[1:], 16)
+        # Проверяем, является ли строка RGB записью
+        else:
+            rgb_values = color_string.split()
+            # Проверяем, являются ли значения в диапазоне 0-1
+            if all(0 <= float(value) <= 1 for value in rgb_values):
+                rgb_values = [str(int(float(value) * 255)) for value in rgb_values]
+            # Проверяем, являются ли значения в диапазоне 0-255
+            elif all(0 <= int(value) <= 255 for value in rgb_values):
+                rgb_values = [str(int(value)) for value in rgb_values]
+            else:
+                return 0x3498db
+            color = int(''.join(rgb_values), 10)
+        return color
+    except ValueError:
+        return 0x3498db
+
+    # Пример использования
+    color_string = input("Введите строку цвета: ")
+    parsed_color = parse_color(color_string)
+    print(hex(parsed_color))
 if __name__ == '__main__':
-    string = input("UTC: ")
-    print(UTC2UNIX(string))
+    ...
 # print(hashgen(16))
 # # Пример использования
 # json_str = save_to_json("MyServer", "Some report text", 1632048765)

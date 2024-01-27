@@ -29,7 +29,9 @@ preffix = "!!"
 # preffix = ".!!"  # TODO: SET IF BETA
 currency = "<:catalist:1076130269867819099>"
 icons={Icons.verified: "✅", Icons.root:"🔨", Icons.edit_characters: "🕵️"
-                                                                   ""}
+     
+                                                              ""}
+discord_logo = "https://assets-global.website-files.com/6257adef93867e50d84d30e2/636e0a6a49cf127bf92de1e2_icon_clyde_blurple_RGB.png"
 infectionRolesID = [1151515080219967498, 1135925890182807552, 1152163431869329468]
 apocalypseDLC = "Самый странный апокалипсис⁶™"
 hook_names = {"apocalypse": apocalypseDLC}
