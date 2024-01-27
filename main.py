@@ -516,7 +516,13 @@ async def interdeletion(message):
                         # print("FOUND pair normal")
                         break
                         # print("BROKEN")
-        
+@bot.event
+async def on_message(message):
+    await bot.process_commands(message)
+    try:
+        await message.publish()
+    except:
+        ...
 @bot.event
 async def on_message_delete(message):
     try:

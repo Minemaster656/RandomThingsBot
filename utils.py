@@ -1,5 +1,6 @@
 import asyncio
 import codecs
+import datetime
 import math
 import random
 import re
@@ -226,8 +227,31 @@ def calc_levelByXP(xp):
     xp_next = round(100 * (DIFFICULTY ** (level - 1)))
     return (level,xp_current,xp_next)
 
+async def initWebhook(channel, bot_id):
+    try:
+        hooks = await channel.webhooks()
+        hook = None
+        for h in hooks:
+            if h.user.id == bot_id:
+                hook = h
+                break
+        if not hook:
+            hook = await channel.create_webhook(name="RTB hook", avatar=Data.webhook_avatar_url)
+        return hook
+    except:
+        return None
+def UTC2UNIX(UTC_string):
+    utc_time = datetime.datetime.strptime(UTC_string, '%Y-%m-%d %H:%M:%S.%f%z')
 
+    # Преобразование времени в UNIX-таймстамп в секундах
+    unix_timestamp_sec = int(utc_time.timestamp())
 
+    # Преобразование времени в UNIX-таймстамп в миллисекундах
+    unix_timestamp_ms = unix_timestamp_sec * 1000
+    return unix_timestamp_ms
+if __name__ == '__main__':
+    string = input("UTC: ")
+    print(UTC2UNIX(string))
 # print(hashgen(16))
 # # Пример использования
 # json_str = save_to_json("MyServer", "Some report text", 1632048765)
