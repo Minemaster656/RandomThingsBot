@@ -114,7 +114,7 @@ class Pr(commands.Cog):
             embed = discord.Embed(title="Сервер не подходит требованиям!",description=req,colour=Data.embedColors["Error"])
             await ctx.respond(embed=embed)
 
-
+    @commands.cooldown(1, 10800, commands.BucketType.guild)
     @commands.slash_command(name="бамп",description="Отправляет рекламу вашего сервера")
     async def bump(self, ctx):
 
@@ -147,7 +147,7 @@ class Pr(commands.Cog):
         channelCheck = self.checkChannel(channel, ctx)
         if channelCheck[0] != False and channelCheck[1] != False:
             query = {"partnershipState": 1, "pr_channel": {"$ne": None}}
-            await ctx.respond("Отправка...")
+            await ctx.respond("Отправка... <:ladno:1173346986548805763>")
             # Выполнение запроса
             # result = db.servers.find(query)
             embed = discord.Embed(title=ctx.guild.name, description=doc["bumptext"], colour=doc["bumpcolor"])
@@ -166,7 +166,7 @@ class Pr(commands.Cog):
                 if found:
                     await channel.send(embed=embed)
                 print(server, " ", found)
-            await ctx.respond("Объявление отправлено!")
+            await ctx.respond("Объявление отправлено! <:OK:1086324748801278153>")
         else:
 
             embed = discord.Embed(title="Неправильные разрешения!",
@@ -212,7 +212,15 @@ class Pr(commands.Cog):
 
     @commands.slash_command(name="партнёрка-предпросмотр",description="Предпросмотр вашего сообщения для партнёрки")
     async def preview(self, ctx):
-        await ctx.respond("В разработке!", ephemeral=True)
+        doc = db.servers.find_one({"serverid":ctx.guild.id})
+        if doc:
+            embed = discord.Embed(title=ctx.guild.name, description=doc["bumptext"], colour=doc["bumpcolor"])
+            embed.set_thumbnail(url=doc["icon"])
+        else:
+            embed = discord.Embed(title="Нет партнёрки!",description="На этом сервере не настроены партнёрки. Сделать это можно командой /партнёрка-настроить",colour=Data.embedColors["Error"])
+        await ctx.respond(embed=embed)
+
+
 
 
 
