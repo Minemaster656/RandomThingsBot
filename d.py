@@ -21,6 +21,7 @@ def schema(document, scheme):
     # if scheme == Schemes.logconfig:
     #     fields = {"id":0}
     if scheme == Schemes.server:
+        '''status - обычный/партнёрский/сервер GDT'''
         fields = {
 
             "serverid": None,
@@ -48,7 +49,10 @@ def schema(document, scheme):
 
             "autoPublish": None,
 
-            "isAPchannelThread": None
+            "isAPchannelThread": None,
+            "partnershipState":0,
+            "status":0,"pr_channel":0
+
 
         }
 
