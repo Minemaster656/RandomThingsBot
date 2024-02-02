@@ -503,7 +503,7 @@ class RP(commands.Cog):
         await ctx.respond(embed=embed)
 
 
-    @commands.slash_command(name="удалить-персонажа",description="Удаляет персонажа", guilds=Data.test_guilds)
+    @commands.slash_command(name="удалить-персонажа",description="Удаляет персонажа")
     async def removeChar(self, ctx, id : Option(str, description="ID", required=True)=" "):
         if await Data.parsePermissionFromUser(ctx.author.id, "root") or await Data.parsePermissionFromUser(ctx.author.id, "edit_characters"):
             # view = RemoveCharView(ctx.author, id)  # or ctx.author/message.author where applicable
