@@ -472,7 +472,38 @@ class RP(commands.Cog):
             output = "Нет персонажей"
         embed = discord.Embed(title="Результаты поиска",description=f"Персонажи пользователя <@{member.id}>:\n{output}",colour=Data.embedColors["Neutral"])
         await ctx.respond(embed=embed,ephemeral=ephemeral)
-    @commands.slash_command(name="удалить-персонажа",description="Удаляет персонажа")
+
+    @commands.slash_command(name="редактировать-анкету-рп",description="РЕДАКТИРУЕТ анкету персонажа")
+    async def editCharacter(self, ctx, field: Option(str, description="Поле",choices=["name", "bio", "bodystats", "abilities", "weaknesses", 'character', 'inventory', 'appearances', 'shortened'], required=True)="",
+                            value : Option(str, description="Значение", required=True)=" ",
+                            mode : Option(str, description="Режим редактирования", required=True, choices=["Добавить в конец","Заменить" , "Добавить к началу"])=" ",
+                            id : Option(str, description="ID", required=True)=" "
+                            ):
+        doc = db.characters.find_one({"id":id})
+        if not doc:
+            embed = discord.Embed(title="Ошибка!",description="Анкета не найдена!",colour=Data.embedColors["Error"])
+            await ctx.respond(embed=embed)
+            return
+        if not (await Data.parsePermissionFromUser(ctx.author.id, "edit_characters") or await Data.parsePermissionFromUser(
+                ctx.author.id, "root")):  # TODO: оптимизировать поиск прав
+            embed = discord.Embed(title="Нет прав!",
+                                  description="Необходимо право ``edit_characters`` или ``root`` для регистрации персонажа!",
+                                  colour=Data.embedColors["Error"])
+            await ctx.respond(embed=embed)
+            return
+        doc_field = doc[field]
+        if mode == "Заменить":
+            doc[field] = value
+        elif mode == "Добавить в конец":
+            doc[field] = doc_field + value
+        else:
+            doc[field] = value + doc_field
+        db.characters.update_one({"id":id}, {"$set": doc})
+        embed = discord.Embed(title="Успешно!",description=f"Редактирование поля `{field}` с режимом **`{mode}`** произведено успешно!",colour=Data.embedColors["Success"])
+        await ctx.respond(embed=embed)
+
+
+    @commands.slash_command(name="удалить-персонажа",description="Удаляет персонажа", guilds=Data.test_guilds)
     async def removeChar(self, ctx, id : Option(str, description="ID", required=True)=" "):
         if await Data.parsePermissionFromUser(ctx.author.id, "root") or await Data.parsePermissionFromUser(ctx.author.id, "edit_characters"):
             # view = RemoveCharView(ctx.author, id)  # or ctx.author/message.author where applicable
