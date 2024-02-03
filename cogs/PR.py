@@ -91,7 +91,7 @@ class Pr(commands.Cog):
         embed = discord.Embed(title=ctx.guild.name,description=doc["bumptext"],colour=bumpcolor)
         embed.set_thumbnail(url=doc["icon"])
         guildAgeCheck = self.check_server_age(ctx.guild, 7)
-        guildMembersCheck = True#self.check_real_members(ctx.guild, 20)
+        guildMembersCheck = self.check_real_members(ctx.guild, 20)
         userAgeCheck = self.check_account_age(ctx.author, 14)
         ownerAgeCheck = self.check_account_age(ctx.guild.owner, 14)
         if guildMembersCheck and guildAgeCheck and userAgeCheck and ownerAgeCheck:

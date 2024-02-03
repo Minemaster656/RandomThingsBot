@@ -72,6 +72,7 @@ startTimeCounter = time.time()
 intents = discord.Intents.default()  # Подключаем "Разрешения"
 intents.message_content = True
 intents.reactions = True
+intents.members = True
 # intents.guilds = True
 # intents.channels = True
 # intents.threads = True
@@ -86,15 +87,30 @@ bot = commands.Bot(command_prefix=Data.preffix, intents=intents)
 async def on_ready():
     total_members = sum(len(guild.members) for guild in bot.guilds)
     guildnames=""
-    if total_members <= 100:
+    totalguilds = len(bot.guilds)
+    if totalguilds <= 100:
+        guildnames = "╔" + "═" * 100 + "╦" + "═" * 20 + "╦" + "═" * 32 + "╗" + "\n"
+        guildnames += "║" + "GUILD NAME".ljust(100) + "║" + "GUILD ID".ljust(20) + "║" + "GUILD OWNER NAME".ljust(
+            32) + "║" + "\n"
+        guildnames += "║" + "═" * 100 + "╬" + "═" * 20 + "╬" + "═" * 32 + "║" + "\n"
         for guild in bot.guilds:
-            guildnames += " | "+guild.name
+            # print(guild.name)
+            # try:
+            guildnames += "║" + "═" * 100 + "╬" + "═" * 20 + "╬" + "═" * 32 + "║" + "\n"
+            guildnames += "║" + f"{guild.name: <100}" + "║" + f"{guild.id: <20}" + "║" + f"{(guild.get_member(guild.owner_id).name): <32}" + "║" + "\n"
+            # except:
+            #     guildnames += "║" + "UNKNOWN".ljust(100) + "║" + "UNKNOWN".ljust(
+            #         20) + "║" + "UNKNOWN".ljust(32) + "║" + "\n"
+            #     guildnames += "║" + "═" * 100 + "╬" + "═" * 20 + "╬" + "═" * 32 + "║" + "\n"
+        guildnames += "╚" + "═" * 100 + "╩" + "═" * 20 + "╩" + "═" * 32 + "╝" + "\n"
+
     print(
         f"Бот запущен как {bot.user} за {round(time.time() - startTimeCounter, 3)} секунд. Преффикс: {bot.command_prefix}\n"
         f"Коги:{str(bot.cogs.keys())}\n"
+        f"{totalguilds} серверов | {total_members} пользователей\n"
         f"{guildnames}")
 
-    await bot.change_presence(activity=discord.Game(f"{total_members} серверов"))
+    await bot.change_presence(activity=discord.Game(f"{totalguilds} серверов"))
     if platform.system() == 'Windows':
         toaster.show_toast(f"Random Things Bot",
                            f"RTB:discord_bot запущен за {round(time.time() - startTimeCounter, 3)} секунд. Преффикс: {bot.command_prefix}\n",
