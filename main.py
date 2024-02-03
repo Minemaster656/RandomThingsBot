@@ -84,13 +84,21 @@ bot = commands.Bot(command_prefix=Data.preffix, intents=intents)
 
 @bot.event
 async def on_ready():
-    print(
-        f"Бот запущен как {bot.user} за {round(time.time() - startTimeCounter, 3)} секунд. Преффикс: {bot.command_prefix}")
     total_members = sum(len(guild.members) for guild in bot.guilds)
+    guildnames=""
+    if total_members <= 100:
+        for guild in bot.guilds:
+            guildnames += " | "+guild.name
+    print(
+        f"Бот запущен как {bot.user} за {round(time.time() - startTimeCounter, 3)} секунд. Преффикс: {bot.command_prefix}\n"
+        f"Коги:{str(bot.cogs.keys())}\n"
+        f"{guildnames}")
+
     await bot.change_presence(activity=discord.Game(f"{total_members} серверов"))
     if platform.system() == 'Windows':
         toaster.show_toast(f"Random Things Bot",
-                           f"RTB:discord_bot запущен за {round(time.time() - startTimeCounter, 3)} секунд. Преффикс: {bot.command_prefix}",
+                           f"RTB:discord_bot запущен за {round(time.time() - startTimeCounter, 3)} секунд. Преффикс: {bot.command_prefix}\n",
+
                            threaded=True)
 
 

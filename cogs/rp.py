@@ -1,7 +1,9 @@
+import io
 import json
 import random
 import re
 
+import aiohttp
 # import numpy as np
 # import matplotlib.pyplot as plt
 import discord
@@ -381,6 +383,42 @@ class RP(commands.Cog):
                 # barPoints = 11
                 # await ctx.send(
                 #     f"layersFull: {(barPoints // 10)}, layersNotFull: {barPoints % 10} при barPoints: {barPoints}")
+    def makeCharacterPage(self, doc):
+        embed = discord.Embed(title=f"Персонаж {utils.formatStringLength(doc['name'], 120)}",
+                              description=f"{utils.formatStringLength(doc['bio'], 4000)}",
+                              colour=Data.embedColors["Warp"])
+        embed.add_field(name="Данные", value=f"Автор: <@{doc['owner']}>\nID: ``{doc['id']}``", inline=False)
+        embed.add_field(name="Рост, вес, возраст, мир", value=f"{doc['bodystats']}\n{doc['age']} лет",
+                        inline=False)
+        embed.add_field(name="Способности", value=f"{utils.formatStringLength(doc['abilities'], 1024)}",
+                        inline=False)
+        embed.add_field(name="Слабости", value=f"{utils.formatStringLength(doc['weaknesses'], 1024)}", inline=False)
+        embed.add_field(name="Характер", value=f"{utils.formatStringLength(doc['character'], 1024)}", inline=False)
+        embed.add_field(name="Инвентарь", value=f"{utils.formatStringLength(doc['inventory'], 1024)}", inline=False)
+        embed.add_field(name="Внешность", value=f"{utils.formatStringLength(doc['appearances'], 1024)}",
+                        inline=False)
+        embed.add_field(name="Краткий пересказ", value=f"{utils.formatStringLength(doc['shortened'], 1024)}",
+                        inline=False)
+        arts = str(doc['art']).split(" ")
+        thumb = arts[0]
+
+        arts_extra = arts[1:]
+
+        embed.set_thumbnail(url=thumb)
+        return (embed, arts_extra)
+    async def urls2files(self, urls):
+        attachment_urls = urls[:10]
+        files = []
+
+        for url in attachment_urls:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url) as resp:
+                    if resp.status != 200:
+                        ...
+                    data = io.BytesIO(await resp.read())
+                    files.append(discord.File(data, f'image.png'))
+        return files
+
 
     @commands.slash_command(name="регистрация-рп", description="Регистрация РП персонажа. Макс. 2к символов/поле")
     async def registerChar(self, ctx, name: Option(str, description="Имя", required=True) = " ",
@@ -440,17 +478,8 @@ class RP(commands.Cog):
 
             await ctx.respond(f"Персонаж ``{id}`` не найден!")
         else:
-            embed = discord.Embed(title=f"Персонаж {utils.formatStringLength(result['name'], 120)}",description=f"{utils.formatStringLength(result['bio'], 4000)}",colour=Data.embedColors["Warp"])
-            embed.add_field(name="Данные",value=f"Автор: <@{result['owner']}>\nID: ``{id}``",inline=False)
-            embed.add_field(name="Рост, вес, возраст, мир",value=f"{result['bodystats']}\n{result['age']} лет",inline=False)
-            embed.add_field(name="Способности",value=f"{utils.formatStringLength(result['abilities'], 1024)}",inline=False)
-            embed.add_field(name="Слабости",value=f"{utils.formatStringLength(result['weaknesses'], 1024)}",inline=False)
-            embed.add_field(name="Характер",value=f"{utils.formatStringLength(result['character'], 1024)}",inline=False)
-            embed.add_field(name="Инвентарь",value=f"{utils.formatStringLength(result['inventory'], 1024)}",inline=False)
-            embed.add_field(name="Внешность",value=f"{utils.formatStringLength(result['appearances'],1024)}",inline=False)
-            embed.add_field(name="Краткий пересказ",value=f"{utils.formatStringLength(result['shortened'],1024)}",inline=False)
-            embed.set_thumbnail(url=result['art'])
-            await ctx.respond(embed=embed, ephemeral=ephemeral)
+            page = self.makeCharacterPage(result)
+            await ctx.respond(embed=page[0], ephemeral=ephemeral, files=await self.urls2files(page[1]))
             #TODO: поиск анкет
     @commands.slash_command(name="поиск-персонажей",description="Ищет зарегистрированных на пользователя персонажей.")
     async def searchChar(self, ctx, member : Option(discord.Member, description="У кого искать персонажей", required=True)=0, ephemeral : Option(bool, description="Видно ли только вам", required=False)=True):
@@ -474,7 +503,7 @@ class RP(commands.Cog):
         await ctx.respond(embed=embed,ephemeral=ephemeral)
 
     @commands.slash_command(name="редактировать-анкету-рп",description="РЕДАКТИРУЕТ анкету персонажа")
-    async def editCharacter(self, ctx, field: Option(str, description="Поле",choices=["name", "bio", "bodystats", "abilities", "weaknesses", 'character', 'inventory', 'appearances', 'shortened'], required=True)="",
+    async def editCharacter(self, ctx, field: Option(str, description="Поле",choices=["name", "bio", "bodystats", "abilities", "weaknesses", 'character', 'inventory', 'appearances', 'shortened', 'art'], required=True)="",
                             value : Option(str, description="Значение", required=True)=" ",
                             mode : Option(str, description="Режим редактирования", required=True, choices=["Добавить в конец","Заменить" , "Добавить к началу"])=" ",
                             id : Option(str, description="ID", required=True)=" "

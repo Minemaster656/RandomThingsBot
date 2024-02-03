@@ -281,6 +281,37 @@ def parseColorTo0xHEX(color_string: str) -> int:
     color_string = input("Введите строку цвета: ")
     parsed_color = parse_color(color_string)
     print(hex(parsed_color))
+import asyncio
+import subprocess
+
+async def execute_python_code(code, timeout, allowed_libraries=None, allowed_modules=None):
+    async def run_code():
+        try:
+            process = await asyncio.create_subprocess_exec(
+                'python3', '-c', code,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE
+            )
+
+            stdout, stderr = await asyncio.wait_for(process.communicate(), timeout)
+            if process.returncode == 0:
+                return stdout.decode().strip() if stdout else "No output"
+            else:
+                return stderr.decode().strip() if stderr else "Unknown error"
+        except asyncio.TimeoutError:
+            return "Timed out"
+        except Exception as e:
+            return f"Error: {str(e)}"
+
+    return await run_code()
+
+# # Пример использования функции
+# code = "print('Hello, World!')"
+# allowed_libraries = ["math", "random"]
+# allowed_modules = ["os", "sys"]
+#
+# result = asyncio.run(execute_python_code(code, 10, allowed_libraries, allowed_modules))
+# print(result)
 if __name__ == '__main__':
     ...
 # print(hashgen(16))
