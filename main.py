@@ -444,12 +444,12 @@ async def info(ctx):
     await ctx.respond(embed=embed)
 
 
-@bot.command(aliases=["код"])
-async def code(ctx, length):
-    if length:
-        await ctx.send(utils.hashgen(int(length)))
-    else:
-        await ctx.send(utils.hashgen(16))
+# @bot.command(aliases=["код"])
+# async def code(ctx, length):
+#     if length:
+#         await ctx.send(utils.hashgen(int(length)))
+#     else:
+#         await ctx.send(utils.hashgen(16))
 
 def inter_formatContent(content : str):
     content = content.replace("@everyone", "@еvеryonе")

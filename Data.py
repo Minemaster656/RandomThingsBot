@@ -213,7 +213,16 @@ def initTables():  # SQL ONLY!!!
 
 
 
-
+def getUserNameByID(user_id: int, ctx):
+    user = ctx.guild.get_member(int(user_id))
+    if user:
+        return user.name
+    else:
+        user_data = db.users.find_one({"userid": user_id})
+        if user_data:
+            return user_data['username']
+        else:
+            return user_id
 
 async def addXP(userid : int,
                 value : float, username : str):
