@@ -16,7 +16,8 @@ def schema(document, scheme):
         fields = {"userid": None, "username": " ", "about": None,
                   "age": None, "timezone": None, "color": None,
                   "karma": None, "luck": None, "permissions": None,
-                  "money": None, "money_bank": None, "xp": 0}
+                  "money": None, "money_bank": None, "xp": 0, 'banned':0}
+        '''banned: 0 - нет бана, 1 - нет команд, 2 - опасный пользователь'''
 
     # if scheme == Schemes.logconfig:
     #     fields = {"id":0}

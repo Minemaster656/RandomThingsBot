@@ -1,6 +1,7 @@
 import asyncio
 import codecs
 import datetime
+import hashlib
 import math
 import random
 import re
@@ -12,7 +13,7 @@ import pymongo
 import requests
 
 import Data
-from Data import cursor, db
+from Data import db
 
 
 def invertY(y, maxY):
@@ -80,17 +81,18 @@ def throwDice(id, name):
         return out
     return makeThrow()
 async def noPermission(ctx, permissions):
-    cursor.execute('SELECT permissions FROM users WHERE userid = ?', (ctx.author.id,))
-    perms = cursor.fetchone()
-    permissions = permissions.replace("|", "или")
-    permissions = permissions.replace("&", "и")
-    permissions = "`"+permissions+"`"
-    embed = discord.Embed(title="У Вас нет прав!", description="Нет разрешения!",
-                          color=Data.embedColors["Error"])
-    embed.add_field(name="Нет разрешения!", value=f"Вам необходимо(ы) разрешение(я): \n> {permissions}\n<@{ctx.author.id}>\n"
-                                                  f"Ваши текущие разрешения: \n"
-                                                  f"> {perms}")
-    await ctx.respond(embed=embed, ephemeral=False)
+    # cursor.execute('SELECT permissions FROM users WHERE userid = ?', (ctx.author.id,))
+    # perms = cursor.fetchone()
+    # permissions = permissions.replace("|", "или")
+    # permissions = permissions.replace("&", "и")
+    # permissions = "`"+permissions+"`"
+    # embed = discord.Embed(title="У Вас нет прав!", description="Нет разрешения!",
+    #                       color=Data.embedColors["Error"])
+    # embed.add_field(name="Нет разрешения!", value=f"Вам необходимо(ы) разрешение(я): \n> {permissions}\n<@{ctx.author.id}>\n"
+    #                                               f"Ваши текущие разрешения: \n"
+    #                                               f"> {perms}")
+    # await ctx.respond(embed=embed, ephemeral=False)
+    await ctx.respond("Нет разрешения!")
 import json
 
 def save_report_to_json(server_name: str, report_text: str, timestamp: int) -> str:
@@ -304,6 +306,8 @@ async def execute_python_code(code, timeout, allowed_libraries=None, allowed_mod
             return f"Error: {str(e)}"
 
     return await run_code()
+def md5(string:str)->str:
+    return hashlib.md5(string.encode()).hexdigest()
 
 # # Пример использования функции
 # code = "print('Hello, World!')"

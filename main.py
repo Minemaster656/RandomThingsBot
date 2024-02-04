@@ -43,8 +43,8 @@ import utils
 # import tests
 
 from private import coreData
-from Data import cursor
-from Data import conn
+# from Data import cursor
+# from Data import conn
 from Data import db
 from Data import collections
 
@@ -236,7 +236,7 @@ async def about(ctx, user: discord.Member = None):
             # if not result:
             #     Data.writeUserToDB(ctx.author.id, ctx.author.name)
 
-        async def send_user_info_embed(color, about, age, timezone, karma, luck, permissions, xp):
+        async def send_user_info_embed(color, about, age, timezone, karma, luck, permissions, xp, doc):
             def convertKarmaToEmoji(karma):
                 if karma < -1:
                     return "⬛"
@@ -277,6 +277,10 @@ async def about(ctx, user: discord.Member = None):
                 icons+=Data.icons[Data.Icons.root] if perms["root"] else ""
             if "edit_characters" in perms.keys():
                 icons+=Data.icons[Data.Icons.edit_characters] if perms["edit_characters"] else ""
+            if doc['banned']==1:
+                icons+=Data.icons[Data.Icons.banned1]
+            if doc['banned']>1:
+                icons+=Data.icons[Data.Icons.banned2]
             embed = discord.Embed(title=user.display_name+icons, description=user.name, color=color)
             embed.add_field(name="О себе", value="> *" + about + "*", inline=False)
             embed.add_field(name="Личные данные", value="- Возраст: " + age + "\n- Часовой пояс: UTC+" + timezone,
@@ -304,7 +308,7 @@ async def about(ctx, user: discord.Member = None):
             karma = 0 if result["karma"] is None else str(result["karma"])
             luck = 0 if result["luck"] is None else str(result["luck"])
             await send_user_info_embed(clr, abt, age, tmz, int(karma), int(luck),
-                                       result["permissions"], result["xp"])  # if result["permissions"] is None else '{}'
+                                       result["permissions"], result["xp"], result)  # if result["permissions"] is None else '{}'
         else:
             await ctx.send("Запись о пользователе не найдена. Добавление...")
             Data.writeUserToDB(user.id, user.name)

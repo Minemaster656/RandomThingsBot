@@ -10,17 +10,21 @@ import INIT
 from private import coreData
 import os
 
+
 # from discord.app_commands import commands
 class Icons(enum.Enum):
     verified = 0
     root = 1
     edit_characters = 2
+    banned1=3
+    banned2=4
 
 secret_guilds = []
 test_guilds = [1019180616731873290, 1076117733428711434, 855045703235928094, 1033752522306883715, 1111235284558950402,
                1153367008247812188]
 webhook_avatar_url = "https://images-ext-2.discordapp.net/external/-1-6AJKBQh38RYGz6D3j-IgURlKEfFifX5LeJ8h-TBw/%3Fsize%3D4096/https/cdn.discordapp.com/avatars/1126887522690142359/0767783560eee507f86c95a4b09f120a.png?width=437&height=437"
-permissions_user = ["root", "edit_characters", "say_as_bot", "edit_permissions", "---", "edit_economy", "verified","mnl_console"]
+permissions_user = ["root", "edit_characters", "say_as_bot", "edit_permissions", "---", "edit_economy", "verified",
+                    "mnl_console"]
 embedColors = {"Error": 0xf03255, "Exception": 0xff2f00, "Success": 0x29ff4d, "Warp": 0x00b3ff,
                "Neutral": discord.Color.blue(), "Economy": 0xffcc12}
 WPG_whitelist = [609348530498437140]
@@ -28,17 +32,16 @@ permission_root_whitelist = [609348530498437140, 617243612857761803]
 preffix = "!!"
 # preffix = ".!!"  # TODO: SET IF BETA
 currency = "<:catalist:1076130269867819099>"
-icons={Icons.verified: "✅", Icons.root:"🔨", Icons.edit_characters: "🕵️"
-     
-                                                              ""}
+icons = {Icons.verified: "✅", Icons.root: "🔨", Icons.edit_characters: "🕵️",
+         Icons.banned1:"❌", Icons.banned2:"‼️"}
 discord_logo = "https://assets-global.website-files.com/6257adef93867e50d84d30e2/636e0a6a49cf127bf92de1e2_icon_clyde_blurple_RGB.png"
 infectionRolesID = [1151515080219967498, 1135925890182807552, 1152163431869329468]
 apocalypseDLC = "Самый странный апокалипсис⁶™"
 hook_names = {"apocalypse": apocalypseDLC}
 data_DB_path = "private/data.db"
 INIT.initDB(data_DB_path)
-conn = sqlite3.connect(data_DB_path)
-cursor = conn.cursor()
+conn = None#sqlite3.connect(data_DB_path)
+cursor = None#conn.cursor()
 client = MongoClient(coreData.mongo_url)
 db = client[coreData.mongo_db_name]
 collections = {"users": db["users"], "servers": db["servers"], "countries": ["countries"]}
@@ -48,6 +51,12 @@ interchats = {}
 team_server_id = 1019180616731873290
 blanks_moderation_channel_id = 1193178847923929108
 botIDs = [1126887522690142359, 1169691387562835968]
+
+ideasChannel = 1203626395377475634
+
+
+devs=[609348530498437140, 639066140957736971]
+
 
 if not os.path.exists(file_path):
     interchats = {}
@@ -61,6 +70,27 @@ else:
 interhubs = ["normal", "rp", "rp2", "rp_bottomOfTheAbyss", "rp_void", "admins", "normal2", "normal_en", "rp_tavern",
              "rp_cafe", "tests", "rp_mysteriousShop", "memes", "rp_space", "media"]
 interbans = [897193427479973961]
+
+
+class EmbedColor(enum.Enum):
+    Error = 0
+    Exception = 1
+    Success = 2
+    Warp = 3
+    Neutral = 4
+    Economy = 5
+
+
+def getEmbedColor(color: EmbedColor) -> discord.Color:
+    colors = {
+        EmbedColor.Error: embedColors["Error"],
+        EmbedColor.Exception: embedColors["Exception"],
+        EmbedColor.Success: embedColors["Success"],
+        EmbedColor.Warp: embedColors["Warp"],
+        EmbedColor.Neutral: embedColors["Neutral"],
+        EmbedColor.Economy: embedColors["Economy"]
+    }
+    return colors[color]
 
 
 async def parsePermissionFromUser(id: int, permission: str):
@@ -123,21 +153,25 @@ def insertRoot(id):
 #     cursor.execute("INSERT INTO users (userid, username) VALUES (?, ?)", (user.id, user.name))
 #     conn.commit()
 def writeUserToDB(id: int, name: str):
+    '''Добавляет в базу данных полдьзователя. ТРЕБУЕТСЯ ФОРМАТИРОВАНИЕ СХЕМЫ!!!'''
     # cursor.execute("INSERT INTO users (userid, username) VALUES (?, ?)", (id, name))
-    # conn.commit()
-    if not db.users.find_one({"userid": id}):
-        db.users.insert_one({"userid": id, "username": name, "about": None, "age": None,
-                             "timezone": None,
-                             "color": None,
+    # conn.commit()\
+    doc = db.users.find_one({"userid": id})
+    if not doc:
+        doc = {"userid": id, "username": name, "about": None, "age": None,
+               "timezone": None,
+               "color": None,
 
-                             "karma": 0,
-                             "luck":
-                                 0,
-                             "permissions": None,
-                             "money":
-                                 0,
-                             "money_bank":
-                                 0, "xp": 0})
+               "karma": 0,
+               "luck":
+                   0,
+               "permissions": None,
+               "money":
+                   0,
+               "money_bank":
+                   0, "xp": 0, 'banned': 0}
+        db.users.insert_one(doc)
+    return doc
 
 
 def findServerInDB(ctx):
@@ -168,49 +202,48 @@ def findServerInDB(ctx):
 
 
 def initTables():  # SQL ONLY!!!
-    cursor.execute('''CREATE IF NOT EXISTS TABLE countries (
-    userid         INTEGER,
-    countryname    TEXT,
-    government     TEXT,
-    ideology       TEXT,
-    currency       TEXT,
-    about          TEXT,
-    flagURL        TEXT,
-    extraSymbols   TEXT,
-    ownerdata      TEXT,
-    id             TEXT,
-    money          INTEGER DEFAULT (0),
-    population     INTEGER DEFAULT (0),
-    agreement      INTEGER DEFAULT (0),
-    area           INTEGER DEFAULT (0),
-    infrastructure INTEGER DEFAULT (0),
-    medicine       INTEGER DEFAULT (0),
-    eudication     INTEGER DEFAULT (0),
-    attack         INTEGER DEFAULT (0),
-    armor          INTEGER DEFAULT (0),
-    fuel           INTEGER DEFAULT (0),
-    fuel_space     INTEGER DEFAULT (0),
-    fuel_star      INTEGER DEFAULT (0),
-    fuel_void      INTEGER DEFAULT (0),
-    transport      INTEGER DEFAULT (0),
-    tech_index     INTEGER DEFAULT (0),
-    tech           TEXT,
-    food           INTEGER DEFAULT (0),
-    materials      INTEGER DEFAULT (0) 
-)''')
+    ...
+    # cursor.execute('''CREATE IF NOT EXISTS TABLE countries (
+#     userid         INTEGER,
+#     countryname    TEXT,
+#     government     TEXT,
+#     ideology       TEXT,
+#     currency       TEXT,
+#     about          TEXT,
+#     flagURL        TEXT,
+#     extraSymbols   TEXT,
+#     ownerdata      TEXT,
+#     id             TEXT,
+#     money          INTEGER DEFAULT (0),
+#     population     INTEGER DEFAULT (0),
+#     agreement      INTEGER DEFAULT (0),
+#     area           INTEGER DEFAULT (0),
+#     infrastructure INTEGER DEFAULT (0),
+#     medicine       INTEGER DEFAULT (0),
+#     eudication     INTEGER DEFAULT (0),
+#     attack         INTEGER DEFAULT (0),
+#     armor          INTEGER DEFAULT (0),
+#     fuel           INTEGER DEFAULT (0),
+#     fuel_space     INTEGER DEFAULT (0),
+#     fuel_star      INTEGER DEFAULT (0),
+#     fuel_void      INTEGER DEFAULT (0),
+#     transport      INTEGER DEFAULT (0),
+#     tech_index     INTEGER DEFAULT (0),
+#     tech           TEXT,
+#     food           INTEGER DEFAULT (0),
+#     materials      INTEGER DEFAULT (0)
+# )''')
 
 
-'''CREATE TABLE servers (
-    serverid   INTEGER,
-    muteroleid INTEGER,
-    mutes      TEXT,
-    bumpcolor  TEXT,
-    bumptext   TEXT,
-    invitelink TEXT,
-    ownerid    INTEGER
-);'''
-
-
+# '''CREATE TABLE servers (
+#     serverid   INTEGER,
+#     muteroleid INTEGER,
+#     mutes      TEXT,
+#     bumpcolor  TEXT,
+#     bumptext   TEXT,
+#     invitelink TEXT,
+#     ownerid    INTEGER
+# );'''
 
 
 def getUserNameByID(user_id: int, ctx):
@@ -224,14 +257,16 @@ def getUserNameByID(user_id: int, ctx):
         else:
             return user_id
 
-async def addXP(userid : int,
-                value : float, username : str):
+
+async def addXP(userid: int,
+                value: float, username: str):
     '''Добавляет опыт пользователю'''
+
     def schema(doc):
-        fields = {"userid":0, "username":" ", "about":None,
-                  "age":None, "timezone":None, "color":None,
-                  "karma":0, "luck":0, "permissions":None,
-                  "money":0, "money_bank":0, "xp":0}
+        fields = {"userid": 0, "username": " ", "about": None,
+                  "age": None, "timezone": None, "color": None,
+                  "karma": 0, "luck": 0, "permissions": None,
+                  "money": 0, "money_bank": 0, "xp": 0}
         fields_check = {}
         if not doc:
             document = fields
@@ -239,20 +274,19 @@ async def addXP(userid : int,
             fields_check[k] = False
         for k in doc.keys():
             if k in fields.keys():
-                fields_check[k]=True
+                fields_check[k] = True
         for k in fields_check:
             if not fields_check[k]:
-                doc[k]=fields[k]
-                fields_check[k]=True
+                doc[k] = fields[k]
+                fields_check[k] = True
         return doc
- 
-    
-    doc = db.users.find_one({"userid":userid})
+
+    doc = db.users.find_one({"userid": userid})
     if doc:
         # doc = db.users.find_one({"id":user.id})
         doc = schema(doc)
-        doc["xp"]+=value
-        db.users.update_one({"userid":userid}, {"$set" : doc})
+        doc["xp"] += value
+        db.users.update_one({"userid": userid}, {"$set": doc})
         print("Found")
     else:
         writeUserToDB(userid, username)
@@ -260,5 +294,3 @@ async def addXP(userid : int,
         doc = schema(doc)
         doc["xp"] += value
         db.users.update_one({"id": userid}, {"$set": doc})
-
-

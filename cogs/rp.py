@@ -735,7 +735,7 @@ class RP(commands.Cog):
     existing_fields = ["name", "bio", "bodystats", "abilities", "weaknesses",
                                                                'character', 'inventory', 'appearances', 'shortened',
                                                                'any']
-    @commands.slash_command(name="поиск-персонажей", description="Ищет персонажей по запросу", guids=Data.test_guilds)
+    @commands.slash_command(name="поиск-персонажей", description="Ищет персонажей по запросу")
     async def advancedSearch(self, ctx, field: Option(str, description="Поле. По умолчанию любое",
                                                       choices=["name", "bio", "bodystats", "abilities", "weaknesses",
                                                                'character', 'inventory', 'appearances', 'shortened',
