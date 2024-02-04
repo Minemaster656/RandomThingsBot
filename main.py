@@ -255,14 +255,17 @@ async def about(ctx, user: discord.Member = None):
                 elif luck < -1:
                     return "🟧"
 
-                elif luck > 1:
-                    return "🟨"
-                elif luck > 3:
-                    return "🟩"
-                elif luck > 5:
-                    return "🟦"
                 elif luck > 10:
                     return "🟪"
+                elif luck > 5:
+                    return "🟦"
+                elif luck > 3:
+                    return "🟩"
+                elif luck > 1:
+                    return "🟨"
+
+
+
                 else:
                     return "⬜"
 
@@ -299,7 +302,7 @@ async def about(ctx, user: discord.Member = None):
             await ctx.send("Запись найдена")
 
             clr = 0x5865F2 if result["color"] is None else result["color"]
-            abt = "Задать поле 'О себе' можно командой `!!редактировать осебе`" if result["about"] is None else result[
+            abt = "Задать поле 'О себе' можно командой `!!редактировать осебе` Если вы хотите указать более 1 слова, используйте кавычки!" if result["about"] is None else result[
                 "about"]
             tmz = "UTC+?. Задать часовой пояс можно командой `.редактировать часовойпояс`. Укажите свой часовой пояс относительно Гринвича." if \
                 result["timezone"] is None else str(result["timezone"])
