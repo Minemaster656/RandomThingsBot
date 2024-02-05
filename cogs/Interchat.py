@@ -82,10 +82,11 @@ class Interchat(commands.Cog):
                                 async def send(hook):
 
                                     if message.reference:
-
+                                        # udoc = Data.db.users.find_one({"id":message.reference.resolved.author.id})
+                                        # print(udoc)
                                         embed = discord.Embed(title="⤴️ Reply",
                                                               description=f"{message.reference.resolved.content}",
-                                                              colour=Data.embedColors["Neutral"]
+                                                              colour=Data.embedColors["Neutral"] #if not udoc else int(udoc["color"])
                                                               )
                                         embed.set_author(name=message.reference.resolved.author.name,
                                                          icon_url=message.reference.resolved.author.avatar.url if message.reference.resolved.author.avatar else message.reference.resolved.author.default_avatar.url)

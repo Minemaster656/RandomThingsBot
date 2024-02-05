@@ -780,6 +780,62 @@ class RP(commands.Cog):
             embed.add_field(name="Нет совпадений!",value="Ничего не найдено!",inline=False)
         await ctx.respond(embed=embed, ephemeral=ephemeral)
 
+    @commands.slash_command(name="задать-преффикс-персонажа",description="Задаёт преффикс персоны персонажа")
+    async def setCharPreffix(self, ctx, prefix :Option(str, description="Преффикс", required=True)=" ", id : Option(str, description="ID персонажа", required=True)=""):
+        doc = db.characters.find_one({"id":id})
+        if not doc:
+            await ctx.respond("Не найдено!", ephemeral=True)
+            return
+        if await Data.parsePermissionFromUser(ctx.author.id, "edit_characters") or await Data.parsePermissionFromUser(ctx.author.id, "root") or doc["owner"]==ctx.author.id:
+            await ctx.respond(f"Преффикс изменён: ``{doc['prefix']}`` -> ``{prefix}``")
+            db.characters.update_one({"id":id}, {"$set":{"prefix":prefix}})
+        else:
+            await ctx.respond("У вас нет права на редактирование персонажей или это не ваш персонаж!",ephemeral=True)
+
+    @commands.Cog.listener("on_message")
+    async def interchat_on_message(self, message : discord.Message):
+        for doc in db.characters.find({"owner":message.author.id}):
+            if doc["prefix"]:
+                if str(message.content).startswith(doc['prefix']):
+                    hook = await utils.initWebhook(message.channel, self.bot.user.id)
+                    if hook:
+                        arts = str(doc['art']).split(" ")
+                        havatar = arts[0]
+                        hname = doc["name"]
+                        content = message.content
+                        if content.startswith(doc['prefix']):
+                            content = content[len(doc['prefix']):]
+                        # if message.reference:
+                        #     contentPrefix = f"{message.reference.resolved.content[:30]}...\n" \
+                        #                     f""
+                        #     if message.reference.resolved.webhook_id:
+                        #         ownerdoc = db.characters.find_one({"name":message.reference.resolved.author.name})
+                        #         if ownerdoc:
+                        #             mention = f" (<@{ownerdoc['owner']}>)"
+                        #         else:
+                        #             mention = ""
+                        #         contentPrefix+=f"{message.reference.resolved.author.name}{mention}"
+                        #     else:
+                        #         f" (<@{message.reference.resolved.author.id}>)"
+                        #     content = f"{contentPrefix}\n{content}"
+                        #TODO: референс
+                        if len(content) <1:
+                            content = "** **"
+                        if isinstance(message.channel, discord.Thread):
+                            await hook.send(content=content, username=hname,
+                                            avatar_url=havatar,
+                                            thread=discord.Object(message.channel.parent_id),
+                                            files=[await i.to_file() for i in message.attachments]
+                                            )
+
+                        else:
+                            await hook.send(content=content, username=hname,
+                                            avatar_url=havatar,
+
+                                            files=[await i.to_file() for i in message.attachments]
+                                            )
+                        await message.delete()
+                    break
 
 def setup(bot):
     bot.add_cog(RP(bot))

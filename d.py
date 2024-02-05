@@ -56,6 +56,15 @@ def schema(document, scheme):
 
 
         }
+    if scheme == Schemes.character:
+        fields = {
+            "name":None, "bodystats":None, "age":None,
+            "abilities":None, "weaknesses":None, "character":None,
+            "inventory":None, "bio":None, "appearances":None,
+            "art":"https://media.discordapp.net/attachments/1018886769619505212/1176561157939662978/ad643992b38e34e2.png",
+            "shortened":None, "id":None,"owner":0,
+            "prefix":None, "totalMessages":0
+        }
 
     fields_check = {}
     if not document:

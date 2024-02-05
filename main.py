@@ -83,6 +83,7 @@ loopCounter = 0
 bot = commands.Bot(command_prefix=Data.preffix, intents=intents)
 
 
+
 @bot.event
 async def on_ready():
     total_members = sum(len(guild.members) for guild in bot.guilds)
