@@ -295,7 +295,7 @@ async def about(ctx, user: discord.Member = None):
             xps = utils.calc_levelByXP(xp)
             embed.add_field(name="Опыт",value=f"Всего опыта: {xp}\nУровень: {xps[0]}\nОпыта до следующего уровня: {xps[2]}",inline=False)
             embed.set_footer(
-                text='Редактировтаь параметры - !!редактировать <имяпараметра строчными буквами без пробелов и этих <> > \"значение\"')
+                text='Редактировтаь параметры - !!редактировать <имяпараметра строчными буквами без пробелов и этих <> > \"значение\". Доступные поля: осебе, часовойпояс (число), возраст (число), цвет (HEX-запись)')
             await ctx.send(embed=embed)
 
         if result:
@@ -326,13 +326,16 @@ async def about(ctx, user: discord.Member = None):
 async def edit(ctx, field, value):
     if field == "осебе":
         db.users.update_one({"userid": ctx.author.id}, {"$set": {"about": value}})
-        await ctx.reply("**Строка** `осебе` (.осебе) изменена!")
+        await ctx.reply("**Строка** `осебе` (!!осебе) изменена!")
     elif field == "возраст":
         db.users.update_one({"userid": ctx.author.id}, {"$set": {"age": int(value)}})
-        await ctx.reply("**Число** `возраст` (.осебе) изменено!")
+        await ctx.reply("**Число** `возраст` (!!осебе) изменено!")
     elif field == "часовойпояс":
         db.users.update_one({"userid": ctx.author.id}, {"$set": {"timezone": int(value)}})
-        await ctx.reply("**Число** `часовойпояс` (.осебе) изменено!")
+        await ctx.reply("**Число** `часовойпояс` (!!осебе) изменено!")
+    elif field == "цвет":
+        db.users.update_one({"userid": ctx.author.id}, {"$set": {"color": utils.parseColorTo0xHEX(value)}})
+        await ctx.reply("**Цвет профиля** `цвет` (!!осебе) изменен!")
     else:
         ctx.reply("Допустимые параметры:\n"
                   "- осебе (строка)\n"
