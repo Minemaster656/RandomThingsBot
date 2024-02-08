@@ -16,7 +16,8 @@ def schema(document, scheme):
         fields = {"userid": None, "username": " ", "about": None,
                   "age": None, "timezone": None, "color": None,
                   "karma": None, "luck": None, "permissions": None,
-                  "money": None, "money_bank": None, "xp": 0, 'banned':0}
+                  "money": None, "money_bank": None, "xp": 0, 'banned': 0, 'autoresponder': False,
+                  "autoresponder-offline": None, "autoresponder-inactive": None, "autoresponder-disturb": None}
         '''banned: 0 - нет бана, 1 - нет команд, 2 - опасный пользователь'''
 
     # if scheme == Schemes.logconfig:
@@ -26,7 +27,7 @@ def schema(document, scheme):
         fields = {
 
             "serverid": None,
-            "name":None, "icon":None,
+            "name": None, "icon": None,
 
             "muteroleid": None,
 
@@ -38,7 +39,7 @@ def schema(document, scheme):
 
             "invitelink": None,
 
-            "ownerid": None, "ownername":None,
+            "ownerid": None, "ownername": None,
 
             "apocalypseChannel": None,
 
@@ -51,19 +52,18 @@ def schema(document, scheme):
             "autoPublish": None,
 
             "isAPchannelThread": None,
-            "partnershipState":0,
-            "status":0,"pr_channel":0
-
+            "partnershipState": 0,
+            "status": 0, "pr_channel": 0
 
         }
     if scheme == Schemes.character:
         fields = {
-            "name":None, "bodystats":None, "age":None,
-            "abilities":None, "weaknesses":None, "character":None,
-            "inventory":None, "bio":None, "appearances":None,
-            "art":"https://media.discordapp.net/attachments/1018886769619505212/1176561157939662978/ad643992b38e34e2.png",
-            "shortened":None, "id":None,"owner":0,
-            "prefix":None, "totalMessages":0
+            "name": None, "bodystats": None, "age": None,
+            "abilities": None, "weaknesses": None, "character": None,
+            "inventory": None, "bio": None, "appearances": None,
+            "art": "https://media.discordapp.net/attachments/1018886769619505212/1176561157939662978/ad643992b38e34e2.png",
+            "shortened": None, "id": None, "owner": 0,
+            "prefix": None, "totalMessages": 0
         }
 
     fields_check = {}

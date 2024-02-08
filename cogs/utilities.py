@@ -1,3 +1,4 @@
+import dis
 import json
 import random
 
@@ -43,7 +44,8 @@ class Utilities(commands.Cog):
         # list = Apocalypse.genApocalypseItems()
 
         urls = db.servers.find({},
-                               {"apocalypseChannelHook": 1, "apocalypseLastSendDay": 1, "serverid": 1, "isAPchannelThread": 1,
+                               {"apocalypseChannelHook": 1, "apocalypseLastSendDay": 1, "serverid": 1,
+                                "isAPchannelThread": 1,
                                 "apocalypseChannel": 1})
 
         for hook_url in urls:
@@ -196,7 +198,6 @@ class Utilities(commands.Cog):
         # await ctx.respond(embed=embed)
         # await ctx.respond("Учтите, что у Вас должно быть разрешение Администратора для использования этой команды!")
 
-
     @commands.slash_command(name="винжер", description="кодировщик-декодировщик в винжере")
     async def vinger(self, ctx, input: Option(str, description="Текст на русском/английском", required=True) = "none",
                      key: Option(str, description="Ключ", required=True) = "а",
@@ -235,9 +236,81 @@ class Utilities(commands.Cog):
         embed.add_field(name="Результат", value=f"{vigenere_cipher(setupAlphabet(), key, input, destination)}")
         await ctx.respond(embed=embed, ephemeral=True)
 
-    # @commands.slash_command(name="добавить-опыт",description="Добавляет опыт")
-    # async def addXp(self, ctx):
-    #     ...
-    #TODO: сделать это.
+
+
+    @commands.Cog.listener("on_message")
+    async def on_message(self, message):
+        if message.author.bot or isinstance(message.author, discord.Webhook):
+            return
+
+        mentioned_users = message.mentions
+        replied_user: discord.Member = message.reference.resolved.author if message.reference and message.reference.resolved else None
+
+        if mentioned_users or replied_user:
+            if replied_user and replied_user.bot:
+                return
+            pinged = message.author
+            # Получаем статус упомянутого пользователя
+            status = None
+            if mentioned_users:
+                user = mentioned_users[0]
+                status = user.status
+                pinged = user
+            elif replied_user:
+                status = replied_user.status
+                pinged = replied_user
+            # print(status)
+            statuses = {
+                discord.Status.offline : "autoresponder-offline",
+                discord.Status.dnd : "autoresponder-disturb",
+                discord.Status.idle : "autoresponder-inactive"
+            }
+            # if status == :
+            #     # Код для пользователя в сети
+            #     await message.channel.send(f"{pinged.mention} Я вижу, что вы в сети! 👀")
+            # elif status == discord.Status.offline:
+            #     # Код для оффлайн пользователя
+            #     await message.channel.send(f"{pinged.mention} Вы не в сети. 😴")
+            # elif status == discord.Status.idle:
+            #     # Код для неактивного пользователя
+            #     await message.channel.send(f"{pinged.mention} Вы сейчас неактивны. 🌀")
+            # elif status == discord.Status.dnd:
+            #     # Код для пользователя со статусом "не беспокоить"
+            #     await message.channel.send(f"{pinged.mention} Вы на не беспокоить. 🤫")
+            # elif status == discord.Status.streaming:
+            #     ...
+            doc = db.users.find_one({"userid":pinged.id})
+
+            print(doc)
+            if doc:
+                # hook : discord.Webhook = await utils.initWebhook(message.channel, self.bot.user.id)
+                # hooks = await message.channel.webhooks()
+                # hook = None
+                # for h in hooks:
+                #     if h.user.id in Data.botIDs:
+                #         hook = h
+                #         break
+                # if not hook:
+                #     hook = await message.channel.create_webhook(name="RTB hook", avatar=Data.webhook_avatar_url)
+                # if hook:
+                try:
+                    # print(statuses[status])
+                    # print(status)
+                    a_message = doc[statuses[status]]
+                    # print(a_message)
+                    # print(doc["autoresponder"])
+
+                    if a_message and doc["autoresponder"]:
+                        # print('---')
+                        # avatar = pinged.avatar.url if pinged.avatar else pinged.default_avatar.url
+                        await message.channel.send(f"Автоответчик @{pinged.name}: {a_message}"
+
+                                        )
+
+                except:
+                    ...
+
+
+
 def setup(bot):
     bot.add_cog(Utilities(bot))

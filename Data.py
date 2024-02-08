@@ -169,7 +169,8 @@ def writeUserToDB(id: int, name: str):
                "money":
                    0,
                "money_bank":
-                   0, "xp": 0, 'banned': 0}
+                   0, "xp": 0, 'banned': 0, 'autoresponder': False,
+                  "autoresponder-offline": None, "autoresponder-inactive": None, "autoresponder-disturb": None}
         db.users.insert_one(doc)
     return doc
 
