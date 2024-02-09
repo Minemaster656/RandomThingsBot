@@ -297,7 +297,7 @@ async def about(ctx, user: discord.Member = None):
             xps = utils.calc_levelByXP(xp)
             embed.add_field(name="Опыт",value=f"Всего опыта: {xp}\nУровень: {xps[0]}\nОпыта до следующего уровня: {xps[2]}",inline=False)
             embed.set_footer(
-                text=f'Для редактирования параметров - \"{Data.preffix}редактировать помощь -\" - там вся нужная информация. Что-нибудь через пробел после \"помощь\" обязательно')
+                text=f'Для редактирования параметров - \"{Data.preffix}редактировать\" - там вся нужная информация. Для справки используйте **помощь** или просто !!редактировать.')
 
             embed.add_field(name="Автоответчики",value=f"Автоответчик {'✅ВКЛЮЧЕН✅' if doc['autoresponder'] else '❌ВЫКЛЮЧЕН❌'}\n\n"
                                                        f"# НЕ БЕСПОКОИТЬ: `{doc['autoresponder-disturb']}`\n\n"
@@ -309,7 +309,7 @@ async def about(ctx, user: discord.Member = None):
             await ctx.send("Запись найдена")
 
             clr = 0x5865F2 if result["color"] is None else result["color"]
-            abt = "Задать поле 'О себе' можно командой `!!редактировать осебе` Если вы хотите указать более 1 слова, используйте кавычки!" if result["about"] is None else result[
+            abt = "Задать поле 'О себе' можно командой `!!редактировать осебе`" if result["about"] is None else result[
                 "about"]
             tmz = "UTC+?. Задать часовой пояс можно командой `.редактировать часовойпояс`. Укажите свой часовой пояс относительно Гринвича." if \
                 result["timezone"] is None else str(result["timezone"])
@@ -325,14 +325,14 @@ async def about(ctx, user: discord.Member = None):
             doc = Data.writeUserToDB(user.id, user.name)
             doc = d.schema(doc, d.Schemes.user)
 
-            await send_user_info_embed(0x5865F2, "Задать поле 'О себе' можно командой .редактировать осебе",
-                                       "Задать поле 'Возраст' можно командой `.редактировать возраст`\nПожалуйста, ставьте только свой реальный возраст, не смотря на то, сколько вам лет.",
-                                       "UTC+?. Задать часовой пояс можно командой `.редактировать часовойпояс`. Укажите свой часовой пояс относительно Гринвича.", 0,0,None,0, doc)
+            await send_user_info_embed(0x5865F2, "Задать поле 'О себе' можно командой !!редактировать осебе",
+                                       "Задать поле 'Возраст' можно командой `!!редактировать возраст`\nПожалуйста, ставьте только свой реальный возраст, не смотря на то, сколько вам лет.",
+                                       "UTC+?. Задать часовой пояс можно командой `!!редактировать часовойпояс`. Укажите свой часовой пояс относительно Гринвича.", 0,0,None,0, doc)
             #TODO: прогрессбар уровня
 
 
 @bot.command(aliases=["редактировать"])
-async def edit(ctx, field, value):
+async def edit(ctx, field = "помощь", *, value = None):
     if field == "осебе":
         db.users.update_one({"userid": ctx.author.id}, {"$set": {"about": value}})
         await ctx.reply("**Строка** `осебе` (!!осебе) изменена!")
@@ -348,10 +348,11 @@ async def edit(ctx, field, value):
 
 
     elif field == "автоответчик":
-        no = ["0", "нет", "false", "False", "no", "ложь"]
+        no = ["0", "нет", "false", "False", "no", "ложь", None]
         pvalue = not value in no
         db.users.update_one({"userid": ctx.author.id}, {"$set": {"autoresponder": pvalue}})
-        await ctx.reply(f"Автоответчик **{'включен' if pvalue else 'выключен'}**")
+        await ctx.reply(f"Автоответчик **{'включен' if pvalue else 'выключен'}**\n"
+                        f"Если вы хотите задать текст для автоответчика, то используйте в качесмтве поля не **автоответчик** а **автоответчик-статус**, гед статус - неактивен, оффлайн или небеспокоить. Для отчистки строки просто оставьте строку пустой.")
 
     elif field == "автоответчик-неактивен":
         db.users.update_one({"userid": ctx.author.id}, {"$set": {"autoresponder-inactive": value if value != '-' else None}})
@@ -377,7 +378,7 @@ async def edit(ctx, field, value):
                                                    f"`автоответчик-неактивен` - строка для автоответчика, когда вы неактивны\n"
                                                    f"`автоответчик-оффлайн` - строка для автоответчика, когда вы оффлайн\n"
                                                    f"`автоответчик-небеспокоить` - строка для автоответчика, когда у вас стоит статус не беспокоить.\n"
-                                                   f"Что бы отключить конкретный автоответчик - впишите \"-\" в качестве значения.",inline=False)
+                                                   f"Что бы отключить конкретный автоответчик - ничего не вписывайте в качестве значения.",inline=False)
         await ctx.reply(embed=embed)
     else:
         ctx.reply("Допустимые параметры:\n"

@@ -795,6 +795,8 @@ class RP(commands.Cog):
     @commands.Cog.listener("on_message")
     async def interchat_on_message(self, message : discord.Message):
         for doc in db.characters.find({"owner":message.author.id}):
+            if not "prefix" in doc.keys():
+                return
             if doc["prefix"]:
                 if str(message.content).startswith(doc['prefix']):
                     hook = await utils.initWebhook(message.channel, self.bot.user.id)
