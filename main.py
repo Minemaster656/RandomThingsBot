@@ -296,13 +296,16 @@ async def about(ctx, user: discord.Member = None):
             embed.add_field(name="Разрешения", value=f"{str(permissions)}", inline=False)
             xps = utils.calc_levelByXP(xp)
             embed.add_field(name="Опыт",value=f"Всего опыта: {xp}\nУровень: {xps[0]}\nОпыта до следующего уровня: {xps[2]}",inline=False)
+            embed.add_field(name="Экономика", value=f"На руках: {utils.format_number(doc['money'])}{Data.currency}\n"
+                                                    f"В банке: {utils.format_number(doc['money_bank'])}{Data.currency}\n")
+            embed.set_thumbnail(url=user.avatar.url if user.avatar else user.default_avatar.url)
             embed.set_footer(
                 text=f'Для редактирования параметров - \"{Data.preffix}редактировать\" - там вся нужная информация. Для справки используйте **помощь** или просто !!редактировать.')
 
             embed.add_field(name="Автоответчики",value=f"Автоответчик {'✅ВКЛЮЧЕН✅' if doc['autoresponder'] else '❌ВЫКЛЮЧЕН❌'}\n\n"
-                                                       f"# НЕ БЕСПОКОИТЬ: `{doc['autoresponder-disturb']}`\n\n"
-                                                       f"# НЕАКТИВЕН: `{doc['autoresponder-inactive']}`\n\n"
-                                                       f"# ОФФЛАЙН: `{doc['autoresponder-offline']}`",inline=False)
+                                                       f"# НЕ БЕСПОКОИТЬ: **{doc['autoresponder-disturb']}**\n\n"
+                                                       f"# НЕАКТИВЕН: **{doc['autoresponder-inactive']}**\n\n"
+                                                       f"# ОФФЛАЙН: **{doc['autoresponder-offline']}**",inline=False)
             await ctx.send(embed=embed)
 
         if result:

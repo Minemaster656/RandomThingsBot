@@ -620,7 +620,7 @@ class RP(commands.Cog):
                             for k in doc.keys():
                                 if not doc[k] or doc[k] == "":
                                     doc[k] = " "
-                            print(doc)
+                            # print(doc)
                             embed = discord.Embed(title=f"Персонаж {utils.formatStringLength(doc['name'], 120)}",
                                                   description=f"{utils.formatStringLength(doc['bio'], 4000)}",
                                                   colour=Data.embedColors["Warp"])
