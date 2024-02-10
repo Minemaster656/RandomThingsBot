@@ -303,7 +303,7 @@ class Utilities(commands.Cog):
                     if a_message and doc["autoresponder"]:
                         # print('---')
                         # avatar = pinged.avatar.url if pinged.avatar else pinged.default_avatar.url
-                        await message.channel.send(f"Автоответчик @{pinged.name}: {a_message}"
+                        await message.channel.send(f"Автоответчик @{pinged.name}: {a_message}",delete_after=10
 
                                         )
 
