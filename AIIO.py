@@ -52,7 +52,7 @@ async def askLLM(payload, model, payload_cutoff, temptoken=gigachat_temptoken):
                        'Content-Type': 'application/x-www-form-urlencoded'}
             data = 'scope=GIGACHAT_API_PERS'  # данные, которые вы хотите отправить
 
-            async with aiohttp.ClientSession() as session:
+            async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(verify_ssl=False)) as session:
                 async with session.post(url, headers=headers, data=data) as response:
                     response_text = await response.json()
                     print(response_text)
@@ -113,7 +113,7 @@ async def askLLM(payload, model, payload_cutoff, temptoken=gigachat_temptoken):
         print("-----")
         print(headers, "\n", data)
         print("-----")
-        async with aiohttp.ClientSession() as session:
+        async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(verify_ssl=False)) as session:
             async with session.post(url, headers=headers, data=data) as resp:
                 response_text = await resp.json()
                 print(response_text)
