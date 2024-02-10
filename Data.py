@@ -295,3 +295,4 @@ async def addXP(userid: int,
         doc = schema(doc)
         doc["xp"] += value
         db.users.update_one({"id": userid}, {"$set": doc})
+

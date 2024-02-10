@@ -281,7 +281,7 @@ class Utilities(commands.Cog):
             #     ...
             doc = db.users.find_one({"userid":pinged.id})
 
-            print(doc)
+            # print(doc)
             if doc:
                 # hook : discord.Webhook = await utils.initWebhook(message.channel, self.bot.user.id)
                 # hooks = await message.channel.webhooks()

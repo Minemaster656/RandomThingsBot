@@ -89,4 +89,4 @@ import swearfilter
 # genNoiseMap(100, (128, 128))
 # noise = perlin_noise.PerlinNoise(octaves=1, seed=1000)
 # print(hashlib.md5(input("Строка для md5:")))
-print(swearfilter.findSwear(input("СТРОКА ДЛЯ ПРОВЕРКИ")))
+# print(swearfilter.findSwear(input("СТРОКА ДЛЯ ПРОВЕРКИ")))
