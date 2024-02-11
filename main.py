@@ -300,7 +300,7 @@ async def about(ctx, user: discord.Member = None):
                                                     f"В банке: {utils.format_number(doc['money_bank'])}{Data.currency}\n")
             embed.set_thumbnail(url=user.avatar.url if user.avatar else user.default_avatar.url)
             embed.set_footer(
-                text=f'Для редактирования параметров - \"{Data.preffix}редактировать\" - там вся нужная информация. Для справки используйте **помощь** или просто !!редактировать.')
+                text=f'Для редактирования параметров - \"{Data.preffix}ё\" - там вся нужная информация. Для справки используйте **помощь** или просто !!редактировать.')
 
             embed.add_field(name="Автоответчики",value=f"Автоответчик {'✅ВКЛЮЧЕН✅' if doc['autoresponder'] else '❌ВЫКЛЮЧЕН❌'}\n\n"
                                                        f"# НЕ БЕСПОКОИТЬ: **{doc['autoresponder-disturb']}**\n\n"
@@ -336,6 +336,9 @@ async def about(ctx, user: discord.Member = None):
 
 @bot.command(aliases=["редактировать"])
 async def edit(ctx, field = "помощь", *, value = None):
+    doc = db.users.find_one({"userid":ctx.author.id})
+    if not doc:
+        doc = await Data.writeUserToDB(ctx.author.id, ctx.author.name)
     if field == "осебе":
         db.users.update_one({"userid": ctx.author.id}, {"$set": {"about": value}})
         await ctx.reply("**Строка** `осебе` (!!осебе) изменена!")
@@ -351,9 +354,14 @@ async def edit(ctx, field = "помощь", *, value = None):
 
 
     elif field == "автоответчик":
-        no = ["0", "нет", "false", "False", "no", "ложь", None]
+        no = ["0", "нет", "false", "False", "no", "ложь"]
         pvalue = not value in no
+        if value is None:
+            doc = db.users.find_one({"userid":ctx.author.id})
+            pvalue = not doc["autoresponder"]
+
         db.users.update_one({"userid": ctx.author.id}, {"$set": {"autoresponder": pvalue}})
+
         await ctx.reply(f"Автоответчик **{'включен' if pvalue else 'выключен'}**\n"
                         f"Если вы хотите задать текст для автоответчика, то используйте в качестве поля не **автоответчик** а **автоответчик-статус**, где статус - неактивен, оффлайн или небеспокоить. Для отчистки строки просто оставьте строку пустой.")
 

@@ -6,7 +6,7 @@ tokens = {"OWM":'токен для OWM'}
 mongo_url = "mongodb://localhost:27017/"
 mongo_db_name = 'RTB_data'
 API_KEYS={
-"kandinskiy3":{"public":'your_public_key', "secret":'your_secret_key'},
+"kandinskiy3":[{"X-Key":"публичный ключ", "X-Secret":"секрет"}],
 "GigaChat":{"secret":"client secret", "auth":"auth string, окно client secret, строка 2",
             "clientID":"client id", "scope":"scope"}
 }

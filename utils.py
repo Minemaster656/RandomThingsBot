@@ -19,6 +19,8 @@ from Data import db
 def invertY(y, maxY):
     invertedY = maxY - y - 1
     return invertedY
+
+
 def format_number(num):
     if num < 10000:
         return str(num)
@@ -26,15 +28,16 @@ def format_number(num):
         if num < 1e3:
             return f"{num:.2f}"
         elif num < 1e6:
-            return f"{num/1e3:.2f}K"
+            return f"{num / 1e3:.2f}K"
         elif num < 1e9:
-            return f"{num/1e6:.2f}M"
+            return f"{num / 1e6:.2f}M"
         elif num < 1e12:
-            return f"{num/1e9:.2f}B"
+            return f"{num / 1e9:.2f}B"
         else:
-            return f"{num/1e12:.2f}T"
+            return f"{num / 1e12:.2f}T"
     else:
         return f"{num:.2e}".replace("+", "")
+
 
 def convert_to_number(string):
     if string.endswith("K"):
@@ -50,11 +53,11 @@ def convert_to_number(string):
     else:
         return int(string)
 
-def throwDice(id, name):
 
+def throwDice(id, name):
     # cursor.execute("SELECT karma, luck FROM users WHERE userid = ?", (id,))
     # result = cursor.fetchone()
-    result = db.users.find_one({"userid":id}, {"karma":1, "luck":1})
+    result = db.users.find_one({"userid": id}, {"karma": 1, "luck": 1})
     if result:
         karma = result["karma"]
         luck = result["luck"]
@@ -79,7 +82,10 @@ def throwDice(id, name):
         if karma > 1 and out < 10:
             out = genRandom()
         return out
+
     return makeThrow()
+
+
 async def noPermission(ctx, permissions):
     # cursor.execute('SELECT permissions FROM users WHERE userid = ?', (ctx.author.id,))
     # perms = cursor.fetchone()
@@ -93,7 +99,10 @@ async def noPermission(ctx, permissions):
     #                                               f"> {perms}")
     # await ctx.respond(embed=embed, ephemeral=False)
     await ctx.respond("Нет разрешения!")
+
+
 import json
+
 
 def save_report_to_json(server_name: str, report_text: str, timestamp: int) -> str:
     data = {
@@ -104,6 +113,7 @@ def save_report_to_json(server_name: str, report_text: str, timestamp: int) -> s
     json_str = json.dumps(data)
     return json_str
 
+
 def load_report_from_json(json_str: str):
     data = json.loads(json_str)
     server_name = data["server_name"]
@@ -113,12 +123,16 @@ def load_report_from_json(json_str: str):
     # print(f"Report Text: {report_text}")
     # print(f"Timestamp: {timestamp}")
     return data
+
+
 def hashgen(length):
     hash_symbols = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ12345/-#$%:."
     output = ""
     for i in range(length):
         output += random.choice(hash_symbols)
     return output
+
+
 async def sendMessageWithhook(ctx, text, name, embed):
     avatar_url = str(
         "https://images-ext-2.discordapp.net/external/-1-6AJKBQh38RYGz6D3j-IgURlKEfFifX5LeJ8h-TBw/%3Fsize%3D4096/https/cdn.discordapp.com/avatars/1126887522690142359/0767783560eee507f86c95a4b09f120a.png?width=437&height=437")  # str(self.bot.user.avatar_url)  # ссылка на аватар бота
@@ -131,24 +145,33 @@ async def sendMessageWithhook(ctx, text, name, embed):
         webhook = await channel.create_webhook(name=str(webhook_name), avatar=avatar_bytes)
     user = ctx.author
     if name is None or name == "" or name == " ":
-        name=webhook_name
+        name = webhook_name
 
     await webhook.send(f'{text}', username=name, embed=embed)
+
+
 def get_current_day():
     current_time = time.time()
     days_since_unix_epoch = current_time // (24 * 60 * 60)
     return int(days_since_unix_epoch)
-def checkStringForNoContent(strg : str):
+
+
+def checkStringForNoContent(strg: str):
     if strg == "" or strg is None or strg == " " or strg == "  " or strg == "\n":
         return True
     return False
+
+
 def handle_key_error(func):
     def wrapper(*args, **kwargs):
         try:
             return func(*args, **kwargs)
         except KeyError:
             return None
+
     return wrapper
+
+
 def handle_missing_field(func):
     def wrapper(*args, **kwargs):
         try:
@@ -165,6 +188,7 @@ def handle_missing_field(func):
             else:
                 print(f"Произошла ошибка MongoDB: {str(e)}")
                 # Дополнительные действия по обработке ошибки
+
     return wrapper
 
 
@@ -187,7 +211,9 @@ def zalgo_text(text, intensity):
             zalgo_text += random.choice(zalgo_chars)
 
     return zalgo_text
-def formatStringLength(string : str, maxLength : int):
+
+
+def formatStringLength(string: str, maxLength: int):
     strLen = int(len(string))
     lenOutLimit = int(maxLength) - int(strLen)
     r = ""
@@ -196,7 +222,7 @@ def formatStringLength(string : str, maxLength : int):
     if strLen <= maxLength:
         return string
     else:
-        return string[:maxLength-1]+"…"
+        return string[:maxLength - 1] + "…"
     # else:
     #     if maxLength < lenOutLimit + 20:
     #         if maxLength < lenOutLimit:
@@ -214,9 +240,12 @@ def formatStringLength(string : str, maxLength : int):
 def decode_unicode_escape(sequence):
     return codecs.decode(sequence, 'unicode_escape')
 
+
 def convert_unicode_escape(input_string):
     pattern = re.compile(r'\\u([0-9a-fA-F]{4})')
     return re.sub(pattern, lambda x: decode_unicode_escape(x.group(0)), input_string)
+
+
 def calc_levelByXP(xp):
     '''Returns tuple: [0] - current level, [1] - xp - minimal this level xp, [2] - next level xp - current level min xp
     Current level - int
@@ -224,10 +253,11 @@ def calc_levelByXP(xp):
     Thanks to PavelG for the formula!
     '''
     DIFFICULTY = 1.6
-    level = int(math.log((xp * (DIFFICULTY-1) / 100) + 1, DIFFICULTY)) + 0
-    xp_current = round(xp - ((100 * (DIFFICULTY ** (level - 1) - 1)) / (DIFFICULTY-1)))
+    level = int(math.log((xp * (DIFFICULTY - 1) / 100) + 1, DIFFICULTY)) + 0
+    xp_current = round(xp - ((100 * (DIFFICULTY ** (level - 1) - 1)) / (DIFFICULTY - 1)))
     xp_next = round(100 * (DIFFICULTY ** (level - 1)))
-    return (level,xp_current,xp_next)
+    return (level, xp_current, xp_next)
+
 
 async def initWebhook(channel, bot_id):
     try:
@@ -242,6 +272,8 @@ async def initWebhook(channel, bot_id):
         return hook
     except:
         return None
+
+
 def UTC2UNIX(UTC_string):
     utc_time = datetime.datetime.strptime(UTC_string, '%Y-%m-%d %H:%M:%S.%f%z')
 
@@ -251,10 +283,11 @@ def UTC2UNIX(UTC_string):
     # Преобразование времени в UNIX-таймстамп в миллисекундах
     unix_timestamp_ms = unix_timestamp_sec * 1000
     return unix_timestamp_ms
+
+
 def parseColorTo0xHEX(color_string: str) -> int:
     '''Input: 0xHEX, #HEX, RGB(0-1), RGB(0-255) with spaces between colors.
     Output: 0xHEX'''
-
 
     try:
         # Проверяем, является ли строка HEX-записью через 0x
@@ -283,8 +316,11 @@ def parseColorTo0xHEX(color_string: str) -> int:
     color_string = input("Введите строку цвета: ")
     parsed_color = parse_color(color_string)
     print(hex(parsed_color))
+
+
 import asyncio
 import subprocess
+
 
 async def execute_python_code(code, timeout, allowed_libraries=None, allowed_modules=None):
     async def run_code():
@@ -306,9 +342,40 @@ async def execute_python_code(code, timeout, allowed_libraries=None, allowed_mod
             return f"Error: {str(e)}"
 
     return await run_code()
-def md5(string:str)->str:
+
+
+def md5(string: str) -> str:
     return hashlib.md5(string.encode()).hexdigest()
 
+
+def split_string(input_str:str, part_size:int, safezone_end: int):
+    ''''''
+    if len(input_str) <= part_size:
+        return [input_str]
+
+    result = []
+    while len(input_str) > part_size:
+        split_point = part_size
+        if part_size - safezone_end < len(input_str) - part_size:
+            split_point = input_str.rfind(' ', safezone_end, part_size) + 1
+
+        result.append(input_str[:split_point])
+        input_str = input_str[split_point:].strip()
+
+    if input_str:
+        result.append(input_str)
+
+    return result
+
+
+# Пример использования
+input_string = "Hello, my friend. How are you doing today?"
+n = 10
+safezone_end = 5
+
+result = split_string(input_string, n, safezone_end)
+for idx, part in enumerate(result, 1):
+    print(f"Часть {idx}: {part}")
 # # Пример использования функции
 # code = "print('Hello, World!')"
 # allowed_libraries = ["math", "random"]

@@ -1,11 +1,13 @@
 '''Artificial Intelligence Input-Output:
 Класс для запросов к API или локальным ИИ'''
+import asyncio
 import enum
 import json
 import time
 import uuid
 
 import aiohttp
+import requests
 
 from private import coreData as core
 
@@ -29,7 +31,11 @@ class Text2Imgs(enum.Enum):
     DALLE3 = 2
 
 
-async def askLLM(payload, model, payload_cutoff, temptoken=gigachat_temptoken):
+class KandinskyStyles(enum.Enum):
+    DEFAULT = 0
+
+
+async def askLLM(payload, model: LLMs, payload_cutoff, temptoken=gigachat_temptoken, max_tokens=512):
     '''payload is {JSON} object:
     temptoken это AIIO.gigachat_temptoken
     структура payload диалога:
@@ -39,11 +45,16 @@ async def askLLM(payload, model, payload_cutoff, temptoken=gigachat_temptoken):
     system - системный промпт
     assistant - ответ модели
     '''
+    tokens = {"prompt_tokens": 0,
+              "completion_tokens": 0,
+              "total_tokens": 0,
+              "system_tokens": 0
+              }
     response = "Модель не ответила..."
-    print(payload,"\n",
-          model,"\n",
-          payload_cutoff,"\n",
-          temptoken,"\n")
+    # print(payload, "\n",
+    #       model, "\n",
+    #       payload_cutoff, "\n",
+    #       temptoken, "\n")
     if model == LLMs.GIGACHAT:
         async def makeTemptoken():
             global gigachat_temptoken
@@ -55,10 +66,11 @@ async def askLLM(payload, model, payload_cutoff, temptoken=gigachat_temptoken):
             async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(verify_ssl=False)) as session:
                 async with session.post(url, headers=headers, data=data) as response:
                     response_text = await response.json()
-                    print(response_text)
+                    # print(response_text)
                     gigachat_temptoken = response_text
                     temptoken = gigachat_temptoken
-                    print(headers, " ", data)
+                    # print(headers, " ", data)
+
         if temptoken is None:
             await makeTemptoken()
             temptoken = gigachat_temptoken
@@ -68,12 +80,11 @@ async def askLLM(payload, model, payload_cutoff, temptoken=gigachat_temptoken):
             temptoken = gigachat_temptoken
             # return "No token"
 
-
         url = "https://gigachat.devices.sberbank.ru/api/v1/chat/completions"
         headers = {
             'Content-Type': 'application/json',
-  'Accept': 'application/json',
-  'Authorization': f'Bearer {temptoken["access_token"]}'
+            'Accept': 'application/json',
+            'Authorization': f'Bearer {temptoken["access_token"]}'
 
         }
         data = {
@@ -83,8 +94,8 @@ async def askLLM(payload, model, payload_cutoff, temptoken=gigachat_temptoken):
             "top_p": 0.1,
             "n": 1,
             "stream": False,
-            "max_tokens": 512,
-            "repetition_penalty": 1,
+            "max_tokens": max_tokens,
+            "repetition_penalty": 1.15,
             "update_interval": 0
 
         }
@@ -110,14 +121,155 @@ async def askLLM(payload, model, payload_cutoff, temptoken=gigachat_temptoken):
         #         "system_tokens": 0
         #     }
         # }
-        print("-----")
-        print(headers, "\n", data)
-        print("-----")
+        # print("-----")
+        # print(headers, "\n", data)
+        # print("-----")
         async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(verify_ssl=False)) as session:
             async with session.post(url, headers=headers, data=data) as resp:
                 response_text = await resp.json()
-                print(response_text)
+                # print(response_text)
                 response = response_text['choices'][0]["message"]["content"]
-    print(response)
-    return response
+                tokens = response_text['usage']
+    # print(response)
+    return (response, tokens)
 
+
+class Text2ImageAPI:
+
+    def __init__(self, url, api_key, secret_key):
+        self.URL = url
+        self.AUTH_HEADERS = {
+            'X-Key': f'Key {api_key}',
+            'X-Secret': f'Secret {secret_key}',
+        }
+
+    def get_model(self):
+        response = requests.get(self.URL + 'key/api/v1/models', headers=self.AUTH_HEADERS)
+        data = response.json()
+        return data[0]['id']
+
+    def generate(self, prompt, model, images=1, width=1024, height=1024):
+        params = {
+            "type": "GENERATE",
+            "numImages": images,
+            "width": width,
+            "height": height,
+            "generateParams": {
+                "query": f"{prompt}"
+            }
+        }
+
+        data = {
+            'model_id': (None, model),
+            'params': (None, json.dumps(params), 'application/json')
+        }
+        response = requests.post(self.URL + 'key/api/v1/text2image/run', headers=self.AUTH_HEADERS, files=data)
+        data = response.json()
+        return data['uuid']
+
+    def check_generation(self, request_id, attempts=10, delay=10):
+        while attempts > 0:
+            response = requests.get(self.URL + 'key/api/v1/text2image/status/' + request_id, headers=self.AUTH_HEADERS)
+            data = response.json()
+            if data['status'] == 'DONE':
+                return data['images']
+
+            attempts -= 1
+            time.sleep(delay)
+async def askT2I(prompt: str, model: Text2Imgs, negative_prompt: str = "Кислотные оттенки, смазанная картинка, искажённые пропорции", sizeX: int = 1024, sizeY: int = 1024,
+                 style: KandinskyStyles = KandinskyStyles.DEFAULT):
+    '''output = {
+        "code": 200,
+        "censored": False,
+        "image": "base64 string"
+    }'''
+    print(prompt)
+    output = {
+        "code": 200,
+        "censored": False,
+        "image": ""
+    }
+    print("Building headers...")
+    headers = {
+        'X-Key': f'Key {core.API_KEYS["kandinskiy3"][0]["X-Key"]}',
+        'X-Secret': f'Secret {core.API_KEYS["kandinskiy3"][0]["X-Secret"]}',
+    }
+    print("Headers build complete...")
+    params = {
+        "type": "GENERATE",
+        "numImages": 1,
+        "width": sizeX,
+        "height": sizeY,
+        "negativePromptUnclip": f"{negative_prompt}",
+        "generateParams": {
+            "query": f"{prompt}",
+
+        }
+    }
+    # data = {
+    #
+    #     "type": "GENERATE",
+    #     "style": "DEFAULT",
+    #     "width": sizeX,
+    #     "height": sizeY,
+    #     "num_images": 1,
+    #     "negativePromptUnclip": f"{negative_prompt}",
+    #     "generateParams": {
+    #         "query": f"{prompt}",
+    #     }
+    #
+    # }
+
+    def get_model():
+        response = requests.get("https://api-key.fusionbrain.ai/" + 'key/api/v1/models', headers=headers)
+        data = response.json()
+        return data[0]['id']
+    # data = json.dumps(data)
+    data = {
+        'model_id': (None, get_model),
+        'params': (None, json.dumps(params), 'application/json')
+    }
+
+    # data = aiohttp.FormData()
+    # data.add_field('model_id', '1')
+    # data.add_field('params', json.dumps(params))
+    files = aiohttp.FormData()
+    files.add_field(name='params', value=json.dumps(params), content_type='application/json')
+    files.add_field(name='model_id', value=str(get_model()))
+
+
+
+    print("Data: ", data)
+    url = "https://api-key.fusionbrain.ai/" + "key/api/v1/text2image/run"
+    print("URL: ", url)
+
+
+    print(isinstance(data, dict))
+    uuid = ""
+    async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(verify_ssl=False)) as session:
+        async with session.post(url, headers=headers, data=files) as response:
+            response_json = await response.json()
+            # {
+            #     "uuid": "string",
+            #     "status": "string",
+            #     "images": ["string"],
+            #     "errorDescription": "string",
+            #     "censored": "false"
+            # }
+            uuid = response_json["uuid"]
+            print(response_json)
+
+    async def check_generation(request_id, attempts=10, delay=10):
+        while attempts > 0:
+            response = requests.get("https://api-key.fusionbrain.ai/" + 'key/api/v1/text2image/status/' + request_id, headers=headers)
+            data = response.json()
+            if data['status'] == 'DONE':
+                return data['images'][0]
+
+            attempts -= 1
+            await asyncio.sleep(delay)
+        return "Error"
+    gen = await check_generation(uuid)
+    # output['censored'] = response_json['censored']
+    output['image'] = gen
+    return output
