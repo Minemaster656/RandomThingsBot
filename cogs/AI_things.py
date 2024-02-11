@@ -41,7 +41,7 @@ class AI_things(commands.Cog):
 
             resp = response[0]
             tokens = response[1]['total_tokens']
-            tokenInfo = "\n" + f"||Использовано {tokens} токен(ов/а)||"
+            tokenInfo = "\n" + f"||Использовано {tokens} токен{'ов' if tokens%100 in (11, 12, 13, 14, 15) else 'а' if tokens%10 in (2,3,4) else '' if tokens%10==1 else 'ов'}||"
             output = resp + tokenInfo
             # embed = discord.Embed(title="Информация о генерации",description=f"",colour=Data.getEmbedColor(Data.EmbedColor.Neutral))
             outputs = utils.split_string(output, 2000, len(tokenInfo))
