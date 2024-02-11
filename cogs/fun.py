@@ -153,5 +153,11 @@ class fun(commands.Cog):
             await ctx.reply("Нет такого кода.")
 
 
+    # @commands.command(aliases=["бассбуст"])
+    # async def bassboost(self, ctx):
+
+
+
+
 def setup(bot):
     bot.add_cog(fun(bot))
