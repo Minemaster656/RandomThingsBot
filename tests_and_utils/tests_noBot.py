@@ -90,3 +90,39 @@ import swearfilter
 # noise = perlin_noise.PerlinNoise(octaves=1, seed=1000)
 # print(hashlib.md5(input("Строка для md5:")))
 # print(swearfilter.findSwear(input("СТРОКА ДЛЯ ПРОВЕРКИ")))
+def parseTagInStart(text:str, tag:str)->tuple:
+    '''
+    FINDS TAG ONLY IN START!!!
+    Returns: [0] - Tag | [1] - tag content | [2] - text without tag
+    Example text:
+    <$DRAW prompt /$>
+
+    Example tag:
+    DRAW'''
+    tagSize=len(tag)
+    gentag = ""
+    prompt = ""
+    text+= " "
+
+    if text.startswith(f"<${tag}"):
+
+        i = text.find("/$>")
+        if i > 0:
+            gentag = text[:(len(text) - (i + 3)) * -1]
+            text = text[i + 3:]
+            if len(gentag)>10:
+                prompt = gentag[tagSize+2:-3]
+                # prompt = prompt[:]
+                if prompt.startswith(" "):
+                    prompt = prompt[1:]
+                if prompt.endswith(" "):
+                    prompt = prompt[:-1]
+                if text.startswith(" "):
+                    text = text[1:]
+                if text.endswith(" "):
+                    text = text[:-1]
+
+
+    return (gentag, prompt, text)
+print(parseTagInStart("<$DRAW тааа /$> gfbfhvfbfvfv", "DRAW"))
+print("DRAW" == "DRAW")

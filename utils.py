@@ -348,7 +348,7 @@ def md5(string: str) -> str:
     return hashlib.md5(string.encode()).hexdigest()
 
 
-def split_string(input_str:str, part_size:int, safezone_end: int):
+def split_string(input_str: str, part_size: int, safezone_end: int):
     ''''''
     if len(input_str) <= part_size:
         return [input_str]
@@ -376,6 +376,8 @@ safezone_end = 5
 result = split_string(input_string, n, safezone_end)
 for idx, part in enumerate(result, 1):
     print(f"Часть {idx}: {part}")
+
+
 # # Пример использования функции
 # code = "print('Hello, World!')"
 # allowed_libraries = ["math", "random"]
@@ -383,6 +385,42 @@ for idx, part in enumerate(result, 1):
 #
 # result = asyncio.run(execute_python_code(code, 10, allowed_libraries, allowed_modules))
 # print(result)
+def parseTagInStart(text: str, tag: str) -> tuple:
+    '''
+    FINDS TAG ONLY IN START!!!
+    Returns: [0] - Tag | [1] - tag content | [2] - text without tag
+    Example text:
+    <$DRAW prompt /$>
+
+    Example tag:
+    DRAW'''
+    tagSize=len(tag)
+    gentag = ""
+    prompt = ""
+    text+= " "
+
+    if text.startswith(f"<${tag}"):
+
+        i = text.find("/$>")
+        if i > 0:
+            gentag = text[:(len(text) - (i + 3)) * -1]
+            text = text[i + 3:]
+            if len(gentag)>10:
+                prompt = gentag[tagSize+2:-3]
+                # prompt = prompt[:]
+                if prompt.startswith(" "):
+                    prompt = prompt[1:]
+                if prompt.endswith(" "):
+                    prompt = prompt[:-1]
+                if text.startswith(" "):
+                    text = text[1:]
+                if text.endswith(" "):
+                    text = text[:-1]
+
+
+    return (gentag, prompt, text)
+
+
 if __name__ == '__main__':
     ...
 # print(hashgen(16))
