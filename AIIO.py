@@ -259,7 +259,7 @@ async def askT2I(prompt: str, model: Text2Imgs, negative_prompt: str = "Кисл
             uuid = response_json["uuid"]
             print(response_json)
 
-    async def check_generation(request_id, attempts=10, delay=10):
+    async def check_generation(request_id, attempts=10, delay=15):
         while attempts > 0:
             response = requests.get("https://api-key.fusionbrain.ai/" + 'key/api/v1/text2image/status/' + request_id, headers=headers)
             data = response.json()
