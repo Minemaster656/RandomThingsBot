@@ -300,7 +300,7 @@ async def about(ctx, user: discord.Member = None):
                                                     f"В банке: {utils.format_number(doc['money_bank'])}{Data.currency}\n")
             embed.set_thumbnail(url=user.avatar.url if user.avatar else user.default_avatar.url)
             embed.set_footer(
-                text=f'Для редактирования параметров - \"{Data.preffix}ё\" - там вся нужная информация. Для справки используйте **помощь** или просто !!редактировать.')
+                text=f'Для редактирования параметров - \"{Data.preffix}редактировать\" - там вся нужная информация. Для справки используйте **помощь** или просто !!редактировать.')
 
             embed.add_field(name="Автоответчики",value=f"Автоответчик {'✅ВКЛЮЧЕН✅' if doc['autoresponder'] else '❌ВЫКЛЮЧЕН❌'}\n\n"
                                                        f"# НЕ БЕСПОКОИТЬ: **{doc['autoresponder-disturb']}**\n\n"
@@ -334,7 +334,7 @@ async def about(ctx, user: discord.Member = None):
             #TODO: прогрессбар уровня
 
 
-@bot.command(aliases=["редактировать"])
+@bot.command(aliases=["редактировать", "ё"])
 async def edit(ctx, field = "помощь", *, value = None):
     doc = db.users.find_one({"userid":ctx.author.id})
     if not doc:
