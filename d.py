@@ -94,17 +94,29 @@ def getGuild(ctx) -> dict:
     if not doc:
         doc = {}
         doc["serverid"] = ctx.guild.id
-
-        doc["name"] = ctx.guild.name
-        doc["icon"] = ctx.guild.icon.url if ctx.guild.icon else Data.discord_logo
-        doc["ownerid"] = ctx.guild.owner.id
-        doc["ownername"] = ctx.guild.owner.name
         new = True
+    doc["name"] = ctx.guild.name
+    doc["icon"] = ctx.guild.icon.url if ctx.guild.icon else Data.discord_logo
+    doc["ownerid"] = ctx.guild.owner.id
+    doc["ownername"] = ctx.guild.owner.name
+
     doc = schema(doc, Schemes.server)
     if new:
         db.servers.insert_one(doc)
     return doc
+def getGuildByID(id:int)->dict:
+    doc = db.servers.find_one({"serverid": id})
+    new = False
+    if not doc:
+        doc = {}
+        doc["serverid"] = id
+        new = True
 
+
+    doc = schema(doc, Schemes.server)
+    if new:
+        db.servers.insert_one(doc)
+    return doc
 
 def getUser(id, name) -> dict:
     doc = db.users.find_one({"userid":id})
