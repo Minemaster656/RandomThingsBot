@@ -52,7 +52,6 @@ from Data import collections
 # mongo_db = db[coreData.mongo_db_name]
 import os
 
-
 whitelist = [609348530498437140, 617243612857761803]
 token = coreData.token_ds
 from discord.ext import commands
@@ -84,11 +83,10 @@ loopCounter = 0
 bot = commands.Bot(command_prefix=Data.preffix, intents=intents)
 
 
-
 @bot.event
 async def on_ready():
     total_members = sum(len(guild.members) for guild in bot.guilds)
-    guildnames=""
+    guildnames = ""
     totalguilds = len(bot.guilds)
     if totalguilds <= 100:
         guildnames = "╔" + "═" * 100 + "╦" + "═" * 20 + "╦" + "═" * 32 + "╗" + "\n"
@@ -275,18 +273,18 @@ async def about(ctx, user: discord.Member = None):
             try:
                 perms = json.loads(permissions)
             except:
-                perms={}
+                perms = {}
             if "verified" in perms.keys():
-                icons+=Data.icons[Data.Icons.verified] if perms["verified"] else ""
+                icons += Data.icons[Data.Icons.verified] if perms["verified"] else ""
             if "root" in perms.keys():
-                icons+=Data.icons[Data.Icons.root] if perms["root"] else ""
+                icons += Data.icons[Data.Icons.root] if perms["root"] else ""
             if "edit_characters" in perms.keys():
-                icons+=Data.icons[Data.Icons.edit_characters] if perms["edit_characters"] else ""
-            if doc['banned']==1:
-                icons+=Data.icons[Data.Icons.banned1]
-            if doc['banned']>1:
-                icons+=Data.icons[Data.Icons.banned2]
-            embed = discord.Embed(title=user.display_name+icons, description=user.name, color=color)
+                icons += Data.icons[Data.Icons.edit_characters] if perms["edit_characters"] else ""
+            if doc['banned'] == 1:
+                icons += Data.icons[Data.Icons.banned1]
+            if doc['banned'] > 1:
+                icons += Data.icons[Data.Icons.banned2]
+            embed = discord.Embed(title=user.display_name + icons, description=user.name, color=color)
             embed.add_field(name="О себе", value="> *" + about + "*", inline=False)
             embed.add_field(name="Личные данные", value="- Возраст: " + age + "\n- Часовой пояс: UTC+" + timezone,
                             inline=True)
@@ -295,17 +293,20 @@ async def about(ctx, user: discord.Member = None):
                             inline=False)
             embed.add_field(name="Разрешения", value=f"{str(permissions)}", inline=False)
             xps = utils.calc_levelByXP(xp)
-            embed.add_field(name="Опыт",value=f"Всего опыта: {xp}\nУровень: {xps[0]}\nОпыта до следующего уровня: {xps[2]}",inline=False)
+            embed.add_field(name="Опыт",
+                            value=f"Всего опыта: {xp}\nУровень: {xps[0]}\nОпыта до следующего уровня: {xps[2]}",
+                            inline=False)
             embed.add_field(name="Экономика", value=f"На руках: {utils.format_number(doc['money'])}{Data.currency}\n"
                                                     f"В банке: {utils.format_number(doc['money_bank'])}{Data.currency}\n")
             embed.set_thumbnail(url=user.avatar.url if user.avatar else user.default_avatar.url)
             embed.set_footer(
                 text=f'Для редактирования параметров - \"{Data.preffix}редактировать\" - там вся нужная информация. Для справки используйте **помощь** или просто !!редактировать.')
 
-            embed.add_field(name="Автоответчики",value=f"Автоответчик {'✅ВКЛЮЧЕН✅' if doc['autoresponder'] else '❌ВЫКЛЮЧЕН❌'}\n\n"
-                                                       f"# НЕ БЕСПОКОИТЬ: **{doc['autoresponder-disturb']}**\n\n"
-                                                       f"# НЕАКТИВЕН: **{doc['autoresponder-inactive']}**\n\n"
-                                                       f"# ОФФЛАЙН: **{doc['autoresponder-offline']}**",inline=False)
+            embed.add_field(name="Автоответчики",
+                            value=f"Автоответчик {'✅ВКЛЮЧЕН✅' if doc['autoresponder'] else '❌ВЫКЛЮЧЕН❌'}\n\n"
+                                  f"# НЕ БЕСПОКОИТЬ: **{doc['autoresponder-disturb']}**\n\n"
+                                  f"# НЕАКТИВЕН: **{doc['autoresponder-inactive']}**\n\n"
+                                  f"# ОФФЛАЙН: **{doc['autoresponder-offline']}**", inline=False)
             await ctx.send(embed=embed)
 
         if result:
@@ -322,7 +323,8 @@ async def about(ctx, user: discord.Member = None):
             luck = 0 if result["luck"] is None else str(result["luck"])
             result = d.schema(result, d.Schemes.user)
             await send_user_info_embed(clr, abt, age, tmz, int(karma), int(luck),
-                                       result["permissions"], result["xp"], result)  # if result["permissions"] is None else '{}'
+                                       result["permissions"], result["xp"],
+                                       result)  # if result["permissions"] is None else '{}'
         else:
             await ctx.send("Запись о пользователе не найдена. Добавление...")
             doc = Data.writeUserToDB(user.id, user.name)
@@ -330,13 +332,14 @@ async def about(ctx, user: discord.Member = None):
 
             await send_user_info_embed(0x5865F2, "Задать поле 'О себе' можно командой !!редактировать осебе",
                                        "Задать поле 'Возраст' можно командой `!!редактировать возраст`\nПожалуйста, ставьте только свой реальный возраст, не смотря на то, сколько вам лет.",
-                                       "UTC+?. Задать часовой пояс можно командой `!!редактировать часовойпояс`. Укажите свой часовой пояс относительно Гринвича.", 0,0,None,0, doc)
-            #TODO: прогрессбар уровня
+                                       "UTC+?. Задать часовой пояс можно командой `!!редактировать часовойпояс`. Укажите свой часовой пояс относительно Гринвича.",
+                                       0, 0, None, 0, doc)
+            # TODO: прогрессбар уровня
 
 
 @bot.command(aliases=["редактировать", "ё"])
-async def edit(ctx, field = "помощь", *, value = None):
-    doc = db.users.find_one({"userid":ctx.author.id})
+async def edit(ctx, field="помощь", *, value=None):
+    doc = db.users.find_one({"userid": ctx.author.id})
     if not doc:
         doc = await Data.writeUserToDB(ctx.author.id, ctx.author.name)
     if field == "осебе":
@@ -357,7 +360,7 @@ async def edit(ctx, field = "помощь", *, value = None):
         no = ["0", "нет", "false", "False", "no", "ложь"]
         pvalue = not value in no
         if value is None:
-            doc = db.users.find_one({"userid":ctx.author.id})
+            doc = db.users.find_one({"userid": ctx.author.id})
             pvalue = not doc["autoresponder"]
 
         db.users.update_one({"userid": ctx.author.id}, {"$set": {"autoresponder": pvalue}})
@@ -366,30 +369,37 @@ async def edit(ctx, field = "помощь", *, value = None):
                         f"Если вы хотите задать текст для автоответчика, то используйте в качестве поля не **автоответчик** а **автоответчик-статус**, где статус - неактивен, оффлайн или небеспокоить. Для отчистки строки просто оставьте строку пустой.")
 
     elif field == "автоответчик-неактивен":
-        db.users.update_one({"userid": ctx.author.id}, {"$set": {"autoresponder-inactive": value if value != '-' else None}})
+        db.users.update_one({"userid": ctx.author.id},
+                            {"$set": {"autoresponder-inactive": value if value != '-' else None}})
         await ctx.reply(f"Автоответчик **неактивен** изменён на `{value if value != '-' else 'ОТСУТСТВИЕ ОТВЕТА'}`")
 
     elif field == "автоответчик-оффлайн":
-        db.users.update_one({"userid": ctx.author.id}, {"$set": {"autoresponder-offline": value if value != '-' else None}})
+        db.users.update_one({"userid": ctx.author.id},
+                            {"$set": {"autoresponder-offline": value if value != '-' else None}})
         await ctx.reply(f"Автоответчик **оффлайн** изменён на `{value if value != '-' else 'ОТСУТСТВИЕ ОТВЕТА'}`")
 
     elif field == "автоответчик-небеспокоить":
-        db.users.update_one({"userid": ctx.author.id}, {"$set": {"autoresponder-disturb": value if value != '-' else None}})
+        db.users.update_one({"userid": ctx.author.id},
+                            {"$set": {"autoresponder-disturb": value if value != '-' else None}})
         await ctx.reply(f"Автоответчик **небеспокоить** изменён на `{value if value != '-' else 'ОТСУТСТВИЕ ОТВЕТА'}`")
 
 
     elif field == "помощь":
-        embed = discord.Embed(title="Помощь по редактированию",description=f'Редактировать - {Data.preffix}редактировать <поле> "значение" (<> не писать)\n'
-                                                                           f'Вставка значений: в разработке',colour=Data.getEmbedColor(Data.EmbedColor.Neutral))
-        embed.add_field(name="осебе",value="Строка О себе. Принимает любую строку",inline=False)
-        embed.add_field(name="возраст",value="Ваш возраст: число",inline=False)
-        embed.add_field(name="часовойпояс",value="Часовой пояс относительно гринвича. Число",inline=False)
-        embed.add_field(name="цвет",value="Цвет вашего профиля в HEX-записи.",inline=False)
-        embed.add_field(name="Автоответчики",value=f"`автоответчик` - любое значение кроме 0, нет, ложь, false, False включает автоответчики\n"
-                                                   f"`автоответчик-неактивен` - строка для автоответчика, когда вы неактивны\n"
-                                                   f"`автоответчик-оффлайн` - строка для автоответчика, когда вы оффлайн\n"
-                                                   f"`автоответчик-небеспокоить` - строка для автоответчика, когда у вас стоит статус не беспокоить.\n"
-                                                   f"Что бы отключить конкретный автоответчик - ничего не вписывайте в качестве значения.",inline=False)
+        embed = discord.Embed(title="Помощь по редактированию",
+                              description=f'Редактировать - {Data.preffix}редактировать <поле> "значение" (<> не писать)\n'
+                                          f'Вставка значений: в разработке',
+                              colour=Data.getEmbedColor(Data.EmbedColor.Neutral))
+        embed.add_field(name="осебе", value="Строка О себе. Принимает любую строку", inline=False)
+        embed.add_field(name="возраст", value="Ваш возраст: число", inline=False)
+        embed.add_field(name="часовойпояс", value="Часовой пояс относительно гринвича. Число", inline=False)
+        embed.add_field(name="цвет", value="Цвет вашего профиля в HEX-записи.", inline=False)
+        embed.add_field(name="Автоответчики",
+                        value=f"`автоответчик` - любое значение кроме 0, нет, ложь, false, False включает автоответчики\n"
+                              f"`автоответчик-неактивен` - строка для автоответчика, когда вы неактивны\n"
+                              f"`автоответчик-оффлайн` - строка для автоответчика, когда вы оффлайн\n"
+                              f"`автоответчик-небеспокоить` - строка для автоответчика, когда у вас стоит статус не беспокоить.\n"
+                              f"Что бы отключить конкретный автоответчик - ничего не вписывайте в качестве значения.",
+                        inline=False)
         await ctx.reply(embed=embed)
     else:
         ctx.reply("Допустимые параметры:\n"
@@ -441,7 +451,6 @@ async def keyboard_layout_switcher(ctx, text):
     await ctx.respond(result, ephemeral=True)
 
 
-
 @bot.slash_command(name="разрешения", description="Редактирование разрешений пользователя")
 async def editMemberPermissions(ctx, permission: Option(str, description="Разрешение. ? для списка",
                                                         choises=Data.permissions_user,
@@ -476,16 +485,17 @@ async def editMemberPermissions(ctx, permission: Option(str, description="Раз
     else:
         await ctx.respond(json.dumps(Data.permissions_user))
 
-@bot.slash_command(name="добавить-опыт",description="Даёт опыт пользователю")
-async def addXP(ctx, user : Option(discord.Member, description="Пользователь", required=True)=0,
-                value : Option(float, description="Количество. Отрицательное для уменьшения", required=True)=0):
+
+@bot.slash_command(name="добавить-опыт", description="Даёт опыт пользователю")
+async def addXP(ctx, user: Option(discord.Member, description="Пользователь", required=True) = 0,
+                value: Option(float, description="Количество. Отрицательное для уменьшения", required=True) = 0):
     if await Data.parsePermissionFromUser(ctx.author.id, "root"):
-        doc = db.users.find_one({"userid":user.id})
+        doc = db.users.find_one({"userid": user.id})
         if doc:
             # doc = db.users.find_one({"id":user.id})
             doc = d.schema(doc, d.Schemes.user)
-            doc["xp"]+=value
-            db.users.update_one({"userid":user.id}, {"$set" : doc})
+            doc["xp"] += value
+            db.users.update_one({"userid": user.id}, {"$set": doc})
             print("Found")
         else:
             Data.writeUserToDB(user.id, user.name)
@@ -494,10 +504,13 @@ async def addXP(ctx, user : Option(discord.Member, description="Пользова
             doc["xp"] += value
             db.users.update_one({"id": user.id}, {"$set": doc})
             print("None")
-        embed = discord.Embed(title="Выдан опыт!",description=f"Выдано {value} опыта пользователю <@{user.id}>.",colour=Data.embedColors["Success"])
+        embed = discord.Embed(title="Выдан опыт!", description=f"Выдано {value} опыта пользователю <@{user.id}>.",
+                              colour=Data.embedColors["Success"])
         await ctx.respond(embed=embed)
     else:
-        await ctx.respond("Недостаточно прав!",ephemeral=True)
+        await ctx.respond("Недостаточно прав!", ephemeral=True)
+
+
 @bot.slash_command(name="инфо", description="Информация о боте")
 async def info(ctx):
     embed = discord.Embed(title="Информация о боте",
@@ -516,11 +529,13 @@ async def info(ctx):
 #     else:
 #         await ctx.send(utils.hashgen(16))
 
-def inter_formatContent(content : str):
+def inter_formatContent(content: str):
     content = content.replace("@everyone", "@еvеryonе")
     content = content.replace("@here", "@hеrе")
     return content
-#TODO: REMOVE THIS!!!
+
+
+# TODO: REMOVE THIS!!!
 def inter_formatName(message):
     if not message:
         return ">» ???"
@@ -530,17 +545,18 @@ def inter_formatName(message):
     if message.webhook_id:
         type = "⚓"
     elif message.author.bot:
-        type="🤖"
+        type = "🤖"
     else:
         type = "😎"
     return ">» " + utils.formatStringLength(message.author.name, 32) + " | " + utils.formatStringLength(
         message.guild.name, 20) + " | " + type
+
+
 # @bot.event
 
 
-
 async def interdeletion(message):
-    async def interchat_delete(name, message, mode,data_pair):
+    async def interchat_delete(name, message, mode, data_pair):
         # print("CALLED DELETE FUNC")
         leng = len(Data.interchats[mode])
         i = 0
@@ -563,8 +579,7 @@ async def interdeletion(message):
             # Поиск канала по ID
             channel = server.get_channel(channel_id)
             if thread:
-
-                channel=channel.get_thread(thread)
+                channel = channel.get_thread(thread)
             if channel is None:
                 found = False
             if found:
@@ -601,10 +616,12 @@ async def interdeletion(message):
                 for pair in Data.interchats["normal"]:
                     if target['guild'] in pair and target['channel'] in pair:
                         # найдено
-                        await interchat_delete(name, message, "normal",target)
+                        await interchat_delete(name, message, "normal", target)
                         # print("FOUND pair normal")
                         break
                         # print("BROKEN")
+
+
 @bot.event
 async def on_message(message):
     await bot.process_commands(message)
@@ -612,12 +629,16 @@ async def on_message(message):
         await message.publish()
     except:
         ...
+
+
 @bot.event
 async def on_message_delete(message):
     try:
         await interdeletion(message)
     except:
         ...
+
+
 @bot.event
 async def on_bulk_message_delete(messages):
     for m in messages:
@@ -708,7 +729,7 @@ def main():
         if f.endswith("py"):
             bot.load_extension("cogs." + f[:-3])
     bot.run(token)
+
+
 if __name__ == "__main__":
     main()
-
-
