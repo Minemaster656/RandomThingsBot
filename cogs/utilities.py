@@ -239,7 +239,7 @@ class Utilities(commands.Cog):
 
 
     @commands.Cog.listener("on_message")
-    async def on_message(self, message):
+    async def on_message(self, message:discord.Message):
         if message.author.bot or isinstance(message.author, discord.Webhook):
             return
 
@@ -303,7 +303,7 @@ class Utilities(commands.Cog):
                     if a_message and doc["autoresponder"]:
                         # print('---')
                         # avatar = pinged.avatar.url if pinged.avatar else pinged.default_avatar.url
-                        await message.channel.send(f"Автоответчик @{pinged.name}: {a_message}",delete_after=10
+                        await message.channel.send(f"Автоответчик @{pinged.name}: {a_message}",delete_after=10,allowed_mentions=discord.AllowedMentions.none()
 
                                         )
 
