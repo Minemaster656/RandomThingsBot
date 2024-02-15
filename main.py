@@ -338,7 +338,11 @@ async def about(ctx, user: discord.Member = None):
 
 
 @bot.command(aliases=["редактировать", "ё"])
-async def edit(ctx, field="помощь", *, value=None):
+async def edit(ctx: commands.Context, field="помощь", *, value=None):
+    bans = [1064870586985234434, 629999906429337600]
+    if ctx.author.id in bans:
+        await ctx.reply("Вы забанены в этой команде!", delete_after=5)
+        return
     doc = db.users.find_one({"userid": ctx.author.id})
     if not doc:
         doc = await Data.writeUserToDB(ctx.author.id, ctx.author.name)

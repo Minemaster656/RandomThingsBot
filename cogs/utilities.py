@@ -240,6 +240,7 @@ class Utilities(commands.Cog):
 
     @commands.Cog.listener("on_message")
     async def on_message(self, message:discord.Message):
+
         if message.author.bot or isinstance(message.author, discord.Webhook):
             return
 
