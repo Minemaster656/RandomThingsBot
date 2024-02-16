@@ -15,6 +15,9 @@ import AI
 import Data
 import utils
 
+import assets.resources.tataroCards as tataro
+
+
 
 class fun(commands.Cog):
     def __init__(self, bot):
@@ -155,6 +158,32 @@ class fun(commands.Cog):
 
     # @commands.command(aliases=["бассбуст"])
     # async def bassboost(self, ctx):
+
+    @commands.command(aliases=["таро", "гадание", "карты", "татаро"])
+    async def tataro(self, ctx: commands.Context):
+        card = choice(tataro.cards)
+        file = None
+        if not "image" in card.keys():
+            ...
+        elif card["image"] == "" or not card["image"]:
+            ...
+        elif "http" in card["image"]:
+            # file = utils.urls2files(card["image"])
+            ...
+        elif "png" in card["image"] or "jpg" in card["image"]:
+            file = discord.File(card["image"], filename='image.png')
+        if "code" in card.keys():
+            if card["code"] is None or card["code"] == "":
+                ...
+            else:
+                # eval(card["code"]) #TODO: убарть ивал
+                ...
+        content = f"# {card['name']}\n" \
+                  f"{card['message']}"
+        await ctx.reply(content, file=file)
+        if "http" in card["image"]:
+            await ctx.send(card["image"])
+
 
 
 

@@ -2,12 +2,14 @@ import asyncio
 import codecs
 import datetime
 import hashlib
+import io
 import math
 import random
 import re
 import time
 from random import randint
 
+import aiohttp
 import discord
 import pymongo
 import requests
@@ -419,7 +421,18 @@ def parseTagInStart(text: str, tag: str) -> tuple:
 
 
     return (gentag, prompt, text)
+async def urls2files(urls):
+    attachment_urls = urls[:10]
+    files = []
 
+    for url in attachment_urls:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as resp:
+                if resp.status != 200:
+                    ...
+                data = io.BytesIO(await resp.read())
+                files.append(discord.File(data, f'image.png'))
+    return files
 
 if __name__ == '__main__':
     ...
