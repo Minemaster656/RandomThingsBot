@@ -13,6 +13,8 @@ import os
 
 import AI
 import Data
+from Data import db
+import d
 import utils
 
 import assets.resources.tataroCards as tataro
@@ -161,6 +163,8 @@ class fun(commands.Cog):
 
     @commands.command(aliases=["таро", "гадание", "карты", "татаро"])
     async def tataro(self, ctx: commands.Context):
+        user = d.getUser(ctx.author.id, ctx.author.name)
+        updateUserDoc=False
         card = choice(tataro.cards)
         file = None
         if not "image" in card.keys():
@@ -176,13 +180,25 @@ class fun(commands.Cog):
             if card["code"] is None or card["code"] == "":
                 ...
             else:
-                # eval(card["code"]) #TODO: убарть ивал
+
+
+
+                exec(card["code"]) #TODO: убарть ивал
+
+                updateUserDoc=True
+
                 ...
         content = f"# {card['name']}\n" \
-                  f"{card['message']}"
+                  f"{card['message']}\n" \
+                  f"||Предложено **{card['author']}**, качество: *{card['quality']}*, пул: ***{card['rarity_pool']}***||"
         await ctx.reply(content, file=file)
         if "http" in card["image"]:
             await ctx.send(card["image"])
+
+        if updateUserDoc:
+            user["money"]=round(user["money"], 5)
+            db.users.update_one({"userid":ctx.author.id}, {"$set":user})
+
 
 
 

@@ -256,20 +256,32 @@ async def askT2I(prompt: str, model: Text2Imgs, negative_prompt: str = "Кисл
             #     "errorDescription": "string",
             #     "censored": "false"
             # }
-            uuid = response_json["uuid"]
+            if "uuid" in response_json.keys():
+                uuid = response_json["uuid"]
+            else:
+                uuid = "NSFW"
+
             print(response_json)
 
     async def check_generation(request_id, attempts=10, delay=15):
         while attempts > 0:
             response = requests.get("https://api-key.fusionbrain.ai/" + 'key/api/v1/text2image/status/' + request_id, headers=headers)
             data = response.json()
+
             if data['status'] == 'DONE':
+                output["censored"] = data["censored"]
                 return data['images'][0]
+
 
             attempts -= 1
             await asyncio.sleep(delay)
         return "Error"
+    # if uuid != "NSFW":
     gen = await check_generation(uuid)
+
+    # else:
+    #     gen ="NSFW"
+
     # output['censored'] = response_json['censored']
     output['image'] = gen
     return output
