@@ -339,7 +339,7 @@ async def about(ctx, user: discord.Member = None):
 
 @bot.command(aliases=["редактировать", "ё"])
 async def edit(ctx: commands.Context, field="помощь", *, value=None):
-    bans = [1064870586985234434, 629999906429337600]
+    bans = [629999906429337600] #1064870586985234434
     if ctx.author.id in bans:
         await ctx.reply("Вы забанены в этой команде!", delete_after=5)
         return
