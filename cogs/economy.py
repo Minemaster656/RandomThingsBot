@@ -20,6 +20,11 @@ class Economy(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    cmds = discord.SlashCommandGroup(
+            "экономика",
+            "",
+
+        )
 
 
     @commands.slash_command(name="баланс",description="Показывает Ваш баланс или баланс пользователя")
@@ -42,7 +47,7 @@ class Economy(commands.Cog):
             embed.add_field(name="Баланс в банке",value=f"{data['money_bank']}")
 
             await ctx.respond(embed=embed)
-    @commands.slash_command(name="заработок",description="Информация о заработке")
+    @cmds.command(name="заработок",description="Информация о заработке")
     async def howToMakeMoney(self, ctx):
         embed = discord.Embed(title="Способы поднять бабла",description=f"Большинство команды заработка имеют откат, а что бы не переполнять API дискорда списком из десятков /-команд, часть из них с преффиксом бота."
                                                                         f""
@@ -61,7 +66,7 @@ class Economy(commands.Cog):
         db.users.update_one({"userid": ctx.author.id}, {"$inc": {"money": rand}})
         await ctx.send(f"Получено **{rand}{Data.currency}**")
 
-    @commands.slash_command(name="лидеры", description="Лидеры экономики")
+    @cmds.command(name="лидеры", description="Лидеры экономики")
     async def ec_leaders(self, ctx):
         leaderCount = 10
         result = db.users.find().sort([("money", -1), ("money_bank", -1)]).limit(leaderCount)
@@ -79,11 +84,11 @@ class Economy(commands.Cog):
             it += 1
 
         await ctx.respond(embed=embed)
-    @commands.slash_command(name="перевод-денег",description="Пересылает деньги")
+    @cmds.command(name="перевод-денег",description="Пересылает деньги")
     async def pay(self, ctx, member : Option(discord.Member, description="Кому переслать?", required=True)=None, value : Option(int, description="Сколько переслать?", required=True)=0):
         ...
 
-    @commands.slash_command(name="регистрация-предмета",description="Регистрирует новый товар в экономике.")
+    @cmds.command(name="регистрация-предмета",description="Регистрирует новый товар в экономике.")
     async def registerItem(self, ctx, name: Option(str, description="Название предмета", required=True)=" ", description : Option(str, description="Описание предмета", required=True)=" ",id : Option(str, description="Уникальный ID предмета", required=True)=" ",
                            type : Option(str, description="Тип предмета", required=True)=" ",
                            base_price : Option(float, description="Базовая цена", required=True)=0,
@@ -108,14 +113,14 @@ class Economy(commands.Cog):
                 await ctx.respond(embed=embed)
         else:
             await ctx.respond("Нет прав на редактирование экономики!", ephemeral=True)
-    @commands.slash_command(name="осмотреть-предмет",description="Выводит информацию о предмете")
-    async def inspect_item(self, ctx, id : Option(str, description="ID предмета", required=True)=" "):
-        doc = db.items.find({"id":id})
-        if doc:
-            await ctx.respond(doc)
-        else:
-            await ctx.respond(f"Предмет {id} не найден!")
-    @commands.slash_command(name="регистрация-бизнеса",description="Регистрирует бизнес.")
+    # @cmds.command(name="осмотреть-предмет",description="Выводит информацию о предмете")
+    # async def inspect_item(self, ctx, id : Option(str, description="ID предмета", required=True)=" "):
+    #     # doc = db.items.find({"id":id})
+    #     if doc:
+    #         await ctx.respond(doc)
+    #     else:
+    #         await ctx.respond(f"Предмет {id} не найден!")
+    # @cmds.command(name="регистрация-бизнеса",description="Регистрирует бизнес.")
     async def registerBuisness(self, ctx, name: Option(str, description="Название", required=True)=" ", id: Option(str, description="ID", required=True)=" "
                                , link: Option(str, description="Сайт бизнеса", required=False)=" ",
                                server: Option(str, description="Сервер бизнеса", required=False)=" ",

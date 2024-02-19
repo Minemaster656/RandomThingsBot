@@ -1,0 +1,59 @@
+{
+  "blank": {
+    "name": "loc.items.name.blank",
+    "desc": "loc.items.desc.blank",
+    "image": null,
+    "emoji": null,
+    "recipes": [
+      {
+        "crafter": "test",
+        "crafter_level": 0,
+        "skills": {
+          "mining": 0,
+          "production": 0,
+          "magic": 0,
+          "oratory": 0,
+          "science": 0,
+          "calculations": 0
+        },
+        "items": {
+          "test": 1
+        },
+        "result_value": 1,
+        "byproducts": {
+          "air": 1
+        }
+      }
+    ]
+  },
+
+
+  "coal": {
+    "name": "loc.items.name.coal",
+    "desc": "loc.items.desc.coal",
+    "image": null,
+    "emoji": null,
+    "recipes": [
+      {
+        "crafter": "mine",
+        "crafter_level": 0,
+        "skills": {
+          "mining": 0,
+          "production": 0,
+          "magic": 0,
+          "oratory": 0,
+          "science": 0,
+          "calculations": 0
+        },
+        "items": {
+
+        },
+        "result_value": 1,
+        "byproducts": {
+          "pollution": 1
+        }
+      }
+    ]
+  }
+
+}
