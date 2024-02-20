@@ -74,7 +74,7 @@ class social(commands.Cog):
     @commands.command(aliases=["поиск-сорола"])
     async def findCoRPlayer(self, ctx: commands.Context):
         embedContent=""
-        for doc in db.coRPsFindRequests.find({"uid": ctx.author.id}):
+        for doc in db.coRPsFindRequests.find({"gid": ctx.guild.id}):
             embedContent+=f"<@{doc['uid']}> ищет сорола! Найти его персонажей - </поиск-персонажей-пользователя:1203654817692778538>. Поиск заканчивается <t:{self.UTCtoTimestamp(doc['timestamp']+self.coRPlayerFindRequest_ExpirationTime)}:R>\n"
         embedContent=utils.formatStringLength(embedContent, 3990)
         if embedContent=="":
