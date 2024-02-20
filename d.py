@@ -21,7 +21,7 @@ def schema(document, scheme):
                   "karma": None, "luck": None, "permissions": None,
                   "money": None, "money_bank": None, "xp": 0, 'banned': 0, 'autoresponder': False,
                   "autoresponder-offline": None, "autoresponder-inactive": None, "autoresponder-disturb": None,
-                  "premium_end": 0}
+                  "premium_end": 0, "total_reminders":0}
         '''banned: 0 - нет бана, 1 - нет команд, 2 - опасный пользователь'''
 
     # if scheme == Schemes.logconfig:

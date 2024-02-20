@@ -1,6 +1,7 @@
 import dis
 import json
 import random
+import time
 
 import aiohttp
 # import numpy as np
@@ -13,6 +14,7 @@ from random import *
 
 import Apocalypse
 import Data
+import d
 from Data import db
 import re
 
@@ -22,7 +24,7 @@ import utils
 class Utilities(commands.Cog):
     permissions = Data.permissions_user
 
-    def __init__(self, bot):
+    def __init__(self, bot: discord.Bot):
         self.bot = bot
         self.index = 1
         self.loop.start()
@@ -32,47 +34,89 @@ class Utilities(commands.Cog):
 
     @tasks.loop(seconds=5.0)
     async def loop(self):
-        # TODO: сохранение даты и списка в джсон
-        list = Apocalypse.genApocalypseItems()
-
-        # def saveList(string):
-        #     with open('list.txt', 'w') as file:
-        #         file.write(string)
-        #
-        # saveList(list[0])
-        # apocalypse = Apocalypse.Apocalypse(commands.Bot)
+        # # TODO: сохранение даты и списка в джсон
         # list = Apocalypse.genApocalypseItems()
+        #
+        # # def saveList(string):
+        # #     with open('list.txt', 'w') as file:
+        # #         file.write(string)
+        # #
+        # # saveList(list[0])
+        # # apocalypse = Apocalypse.Apocalypse(commands.Bot)
+        # # list = Apocalypse.genApocalypseItems()
+        #
+        # urls = db.servers.find({},
+        #                        {"apocalypseChannelHook": 1, "apocalypseLastSendDay": 1, "serverid": 1,
+        #                         "isAPchannelThread": 1,
+        #                         "apocalypseChannel": 1})
+        #
+        # for hook_url in urls:
+        #     url = hook_url["apocalypseChannelHook"]
+        #     date = hook_url["apocalypseLastSendDay"]
+        #     if url is not None and date is not None and hook_url["serverid"] is not None and hook_url[
+        #         "isAPchannelThread"] is not None and hook_url["apocalypseChannel"] is not None:
+        #         if date < utils.get_current_day():
+        #             try:
+        #                 if url is not None:
+        #                     db.servers.update_one({"serverid": hook_url["serverid"]},
+        #                                           {"$set": {"apocalypseLastSendDay": utils.get_current_day()}})
+        #                     async with aiohttp.ClientSession() as session:
+        #                         webhook = Webhook.from_url(str(url), session=session)
+        #
+        #                         if hook_url["isThread"]:
+        #                             await webhook.send(list[0], username=Data.hook_names["apocalypse"],
+        #                                                embed=list[1],
+        #                                                thread=discord.Object(hook_url["apocalypseChannel"]))
+        #                         else:
+        #                             await webhook.send(list[0], username=Data.hook_names["apocalypse"],
+        #                                                embed=list[1])
+        #                         await webhook.send(list[0], username=Data.hook_names["apocalypse"],
+        #                                            embed=list[1])
+        #
+        #             except:
+        #                 ...
+        # === НАПОМИНАНИЯ ===
+        def find_user_mentions_with_regex(input_str):
+            pattern = r'\<\@(\d+)\>'
+            matches = re.findall(pattern, input_str)
+            for match in matches:
+                match = match[2:-1]
+            return matches
 
-        urls = db.servers.find({},
-                               {"apocalypseChannelHook": 1, "apocalypseLastSendDay": 1, "serverid": 1,
-                                "isAPchannelThread": 1,
-                                "apocalypseChannel": 1})
 
-        for hook_url in urls:
-            url = hook_url["apocalypseChannelHook"]
-            date = hook_url["apocalypseLastSendDay"]
-            if url is not None and date is not None and hook_url["serverid"] is not None and hook_url[
-                "isAPchannelThread"] is not None and hook_url["apocalypseChannel"] is not None:
-                if date < utils.get_current_day():
-                    try:
-                        if url is not None:
-                            db.servers.update_one({"serverid": hook_url["serverid"]},
-                                                  {"$set": {"apocalypseLastSendDay": utils.get_current_day()}})
-                            async with aiohttp.ClientSession() as session:
-                                webhook = Webhook.from_url(str(url), session=session)
+        for doc in db.reminders.find({"expires": {"$lt": time.time()}}):
+            # print(doc)
+            channel = self.bot.get_channel(doc['channel'])
+            embed_content = doc['content']
+            if embed_content is None or embed_content == "":
+                embed_content = "Текст напоминания отсутствует..."
+            embed_content = utils.formatStringLength(embed_content, 3990)
+            embed = discord.Embed(title="Напоминание!!!", description=f"{embed_content}",
+                                  colour=Data.getEmbedColor(Data.EmbedColor.Notification))
+            mentions = find_user_mentions_with_regex(doc['content'])
+            content = f"Время истекло, <@{doc['author']}>"
+            author = self.bot.get_user(doc['author'])
+            # print(author)
+            if author:
+                content += f" ({author.name})"
+            for mention in mentions:
 
-                                if hook_url["isThread"]:
-                                    await webhook.send(list[0], username=Data.hook_names["apocalypse"],
-                                                       embed=list[1],
-                                                       thread=discord.Object(hook_url["apocalypseChannel"]))
-                                else:
-                                    await webhook.send(list[0], username=Data.hook_names["apocalypse"],
-                                                       embed=list[1])
-                                await webhook.send(list[0], username=Data.hook_names["apocalypse"],
-                                                   embed=list[1])
+                content += f", <@{mention}>"
+                user = self.bot.get_user(mention)
+                if user:
+                    content += f" ({user.name})"
+            content += "!"
+            if channel:
+                await channel.send(content, embed=embed)
+            else:
 
-                    except:
-                        ...
+                if author:
+                    await author.send(content, embed=embed)
+                for mention in mentions:
+                    user = self.bot.get_user(mention)
+                    if user:
+                        await user.send(content, embed=embed)
+            db.reminders.delete_one(doc)
 
     # TODO: фиксики массового эдита каналов
     # @commands.slash_command(name="массовое-редактирование-каналов",
@@ -80,6 +124,50 @@ class Utilities(commands.Cog):
     # @commands.has_permissions(administrator=True)
     # @commands.cooldown(1, 30, commands.BucketType.guild)
 
+    @commands.cooldown(1, 5, commands.BucketType.user)
+    @commands.command(aliases=["напоминание", "напомни", "напомнить"])
+    async def addReminder(self, ctx: commands.Context, end_time: str = "1мин", *,
+                          content: str = "Текст напоминания не задан"):
+        expire = time.time() + utils.parse_duration_string(end_time)
+        user = d.getUser(ctx.author.id, ctx.author.name)
+        doc = {
+            "author": ctx.author.id,
+            "content": content,
+            "created": time.time(),
+            "expires": expire,
+            "id": user["total_reminders"] + 1,
+            "channel":ctx.channel.id
+        }
+
+        user["total_reminders"] += 1
+        db.users.update_one({"userid": user['userid']}, {"$set": user})
+        db.reminders.insert_one(doc)
+        await ctx.reply(f"Напоминание создано с ID {user['total_reminders']}! Оповещение {utils.seconds_to_ds_timestamp(expire, 'R')}!\n"
+                        f"Удалить напоминание можно командой `{Data.preffix}удалить-напоминание`, а посмотреть все - `{Data.preffix}напоминания`")
+
+    @commands.command(aliases=["напоминания"])
+    async def reminders(self, ctx: commands.Context):
+        reminders = ""
+        for doc in db.reminders.find({"author": ctx.author.id}):
+            reminders += f"[{doc['id']}]: {utils.formatStringLength(doc['content'], 20)} | Сработает {utils.seconds_to_ds_timestamp(doc['expires'], 'R')}.\n"
+        if reminders == "":
+            reminders = "Нет напоминаний!"
+        reminders = utils.formatStringLength(reminders, 3990)
+        embed = discord.Embed(title="Ваши напоминания:", description=f"{reminders}",
+                              colour=Data.getEmbedColor(Data.EmbedColor.Neutral))
+        await ctx.reply(embed=embed)
+
+    @commands.command(aliases=["удалить-напоминание"])
+    async def deleteReminder(self, ctx: commands.Context, id:int=-1):
+        if id <0:
+            await ctx.reply("Некорректный ID напоминания!", delete_after=5)
+            return
+        else:
+            try:
+                db.reminders.delete_one({"author":ctx.author.id, "id":id})
+                await ctx.reply("Напоминание удалено!")
+            except:
+                await ctx.reply("Напоминание не найдено!")
     async def massChannelsEdit(self, ctx,
                                mode: Option(str, description="Режим работы", required=False,
                                             choices=["Справка", "Имя", "Копировать права", "DEBUG"]) = None,  #
@@ -236,10 +324,8 @@ class Utilities(commands.Cog):
         embed.add_field(name="Результат", value=f"{vigenere_cipher(setupAlphabet(), key, input, destination)}")
         await ctx.respond(embed=embed, ephemeral=True)
 
-
-
     @commands.Cog.listener("on_message")
-    async def on_message(self, message:discord.Message):
+    async def on_message(self, message: discord.Message):
 
         if message.author.bot or isinstance(message.author, discord.Webhook):
             return
@@ -262,9 +348,9 @@ class Utilities(commands.Cog):
                 pinged = replied_user
             # print(status)
             statuses = {
-                discord.Status.offline : "autoresponder-offline",
-                discord.Status.dnd : "autoresponder-disturb",
-                discord.Status.idle : "autoresponder-inactive"
+                discord.Status.offline: "autoresponder-offline",
+                discord.Status.dnd: "autoresponder-disturb",
+                discord.Status.idle: "autoresponder-inactive"
             }
             # if status == :
             #     # Код для пользователя в сети
@@ -280,7 +366,7 @@ class Utilities(commands.Cog):
             #     await message.channel.send(f"{pinged.mention} Вы на не беспокоить. 🤫")
             # elif status == discord.Status.streaming:
             #     ...
-            doc = db.users.find_one({"userid":pinged.id})
+            doc = db.users.find_one({"userid": pinged.id})
 
             # print(doc)
             if doc:
@@ -304,13 +390,13 @@ class Utilities(commands.Cog):
                     if a_message and doc["autoresponder"]:
                         # print('---')
                         # avatar = pinged.avatar.url if pinged.avatar else pinged.default_avatar.url
-                        await message.channel.send(f"Автоответчик @{pinged.name}: {a_message}",delete_after=10,allowed_mentions=discord.AllowedMentions.none()
+                        await message.channel.send(f"Автоответчик @{pinged.name}: {a_message}", delete_after=10,
+                                                   allowed_mentions=discord.AllowedMentions.none()
 
-                                        )
+                                                   )
 
                 except:
                     ...
-
 
 
 def setup(bot):

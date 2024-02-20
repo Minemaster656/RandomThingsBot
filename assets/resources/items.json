@@ -3,12 +3,22 @@
     "name": "loc.items.name.blank",
     "desc": "loc.items.desc.blank",
     "image": "",
-    "emoji": ""
+    "emoji": "",
+    "buy_callback": "",
+    "sell_callback": "",
+    "give_callback": "",
+    "receive_callback": "",
+    "use_callback": ""
   },
   "catalyst": {
     "name": "loc.items.name.catalyst",
     "desc": "loc.items.desc.catalyst",
     "image": "",
-    "emoji": "<:catalist:1209177582042488882>"
+    "emoji": "<:catalist:1209177582042488882>",
+    "buy_callback": "",
+    "sell_callback": "",
+    "give_callback": "",
+    "receive_callback": "",
+    "use_callback": ""
   }
 }

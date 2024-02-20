@@ -26,7 +26,7 @@ webhook_avatar_url = "https://images-ext-2.discordapp.net/external/-1-6AJKBQh38R
 permissions_user = ["root", "edit_characters", "say_as_bot", "edit_permissions", "---", "edit_economy", "verified",
                     "mnl_console"]
 embedColors = {"Error": 0xf03255, "Exception": 0xff2f00, "Success": 0x29ff4d, "Warp": 0x00b3ff,
-               "Neutral": discord.Color.blue(), "Economy": 0xffcc12}
+               "Neutral": discord.Color.blue(), "Economy": 0xffcc12, "Notification":0xfad243}
 WPG_whitelist = [609348530498437140]
 permission_root_whitelist = [609348530498437140, 617243612857761803]
 preffix = "!!"
@@ -79,6 +79,7 @@ class EmbedColor(enum.Enum):
     Warp = 3
     Neutral = 4
     Economy = 5
+    Notification = 6
 
 
 def getEmbedColor(color: EmbedColor) -> discord.Color:
@@ -88,7 +89,8 @@ def getEmbedColor(color: EmbedColor) -> discord.Color:
         EmbedColor.Success: embedColors["Success"],
         EmbedColor.Warp: embedColors["Warp"],
         EmbedColor.Neutral: embedColors["Neutral"],
-        EmbedColor.Economy: embedColors["Economy"]
+        EmbedColor.Economy: embedColors["Economy"],
+        EmbedColor.Notification: embedColors["Notification"]
     }
     return colors[color]
 

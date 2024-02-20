@@ -396,10 +396,10 @@ def parseTagInStart(text: str, tag: str) -> tuple:
 
     Example tag:
     DRAW'''
-    tagSize=len(tag)
+    tagSize = len(tag)
     gentag = ""
     prompt = ""
-    text+= " "
+    text += " "
 
     if text.startswith(f"<${tag}"):
 
@@ -407,8 +407,8 @@ def parseTagInStart(text: str, tag: str) -> tuple:
         if i > 0:
             gentag = text[:(len(text) - (i + 3)) * -1]
             text = text[i + 3:]
-            if len(gentag)>10:
-                prompt = gentag[tagSize+2:-3]
+            if len(gentag) > 10:
+                prompt = gentag[tagSize + 2:-3]
                 # prompt = prompt[:]
                 if prompt.startswith(" "):
                     prompt = prompt[1:]
@@ -419,8 +419,9 @@ def parseTagInStart(text: str, tag: str) -> tuple:
                 if text.endswith(" "):
                     text = text[:-1]
 
-
     return (gentag, prompt, text)
+
+
 async def urls2files(urls):
     attachment_urls = urls[:10]
     files = []
@@ -434,8 +435,49 @@ async def urls2files(urls):
                 files.append(discord.File(data, f'image.png'))
     return files
 
+
+def parse_duration_string(input_str: str):
+    input_str = input_str.lower()
+    time_units = {
+        'г': 31536000, "го":31536000, "год":31536000, "годов":31536000, "года":31536000, "годо":31536000,
+        "y":31536000, "yr":31536000,"ye":31536000,"year":31536000,"years":31536000,"yrs":31536000, "yars":31536000,# год
+
+        'ме': 2628000, "мес":2628000, "месяцев":2628000, "месяцов":2628000, "мсц":2628000, "месц":2628000,
+        "mo":2628000, "mth":2628000, "mths":2628000, "month":2628000, "months":2628000,# месяц (средний)
+
+        'нед': 604800,"не":604800, "н":604800, "неде":604800, "недель":604800, "неделя":604800,
+        "week":604800, "we":604800, "wek":604800, "w":604800, "weeks":604800,# неделя
+
+        'д': 86400, "d": 86400, "day": 86400, "день": 86400, "da": 86400, "де": 86400, "дн": 86400, "days": 86400,
+        "дня": 86400, "дней": 86400,  # день
+
+        'ч': 3600, "h": 3600, "час": 3600, "hour": 3600, "hours": 3600, "часа": 3600, "часов": 3600,  # час
+
+        'м': 60, "мин": 60, "min": 60, "m": 60, "ми": 60, "mi": 60,  # минута
+
+        'sec': 1, "s": 1, "сек": 1, "с": 1  # секунда
+    }
+
+    total_seconds = 0
+    pattern = re.compile(r'(\d+)([а-яa-z]+)')
+    matches = pattern.findall(input_str)
+
+    for match in matches:
+        amount = int(match[0])
+        unit = match[1]
+
+        if unit in time_units:
+            total_seconds += amount * time_units[unit]
+        # else:
+        #     return None
+
+    return total_seconds
+def seconds_to_ds_timestamp(seconds, mode:str)->str:
+    return f"<t:{int(seconds)}:{mode}>"
+
 if __name__ == '__main__':
     ...
+
 # print(hashgen(16))
 # # Пример использования
 # json_str = save_to_json("MyServer", "Some report text", 1632048765)
