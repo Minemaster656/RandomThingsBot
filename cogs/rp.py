@@ -11,9 +11,12 @@ from discord.ext import commands
 # import perlin_noise
 from discord import Option
 from random import *
+
+import AIIO
 # import sqlite3
 
 import Data
+import d
 import utils
 
 from Data import db
@@ -24,6 +27,34 @@ import pymongo
 # from main import cursor
 # from main import conn
 
+class ConfirmGenArt(discord.ui.View):
+    def __init__(self, character_registerer, prompt):
+        super().__init__()
+
+        self.character_registerer = character_registerer
+        self.prompt = prompt
+
+
+    @discord.ui.button(label="Сгенерировать!", style=discord.ButtonStyle.green)
+    async def confirm_callback(self, button: discord.ui.Button, interaction: discord.Interaction):
+        await interaction.response.edit_message(content="Генерация...", view=None)
+
+        gen = await AIIO.askT2I(self.prompt, AIIO.Text2Imgs.KANDINSKY)
+        if gen:
+            file = AIIO.kandinskyOutputToFile(gen)
+            await interaction.guild.get_channel(interaction.channel_id).send(f"Генерация `{self.prompt}` по запросу {self.character_registerer.name} завершена!\nСохраните в личке с этим ботом это изображение и используйте его ссылку в качестве арта. Если изображение вас не устраивает, создайте новое с помощью `{Data.preffix}кандинский {self.prompt}`!", file=file)
+            await interaction.response.edit_message(content="Генерация завершена!", view=None)
+        else:
+            await interaction.guild.get_channel(interaction.channel_id).send("Ошибка генерации!")
+
+
+        self.stop()
+
+    @discord.ui.button(label="Отмена", style=discord.ButtonStyle.red)
+    async def cancel_callback(self, button: discord.ui.Button, interaction: discord.Interaction):
+        await interaction.response.edit_message(content="Отменено.", view=None)
+
+        self.stop()
 class RemoveCharView(discord.ui.View):
     def __init__(self, author, id, timeout=180):
         super().__init__(timeout=timeout)
@@ -472,9 +503,14 @@ class RP(commands.Cog):
                     await ctx.respond(embed=embed)
                     await Data.addXP(ctx.author.id, 25, ctx.author.name)
                     await Data.addXP(owner.id, 25, owner.name)
+                    if art == "https://media.discordapp.net/attachments/1018886769619505212/1176561157939662978/ad643992b38e34e2.png":
+                        view =ConfirmGenArt(ctx.author, appearances)
+                        await ctx.respond(f"Ой, вы не указали арт! Как же жаль! Ну ничего, это можно исправить!\n"
+                                          f"Запустить генерацию запроса с помощью нейросети Кандинский (запустить генерацию заново можно будет через {Data.preffix}кандинский)?\n"
+                                          f"Запрос: **`{appearances}`**", view=view)
 
                 else:
-                    embed = discord.Embed(title="Превышение размера!", description=f"Ключ: {oversizeKey}",
+                    embed = discord.Embed(title="Превышение размера или неверная ссылка!", description=f"Ключ: {oversizeKey}",
                                           colour=Data.embedColors["Error"])
                     await ctx.respond(embed=embed)
             else:
@@ -482,6 +518,7 @@ class RP(commands.Cog):
                                       description="Необходимо право ``edit_characters`` или ``root`` для регистрации персонажа!",
                                       colour=Data.embedColors["Error"])
                 await ctx.respond(embed=embed)
+
 
     @commands.slash_command(name="персонаж", description="Открывает анкету персонажа по ID")
     async def inspectChar(self, ctx, id: Option(str, description="ID", required=True) = " ",
@@ -538,7 +575,7 @@ class RP(commands.Cog):
                                                    "edit_characters") or await Data.parsePermissionFromUser(
                 ctx.author.id, "root")):  # TODO: оптимизировать поиск прав
             embed = discord.Embed(title="Нет прав!",
-                                  description="Необходимо право ``edit_characters`` или ``root`` для регистрации персонажа!",
+                                  description="Необходимо право ``edit_characters`` или ``root`` для изменения персонажа!",
                                   colour=Data.embedColors["Error"])
             await ctx.respond(embed=embed)
             return

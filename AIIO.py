@@ -1,12 +1,16 @@
 '''Artificial Intelligence Input-Output:
 Класс для запросов к API или локальным ИИ'''
 import asyncio
+import base64
 import enum
+import io
 import json
+import random
 import time
 import uuid
 
 import aiohttp
+import discord
 import requests
 
 from private import coreData as core
@@ -285,3 +289,11 @@ async def askT2I(prompt: str, model: Text2Imgs, negative_prompt: str = "Кисл
     # output['censored'] = response_json['censored']
     output['image'] = gen
     return output
+def kandinskyOutputToFile(gen):
+    if gen['image']:
+        file_content = io.BytesIO(base64.b64decode(gen["image"]))
+
+        file = discord.File(filename=f"gen_kandinsky_{random.randint(0, 35565)}.png", fp=file_content)
+        return file
+    else:
+        return None
