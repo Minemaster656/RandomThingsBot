@@ -16,8 +16,9 @@ class Icons(enum.Enum):
     verified = 0
     root = 1
     edit_characters = 2
-    banned1=3
-    banned2=4
+    banned1 = 3
+    banned2 = 4
+
 
 secret_guilds = []
 test_guilds = [1019180616731873290, 1076117733428711434, 855045703235928094, 1033752522306883715, 1111235284558950402,
@@ -26,22 +27,22 @@ webhook_avatar_url = "https://images-ext-2.discordapp.net/external/-1-6AJKBQh38R
 permissions_user = ["root", "edit_characters", "say_as_bot", "edit_permissions", "---", "edit_economy", "verified",
                     "mnl_console"]
 embedColors = {"Error": 0xf03255, "Exception": 0xff2f00, "Success": 0x29ff4d, "Warp": 0x00b3ff,
-               "Neutral": discord.Color.blue(), "Economy": 0xffcc12, "Notification":0xfad243}
+               "Neutral": discord.Color.blue(), "Economy": 0xffcc12, "Notification": 0xfad243}
 WPG_whitelist = [609348530498437140]
 permission_root_whitelist = [609348530498437140, 617243612857761803]
 preffix = "!!"
 # preffix = ".!!"  # TODO: SET IF BETA
 currency = "<:catalist:1076130269867819099>"
 icons = {Icons.verified: "✅", Icons.root: "🔨", Icons.edit_characters: "🕵️",
-         Icons.banned1:"❌", Icons.banned2:"‼️"}
+         Icons.banned1: "❌", Icons.banned2: "‼️"}
 discord_logo = "https://assets-global.website-files.com/6257adef93867e50d84d30e2/636e0a6a49cf127bf92de1e2_icon_clyde_blurple_RGB.png"
 infectionRolesID = [1151515080219967498, 1135925890182807552, 1152163431869329468]
 apocalypseDLC = "Самый странный апокалипсис⁶™"
 hook_names = {"apocalypse": apocalypseDLC}
 data_DB_path = "private/data.db"
 INIT.initDB(data_DB_path)
-conn = None#sqlite3.connect(data_DB_path)
-cursor = None#conn.cursor()
+conn = None  # sqlite3.connect(data_DB_path)
+cursor = None  # conn.cursor()
 client = MongoClient(coreData.mongo_url)
 db = client[coreData.mongo_db_name]
 collections = {"users": db["users"], "servers": db["servers"], "countries": ["countries"]}
@@ -54,9 +55,7 @@ botIDs = [1126887522690142359, 1169691387562835968]
 
 ideasChannel = 1203626395377475634
 
-
-devs=[609348530498437140, 639066140957736971]
-
+devs = [609348530498437140, 639066140957736971]
 
 if not os.path.exists(file_path):
     interchats = {}
@@ -172,7 +171,7 @@ def writeUserToDB(id: int, name: str):
                    0,
                "money_bank":
                    0, "xp": 0, 'banned': 0, 'autoresponder': False,
-                  "autoresponder-offline": None, "autoresponder-inactive": None, "autoresponder-disturb": None}
+               "autoresponder-offline": None, "autoresponder-inactive": None, "autoresponder-disturb": None}
         db.users.insert_one(doc)
     return doc
 
@@ -207,6 +206,8 @@ def findServerInDB(ctx):
 def initTables():  # SQL ONLY!!!
     ...
     # cursor.execute('''CREATE IF NOT EXISTS TABLE countries (
+
+
 #     userid         INTEGER,
 #     countryname    TEXT,
 #     government     TEXT,
@@ -297,4 +298,3 @@ async def addXP(userid: int,
         doc = schema(doc)
         doc["xp"] += value
         db.users.update_one({"id": userid}, {"$set": doc})
-

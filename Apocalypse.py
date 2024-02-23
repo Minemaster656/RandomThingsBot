@@ -14,6 +14,7 @@ from random import *
 import Data
 import utils
 
+
 def genApocalypseItems():
     items = sqlite3.connect("ApocalypseData/ApocalypseItems.db")
     itemsCursor = items.cursor()
@@ -44,14 +45,17 @@ def genApocalypseItems():
             f"Так же не делайте предметы из списка из других предметов из списка. ОНИ У ВАС УЖЕ ЕСТЬ!\n" \
             f"При мемных применениях объясняйте, почему это так работает!\n" \
             f"**ИГРА ЕЩЁ В РАЗРАБОТКЕ!** \n*В планах сделать автоотправку и ИИ ответы автоматические.*"
-    embed = discord.Embed(title="Дополнительно...",description="Дополнительная часть: ответ от ИИ (если есть) и руководство.",colour=0xffffff)
-    embed.add_field(name="Что это за игра?",value=guide,inline=False)
+    embed = discord.Embed(title="Дополнительно...",
+                          description="Дополнительная часть: ответ от ИИ (если есть) и руководство.", colour=0xffffff)
+    embed.add_field(name="Что это за игра?", value=guide, inline=False)
     output = (f"# Список:\n{result_ds}\n"
               f"# Условие: \n{task}\n"
               f"# Дополнительные условия:\n{ex_tasks_out}", embed)
-              #f"\n{guide}", )
+    # f"\n{guide}", )
 
     return output
+
+
 class apocalypse(commands.Cog):
     currentDLC = Data.apocalypseDLC  # "Самый странный апокалипсис⁶™"
 
@@ -60,7 +64,8 @@ class apocalypse(commands.Cog):
         self.items = sqlite3.connect("ApocalypseData/ApocalypseItems.db")
         self.itemsCursor = self.items.cursor()
 
-        @commands.slash_command(name="создать-список-апокалипсиса",description="создаёт новый случайный список для апокалипсиса")
+        @commands.slash_command(name="создать-список-апокалипсиса",
+                                description="создаёт новый случайный список для апокалипсиса")
         async def genApocalypseList(self, ctx):
             list = genApocalypseItems()
             await ctx.respond(list[0], embed=list[1])

@@ -21,7 +21,8 @@ def schema(document, scheme):
                   "karma": None, "luck": None, "permissions": None,
                   "money": None, "money_bank": None, "xp": 0, 'banned': 0, 'autoresponder': False,
                   "autoresponder-offline": None, "autoresponder-inactive": None, "autoresponder-disturb": None,
-                  "premium_end": 0, "total_reminders":0}
+                  "premium_end": 0, "total_reminders": 0, "inventory": {},
+                  "birthday_day": 0, "birthday_month": 0, "birthday_year": 0}
         '''banned: 0 - нет бана, 1 - нет команд, 2 - опасный пользователь'''
 
     # if scheme == Schemes.logconfig:
@@ -104,7 +105,9 @@ def getGuild(ctx) -> dict:
     if new:
         db.servers.insert_one(doc)
     return doc
-def getGuildByID(id:int)->dict:
+
+
+def getGuildByID(id: int) -> dict:
     doc = db.servers.find_one({"serverid": id})
     new = False
     if not doc:
@@ -112,25 +115,25 @@ def getGuildByID(id:int)->dict:
         doc["serverid"] = id
         new = True
 
-
     doc = schema(doc, Schemes.server)
     if new:
         db.servers.insert_one(doc)
     return doc
 
+
 def getUser(id, name) -> dict:
-    doc = db.users.find_one({"userid":id})
+    doc = db.users.find_one({"userid": id})
     new = False
-    updated=False
+    updated = False
     if not doc:
-        doc = {"userid":id}
+        doc = {"userid": id}
         new = True
     doc = schema(doc, Schemes.user)
-    if not new and doc["username"]!=name:
-        updated=True
-    doc["username"]=name
+    if not new and doc["username"] != name:
+        updated = True
+    doc["username"] = name
     if new:
         db.users.insert_one(doc)
     if updated:
-        db.users.update_one({"userid":id}, {"$set":doc})
+        db.users.update_one({"userid": id}, {"$set": doc})
     return doc

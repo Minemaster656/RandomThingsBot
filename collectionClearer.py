@@ -2,6 +2,7 @@ from pymongo import MongoClient
 
 from private import coreData
 
+
 def clearCollections(collections):
     # Подключение к MongoDB
     client = MongoClient(coreData.mongo_url)
@@ -15,5 +16,5 @@ def clearCollections(collections):
         collection = db[collection_name]
         collection.delete_many({})
 
-    print("Данные успешно удалены из выбранных коллекций: ",end="")
+    print("Данные успешно удалены из выбранных коллекций: ", end="")
     print(collections)

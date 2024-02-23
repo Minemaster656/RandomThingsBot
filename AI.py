@@ -6,10 +6,12 @@ import time
 
 import requests
 from private import coreData
-g4f.logging = True # enable logging
-g4f.check_version = False # Disable automatic version checking
-print(g4f.version) # check version
+
+g4f.logging = True  # enable logging
+g4f.check_version = False  # Disable automatic version checking
+print(g4f.version)  # check version
 print(g4f.Provider.Ails.params)  # supported args
+
 
 # Automatic selection of provider
 
@@ -31,19 +33,18 @@ print(g4f.Provider.Ails.params)  # supported args
 # )  # alternative model setting
 #
 # print(response)
-async def askGPT(system_prompt : str, user_prompt : str, useGPT4 : bool):
+async def askGPT(system_prompt: str, user_prompt: str, useGPT4: bool):
     messages = []
     if not utils.checkStringForNoContent(system_prompt):
         messages.append({{"role": "system", "content": f"{system_prompt}"}})
     messages.append({"role": "user", "content": f"{user_prompt}"})
     # normal response
     response = g4f.ChatCompletion.create(
-        model= g4f.models.gpt_4 if useGPT4 else "gpt-3.5-turbo",
+        model=g4f.models.gpt_4 if useGPT4 else "gpt-3.5-turbo",
         messages=messages,
     )  # alternative model setting
 
     return response
-
 
 
 class Text2ImageAPI:
@@ -100,4 +101,4 @@ if __name__ == '__main__':
     images = api.check_generation(uuid)
     print(images)
 
-#Не забудьте указать именно ваш YOUR_KEY и YOUR_SECRET.
+# Не забудьте указать именно ваш YOUR_KEY и YOUR_SECRET.
