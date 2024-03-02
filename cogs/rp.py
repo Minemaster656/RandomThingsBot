@@ -548,7 +548,7 @@ class RP(commands.Cog):
         output = ""
 
         for doc in documents:
-            output += f"- **{doc['name']}** {'| (***__НА ПРОВЕРКЕ__***) ' if str(doc['id']).endswith('$temp') else ''}| **ID**: ``{doc['id']}``\n"
+            output += f"- **[{doc['name']}](https://glitchdev.ru/character/{doc['id']})** {'| (***__НА ПРОВЕРКЕ__***) ' if str(doc['id']).endswith('$temp') else ''}| **ID**: ``{doc['id']}``\n"
         if len(output) < 1:
             output = "Нет персонажей"
         embed = discord.Embed(title="Результаты поиска",
@@ -810,7 +810,8 @@ class RP(commands.Cog):
             num_matches = len(matched_fields)
             output.append(f"{idx + 1}. ID: {result.get('id')} - Matches: {num_matches}\n" + "\n".join(matched_fields))
             embed.add_field(name=f"{result.get('name')}",value=f"ID: `{result.get('id')}`\nСовпадений: {num_matches}\nАвтор: <@{result['owner']}> ({Data.getUserNameByID(result['owner'], ctx)})\n"
-                                                                 f"--> Совпадения <--\n"
+                                                                 f"[Страница на сайте](https://glitchdev.ru/character/{result.get('id')})\n"
+                                                               f"--> Совпадения <--\n"
                                                                  f"{matched_fields}",inline=False)
         if len(output)<1:
             embed.colour=Data.embedColors["Error"]
