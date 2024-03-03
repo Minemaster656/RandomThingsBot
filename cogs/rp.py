@@ -422,7 +422,7 @@ class RP(commands.Cog):
         embed = discord.Embed(title=f"Персонаж {utils.formatStringLength(doc['name'], 120)}",
                               description=f"{utils.formatStringLength(doc['bio'], 4000)}",
                               colour=Data.embedColors["Warp"])
-        embed.add_field(name="Данные", value=f"Автор: <@{doc['owner']}>\nID: ``{doc['id']}``", inline=False)
+        embed.add_field(name="Данные", value=f"Автор: <@{doc['owner']}>\nID: ``{doc['id']}``\n[Открыть на сайте](https://glitchdev.ru/character/{doc['id']}", inline=False)
         embed.add_field(name="Рост, вес, возраст, мир", value=f"{doc['bodystats']}\n{doc['age']} лет",
                         inline=False)
         embed.add_field(name="Способности", value=f"{utils.formatStringLength(doc['abilities'], 1024)}",
@@ -498,7 +498,7 @@ class RP(commands.Cog):
                 if not sizeLimit:
                     db.characters.insert_one(doc)
                     embed = discord.Embed(title="Персонаж зарегистрирован!",
-                                          description=f"{name} зарегистрирован как ``{id}`` и принадлежит <@{owner.id}>\nТак же начислено 25 едениц опыта.",
+                                          description=f"{name} зарегистрирован как [``{id}``](https://glitchdev.ru/character/{id}) и принадлежит <@{owner.id}>\nТак же начислено 25 едениц опыта.",
                                           colour=Data.embedColors["Success"])
                     await ctx.respond(embed=embed)
                     await Data.addXP(ctx.author.id, 25, ctx.author.name)
