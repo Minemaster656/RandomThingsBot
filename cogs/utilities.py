@@ -2,6 +2,7 @@ import dis
 import json
 import random
 import time
+import uuid
 
 import aiohttp
 # import numpy as np
@@ -397,6 +398,24 @@ class Utilities(commands.Cog):
 
                 except:
                     ...
+    @commands.command(aliases=["токен", "token", "токендоступа", "токен-доступа", "access-token"])
+    async def update_user_token(self, ctx: commands.Context):
+        doc = d.getUser(ctx.author.id, ctx.author.name)
+        token = str(uuid.uuid4())
+        print(token)
+        token = token[:8]
+        print(token)
+        expire_at = int(time.time()) + 14400
+        db.users.update_one({"userid": ctx.author.id}, {"$set": {"access_token": token, "access_token_expires": expire_at}})
+        await ctx.author.send(f"# Токен доступа обновлён!\n"
+                              f"Никому не показывайте его!\n"
+                              f"Токен: {token}\n"
+                              f"Ваш ID: {ctx.author.id}\n"
+                              f"Токен устареет <t:{expire_at}:R>\n"
+                              f"Не отправляйте токен никому! Он предназначен ТОЛЬКО для использования [на нашем сайте](https://glitchdev.ru).\n"
+                              f"Токен одноразовый.")
+        await ctx.message.delete()
+
 
 
 def setup(bot):

@@ -307,7 +307,7 @@ async def about(ctx, user: discord.Member = None):
                                   f"# НЕ БЕСПОКОИТЬ: **{doc['autoresponder-disturb']}**\n\n"
                                   f"# НЕАКТИВЕН: **{doc['autoresponder-inactive']}**\n\n"
                                   f"# ОФФЛАЙН: **{doc['autoresponder-offline']}**", inline=False)
-            await ctx.send(embed=embed)
+            await ctx.send(f"[Страница пользователя](https://glitchdev.ru/user/{doc['username']})", embed=embed)
 
         if result:
             await ctx.send("Запись найдена")

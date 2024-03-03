@@ -83,6 +83,18 @@ class social(commands.Cog):
 
         await ctx.reply(embed=embed)
 
+    # @commands.Cog.listener("on_presence_update")
+    # async def on_presence_update(self, before:discord.Member, after:discord.Member):
+    #     ...
+        # if before.activity != after.activity:
+        #     print(after.name)
+        #     before_activity_name=""
+        #     after_activity_name=""
+        #     if before.activity:
+        #         before_activity_name=before.activity.name
+        #     if after.activity:
+        #         after_activity_name=after.activity.name
+        #     print(before_activity_name, "   ==>   ", after_activity_name)
 
 def setup(bot):
     bot.add_cog(social(bot))

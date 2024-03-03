@@ -22,7 +22,7 @@ def schema(document, scheme):
                   "money": None, "money_bank": None, "xp": 0, 'banned': 0, 'autoresponder': False,
                   "autoresponder-offline": None, "autoresponder-inactive": None, "autoresponder-disturb": None,
                   "premium_end": 0, "total_reminders": 0, "inventory": {},
-                  "birthday_day": 0, "birthday_month": 0, "birthday_year": 0}
+                  "birthday_day": 0, "birthday_month": 0, "birthday_year": 0, "activity_changes":[], "access_token": None, "access_token_expires": 0}
         '''banned: 0 - нет бана, 1 - нет команд, 2 - опасный пользователь'''
 
     # if scheme == Schemes.logconfig:
