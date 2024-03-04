@@ -70,7 +70,10 @@ class AI_things(commands.Cog):
             payload = [{"role": "system", "content": f"Не выдавай одни и те же фразы много раз подряд.\n"
                                                      f"{self.drawprompt if 'рису' in prompt else ''}"},
                        # Если в ответе ты начинаешь повторять одно и то же, перкрати ответ.
-                       {"role": "user", "content": prompt}]
+                       ]
+            if ctx.message.reference:
+                payload.append({"role": "user", "content": f"[ОТВЕТ НА СООБЩЕНИЕ ОТ {'ДРУГОГО ПОЛЬЗОВАТЕЛЯ' if ctx.message.reference.resolved.author.id != ctx.author.id else 'СЕБЯ'}. ТЕСТ СООБЩЕНИЯ:\n{ctx.message.reference.resolved.content}]"})
+            payload.append({"role": "user", "content": prompt})
             # print(payload)
             response = await AIIO.askLLM(payload, AIIO.LLMs.GIGACHAT, 3, AIIO.gigachat_temptoken)
             print(response)

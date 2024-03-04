@@ -34,7 +34,6 @@ class ConfirmGenArt(discord.ui.View):
         self.character_registerer = character_registerer
         self.prompt = prompt
 
-
     @discord.ui.button(label="Сгенерировать!", style=discord.ButtonStyle.green)
     async def confirm_callback(self, button: discord.ui.Button, interaction: discord.Interaction):
         await interaction.response.edit_message(content="Генерация...", view=None)
@@ -42,11 +41,12 @@ class ConfirmGenArt(discord.ui.View):
         gen = await AIIO.askT2I(self.prompt, AIIO.Text2Imgs.KANDINSKY)
         if gen:
             file = AIIO.kandinskyOutputToFile(gen)
-            await interaction.guild.get_channel(interaction.channel_id).send(f"Генерация `{self.prompt}` по запросу {self.character_registerer.name} завершена!\nСохраните в личке с этим ботом это изображение и используйте его ссылку в качестве арта. Если изображение вас не устраивает, создайте новое с помощью `{Data.preffix}кандинский {self.prompt}`!", file=file)
+            await interaction.guild.get_channel(interaction.channel_id).send(
+                f"Генерация `{self.prompt}` по запросу {self.character_registerer.name} завершена!\nСохраните в личке с этим ботом это изображение и используйте его ссылку в качестве арта. Если изображение вас не устраивает, создайте новое с помощью `{Data.preffix}кандинский {self.prompt}`!",
+                file=file)
             await interaction.response.edit_message(content="Генерация завершена!", view=None)
         else:
             await interaction.guild.get_channel(interaction.channel_id).send("Ошибка генерации!")
-
 
         self.stop()
 
@@ -55,6 +55,8 @@ class ConfirmGenArt(discord.ui.View):
         await interaction.response.edit_message(content="Отменено.", view=None)
 
         self.stop()
+
+
 class RemoveCharView(discord.ui.View):
     def __init__(self, author, id, timeout=180):
         super().__init__(timeout=timeout)
@@ -283,7 +285,7 @@ class RP(commands.Cog):
 
     @commands.slash_command(name="статы-впи", description="Статистика ВПИ государства")
     async def WPG_stats(self, ctx, id: Option(str, description="ID государства. Не вводите для списка",
-                                              choices=choisesWPGButWithList, required=False) = "list",
+                                              choices=choisesWPGButWithList, required=True) = "list",
                         size: Option(int, description="Масштабирование", required=False, choices=[1, 2, 3, 4, 5]) = 1,
                         ephemeral: Option(bool, description="Видно лишь вам или нет", required=False) = False):
         with ctx.typing():
@@ -494,7 +496,7 @@ class RP(commands.Cog):
         else:
             if (await Data.parsePermissionFromUser(ctx.author.id,
                                                    "edit_characters") or await Data.parsePermissionFromUser(
-                    ctx.author.id, "root")):  # TODO: оптимизировать поиск прав
+                ctx.author.id, "root")):  # TODO: оптимизировать поиск прав
                 if not sizeLimit:
                     db.characters.insert_one(doc)
                     embed = discord.Embed(title="Персонаж зарегистрирован!",
@@ -504,13 +506,14 @@ class RP(commands.Cog):
                     await Data.addXP(ctx.author.id, 25, ctx.author.name)
                     await Data.addXP(owner.id, 25, owner.name)
                     if art == "https://media.discordapp.net/attachments/1018886769619505212/1176561157939662978/ad643992b38e34e2.png":
-                        view =ConfirmGenArt(ctx.author, appearances)
+                        view = ConfirmGenArt(ctx.author, appearances)
                         await ctx.respond(f"Ой, вы не указали арт! Как же жаль! Ну ничего, это можно исправить!\n"
                                           f"Запустить генерацию запроса с помощью нейросети Кандинский (запустить генерацию заново можно будет через {Data.preffix}кандинский)?\n"
                                           f"Запрос: **`{appearances}`**", view=view)
 
                 else:
-                    embed = discord.Embed(title="Превышение размера или неверная ссылка!", description=f"Ключ: {oversizeKey}",
+                    embed = discord.Embed(title="Превышение размера или неверная ссылка!",
+                                          description=f"Ключ: {oversizeKey}",
                                           colour=Data.embedColors["Error"])
                     await ctx.respond(embed=embed)
             else:
@@ -518,7 +521,6 @@ class RP(commands.Cog):
                                       description="Необходимо право ``edit_characters`` или ``root`` для регистрации персонажа!",
                                       colour=Data.embedColors["Error"])
                 await ctx.respond(embed=embed)
-
 
     @commands.slash_command(name="персонаж", description="Открывает анкету персонажа по ID")
     async def inspectChar(self, ctx, id: Option(str, description="ID", required=True) = " ",
@@ -573,7 +575,7 @@ class RP(commands.Cog):
             return
         if not (await Data.parsePermissionFromUser(ctx.author.id,
                                                    "edit_characters") or await Data.parsePermissionFromUser(
-                ctx.author.id, "root")):  # TODO: оптимизировать поиск прав
+            ctx.author.id, "root")):  # TODO: оптимизировать поиск прав
             embed = discord.Embed(title="Нет прав!",
                                   description="Необходимо право ``edit_characters`` или ``root`` для изменения персонажа!",
                                   colour=Data.embedColors["Error"])
@@ -769,9 +771,11 @@ class RP(commands.Cog):
                                   colour=Data.embedColors["Error"])
             await ctx.respond(embed=embed,
                               ephemeral=True)  # TODO: добавить "искромётную" шутку в сообщение об ненайденной анкете: "... да и к тому же у вас нет прав для этого действия!"
+
     existing_fields = ["name", "bio", "bodystats", "abilities", "weaknesses",
-                                                               'character', 'inventory', 'appearances', 'shortened',
-                                                               'any']
+                       'character', 'inventory', 'appearances', 'shortened',
+                       'any']
+
     @commands.slash_command(name="поиск-персонажей", description="Ищет персонажей по запросу")
     async def advancedSearch(self, ctx, field: Option(str, description="Поле. По умолчанию любое",
                                                       choices=["name", "bio", "bodystats", "abilities", "weaknesses",
@@ -779,7 +783,8 @@ class RP(commands.Cog):
                                                                'any'], required=False) = "any",
                              query: Option(str, description="Поисковый запрос.", required=True) = "банан",
                              use_regex: Option(bool, description="Использовать запрос Regex", required=False) = False,
-                             ephemeral: Option(bool, description="Видно ли только Вам? По умолчанию нет.", required=False)=False):
+                             ephemeral: Option(bool, description="Видно ли только Вам? По умолчанию нет.",
+                                               required=False) = False):
         embed = discord.Embed(title="Результаты поиска:",
                               description=f"Поле: `{field}`, использование Regex: **{use_regex}**\nЗапрос: `{query}`",
                               colour=Data.embedColors["Success"])
@@ -804,35 +809,37 @@ class RP(commands.Cog):
                     start_idx = max(match.start() - 40, 0)
                     end_idx = min(match.end() + 40, len(value))
                     highlighted_value = f"...{value[start_idx:match.start()]}**{match.group()}**{value[match.end():end_idx]}..."
-                    matched_fields+=(f"`{key}`: {highlighted_value}\n")
-
+                    matched_fields += (f"`{key}`: {highlighted_value}\n")
 
             num_matches = len(matched_fields)
             output.append(f"{idx + 1}. ID: {result.get('id')} - Matches: {num_matches}\n" + "\n".join(matched_fields))
-            embed.add_field(name=f"{result.get('name')}",value=f"ID: `{result.get('id')}`\nСовпадений: {num_matches}\nАвтор: <@{result['owner']}> ({Data.getUserNameByID(result['owner'], ctx)})\n"
-                                                                 f"[Страница на сайте](https://glitchdev.ru/character/{result.get('id')})\n"
-                                                               f"--> Совпадения <--\n"
-                                                                 f"{matched_fields}",inline=False)
-        if len(output)<1:
-            embed.colour=Data.embedColors["Error"]
-            embed.add_field(name="Нет совпадений!",value="Ничего не найдено!",inline=False)
+            embed.add_field(name=f"{result.get('name')}",
+                            value=f"ID: `{result.get('id')}`\nСовпадений: {num_matches}\nАвтор: <@{result['owner']}> ({Data.getUserNameByID(result['owner'], ctx)})\n"
+                                  f"[Страница на сайте](https://glitchdev.ru/character/{result.get('id')})\n"
+                                  f"--> Совпадения <--\n"
+                                  f"{matched_fields}", inline=False)
+        if len(output) < 1:
+            embed.colour = Data.embedColors["Error"]
+            embed.add_field(name="Нет совпадений!", value="Ничего не найдено!", inline=False)
         await ctx.respond(embed=embed, ephemeral=ephemeral)
 
-    @commands.slash_command(name="задать-преффикс-персонажа",description="Задаёт преффикс персоны персонажа")
-    async def setCharPreffix(self, ctx, prefix :Option(str, description="Преффикс", required=True)=" ", id : Option(str, description="ID персонажа", required=True)=""):
-        doc = db.characters.find_one({"id":id})
+    @commands.slash_command(name="задать-преффикс-персонажа", description="Задаёт преффикс персоны персонажа")
+    async def setCharPreffix(self, ctx, prefix: Option(str, description="Преффикс", required=True) = " ",
+                             id: Option(str, description="ID персонажа", required=True) = ""):
+        doc = db.characters.find_one({"id": id})
         if not doc:
             await ctx.respond("Не найдено!", ephemeral=True)
             return
-        if await Data.parsePermissionFromUser(ctx.author.id, "edit_characters") or await Data.parsePermissionFromUser(ctx.author.id, "root") or doc["owner"]==ctx.author.id:
+        if await Data.parsePermissionFromUser(ctx.author.id, "edit_characters") or await Data.parsePermissionFromUser(
+                ctx.author.id, "root") or doc["owner"] == ctx.author.id:
             await ctx.respond(f"Преффикс изменён: ``{doc['prefix']}`` -> ``{prefix}``")
-            db.characters.update_one({"id":id}, {"$set":{"prefix":prefix}})
+            db.characters.update_one({"id": id}, {"$set": {"prefix": prefix}})
         else:
-            await ctx.respond("У вас нет права на редактирование персонажей или это не ваш персонаж!",ephemeral=True)
+            await ctx.respond("У вас нет права на редактирование персонажей или это не ваш персонаж!", ephemeral=True)
 
     @commands.Cog.listener("on_message")
-    async def interchat_on_message(self, message : discord.Message):
-        for doc in db.characters.find({"owner":message.author.id}):
+    async def interchat_on_message(self, message: discord.Message):
+        for doc in db.characters.find({"owner": message.author.id}):
             if not "prefix" in doc.keys():
                 return
             if doc["prefix"]:
@@ -858,8 +865,8 @@ class RP(commands.Cog):
                         #     else:
                         #         f" (<@{message.reference.resolved.author.id}>)"
                         #     content = f"{contentPrefix}\n{content}"
-                        #TODO: референс
-                        if len(content) <1:
+                        # TODO: референс
+                        if len(content) < 1:
                             content = "** **"
                         if isinstance(message.channel, discord.Thread):
                             await hook.send(content=content, username=hname,
@@ -876,6 +883,52 @@ class RP(commands.Cog):
                                             )
                         await message.delete()
                     break
+
+    @commands.cooldown(1, 60, commands.BucketType.user)
+    @commands.message_command(name="Краткий пересказ анкеты")
+    async def summarize(self, ctx, message: discord.Message):
+
+        if len(message.content) < 512:
+            await ctx.respond("Сообщение и так короткое, куда ещё короче-то?")
+            return
+        else:
+            # userdoc = d.getUser(ctx.author.id, ctx.author.name)
+            # if await Data.parsePermissionFromUser(ctx.author.id, "root") or await Data.parsePermissionFromUser(ctx.author.id, "edit_characters"):
+            payload = [{"role": "system",
+                        "content": f"Вероятно, это анкета персонажа или её часть. Перескажи текст вкратце, выдели основные моменты."
+                        },
+                       # Если в ответе ты начинаешь повторять одно и то же, перкрати ответ.
+                       {"role": "user", "content": message.content}]
+            # print(payload)
+            response = await AIIO.askLLM(payload, AIIO.LLMs.GIGACHAT, 3, AIIO.gigachat_temptoken)
+
+            if response == "No token":
+                response = await AIIO.askLLM(payload, AIIO.LLMs.GIGACHAT, 3, AIIO.gigachat_temptoken)
+
+
+            resp = response[0]
+            tokens = response[1]['total_tokens']
+            tokenInfo = "\n" + f"||Использовано {tokens} токен{'ов' if tokens % 100 in (11, 12, 13, 14, 15) else 'а' if tokens % 10 in (2, 3, 4) else '' if tokens % 10 == 1 else 'ов'}||"
+            output = resp + tokenInfo
+
+
+
+
+
+            outputs = utils.split_string(output, 2000, len(tokenInfo))
+            for content in outputs:
+                print( "|||", content)
+
+                await ctx.respond(content)
+                # print("...")
+                #
+                # await ctx.send(content)
+
+
+            # await ctx.respond()
+            # else:
+            # await ctx.respond("Вы не анкетолог.")
+
 
 def setup(bot):
     bot.add_cog(RP(bot))

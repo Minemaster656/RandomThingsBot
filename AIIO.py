@@ -132,6 +132,7 @@ async def askLLM(payload, model: LLMs, payload_cutoff, temptoken=gigachat_tempto
             async with session.post(url, headers=headers, data=data) as resp:
                 response_text = await resp.json()
                 # print(response_text)
+                # print(response_text)
                 response = response_text['choices'][0]["message"]["content"]
                 tokens = response_text['usage']
     # print(response)
