@@ -8,7 +8,8 @@ mongo_db_name = 'RTB_data'
 API_KEYS={
 "kandinskiy3":[{"X-Key":"публичный ключ", "X-Secret":"секрет"}],
 "GigaChat":{"secret":"client secret", "auth":"auth string, окно client secret, строка 2",
-            "clientID":"client id", "scope":"scope"}
+            "clientID":"client id", "scope":"scope"},
+"deepinfra":"token"
 }
 ```
 На данный момент из них используется только токен для Discord, название и URL базы данных. Замените URL базы данных если используете не локальную базу, а удалённый доступ.

@@ -12,12 +12,17 @@ import uuid
 import aiohttp
 import discord
 import requests
+from openai import AsyncOpenAI
 
+import private.coreData
 from private import coreData as core
 
 gigachat_temptoken = None
 
-
+openai = AsyncOpenAI(
+            api_key=private.coreData.API_KEYS["deepinfra"],
+            base_url="https://api.deepinfra.com/v1/openai",
+        )
 class LLMs(enum.Enum):
     '''Text generation Large Language Models'''
     ANY = 0
@@ -26,6 +31,8 @@ class LLMs(enum.Enum):
     CHATGPT3 = 3
     CHATGPT4 = 4
     G4F = 5
+    MISTRALAI = 6
+    MIXTRAL7X8 = 7
 
 
 class Text2Imgs(enum.Enum):
@@ -136,6 +143,7 @@ async def askLLM(payload, model: LLMs, payload_cutoff, temptoken=gigachat_tempto
                 response = response_text['choices'][0]["message"]["content"]
                 tokens = response_text['usage']
     # print(response)
+
     return (response, tokens)
 
 
@@ -304,3 +312,50 @@ def kandinskyOutputToFile(gen):
         return file
     else:
         return None
+
+async def askBetterLLM(payload:list, max_tokens=512):
+    '''payload structure:
+        [{"role": "system", "content": "Hello world"},
+        {"role": "user", "content": "Hello world"},
+        {"role": "assistant", "content": "Hello world"}
+        ]
+
+    output:
+        {"result":result, "output":payload, "total_tokens":total_tokens}
+    '''
+
+
+
+
+
+    result = "Something went terribly wrong."
+    fail = False
+    tokens = 0
+    total_tokens = 0
+    try:
+        chat_completion = await openai.chat.completions.create(
+            model="mistralai/Mixtral-8x7B-Instruct-v0.1",
+            # model="mistralai/Mistral-7B-Instruct-v0.1",
+            messages=payload,
+            max_tokens=max_tokens,
+        )
+        print(chat_completion)
+        result = chat_completion.choices[0].message.content
+        total_tokens = chat_completion.usage.total_tokens
+        # total_tokens = chat_completion.total_tokens
+
+    except Exception as e:
+        print(e)
+        fail = True
+
+    payload.append({"role": "assistant", "content": result})
+    if fail:
+        payload = payload[:-2]
+
+
+
+
+
+    return {"result":result, "output":payload, "prompt_tokens":tokens, "total_tokens":total_tokens}
+
+
