@@ -42,7 +42,7 @@ class fun(commands.Cog):
                           reset: Option(bool, description="True для отчистки поля", required=False) = False):
         channel = ctx.channel
         if await Data.parsePermissionFromUser(ctx.author.id, "root") or (
-                await Data.parsePermissionFromUser(ctx.author.id, "verified") and True:#(
+                await Data.parsePermissionFromUser(ctx.author.id, "verified") and True):#(
                 #ctx.author.permissions.administrator or ctx.author.permissions.manage_channels)):
             # with open('private/data.json', 'r') as file:
             #     try:
