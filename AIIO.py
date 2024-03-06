@@ -334,8 +334,9 @@ async def askBetterLLM(payload:list, max_tokens=512):
     total_tokens = 0
     try:
         chat_completion = await openai.chat.completions.create(
-            model="mistralai/Mixtral-8x7B-Instruct-v0.1",
+            #model="mistralai/Mixtral-8x7B-Instruct-v0.1",
             # model="mistralai/Mistral-7B-Instruct-v0.1",
+            model="openchat/openchat_3.5",
             messages=payload,
             max_tokens=max_tokens,
         )
