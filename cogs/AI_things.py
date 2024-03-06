@@ -206,10 +206,10 @@ class AI_things(commands.Cog):
                 #
                 # await ctx.send(content)
 
-    @commands.cooldown(1, 600, commands.BucketType.channel)
+    @commands.cooldown(1, 300, commands.BucketType.channel)
     @commands.command(aliases=["пересказать-чат", "перескажи-чат"])
     async def summarize(self, ctx: commands.Context):
-        history_size = 64
+        history_size = 40
 
         messages = await ctx.channel.history(limit=history_size).flatten()
         # messages.reverse()
