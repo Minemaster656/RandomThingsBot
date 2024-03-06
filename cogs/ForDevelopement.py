@@ -177,13 +177,7 @@ class ForDevelopement(commands.Cog):
                 await user.send(message)
         else:
             await ctx.respond("Не найдено!", ephemeral=True)
-    @commands.command(aliases=["ллм"])
-    async def call_Mixtral(self, ctx: commands.Context, *, prompt:str):
-        async with ctx.typing():
-            output = await AIIO.askBetterLLM([{"role":"system", f"content":"Отвечай на том же языке, что и пользователь. Скорее всего, это будет русский.\n"
-                                                                           "Твоя задача - помогать пользователю."},
-                                              {"role":"user", "content":prompt}])
-            await ctx.reply(output['result']+f"\n||{output['total_tokens']} использовано токенов||")
+
 
 def setup(bot):
     bot.add_cog(ForDevelopement(bot))

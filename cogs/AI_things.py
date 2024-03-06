@@ -20,7 +20,7 @@ class AI_things(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.drawprompt = ' Если пользователь просит тебя нарисовать что-то, добавь в начало ответа тэг ' \
-                          '"<$DRAW промпт /$>", замени слово промпт на запрос (описание изображения) для нейросети-художника (Если запрос сложнее простого предмета - в качестве промпта опиши то, что должно быть на картинке). Добавь в конец ответа что-то вроде "Вот ваше изображение:"'
+                          '"<$DRAW промпт /$>" (КАВЫЧКИ И ЭТО УБЕРИ!!!), замени слово промпт на запрос (описание изображения) для нейросети-художника (Если запрос сложнее простого предмета - в качестве промпта опиши то, что должно быть на картинке). Добавь в конец ответа что-то вроде "Вот ваше изображение:"'
 
     async def runKandinsky(self, ctx, prompt, author):
         time_start = time.time()
@@ -134,6 +134,118 @@ class AI_things(commands.Cog):
     @commands.command(aliases=["кандинский"])
     async def kandinsky(self, ctx, *, prompt: str):
         await self.runKandinsky(ctx, prompt, f"<@{ctx.author.id}>")
+
+    @commands.cooldown(1, 30, commands.BucketType.member)
+    @commands.command(aliases=["ллм"])
+    async def call_Mixtral(self, ctx: commands.Context, *, prompt: str):
+        # async with ctx.typing():
+        #     output = await AIIO.askBetterLLM([{"role": "system",
+        #                                        f"content": "Отвечай на том же языке, что и пользователь. Скорее всего, это будет русский.\n"
+        #                                                    "Твоя задача - помогать пользователю."},
+        #                                       {"role": "user", "content": prompt}])
+        #     await ctx.reply(output['result'] + f"\n||{output['total_tokens']} использовано токенов||")
+        bannedIDs=[]
+        if ctx.author.id in bannedIDs:
+            await ctx.reply("Вам запрещено использовать эту команду!")
+            return
+        async with ctx.typing():
+            payload = [{"role": "system", "content": f"Ты OpenChat - LLM на основе ответов ChatGPT 3.5. Твоя цель - помогать людям.\nНе выдавай одни и те же фразы много раз подряд.\n"
+                                                     f"{self.drawprompt if 'рису' in prompt.lower() or 'изобраз' in prompt.lower() else ''}"},
+                       # Если в ответе ты начинаешь повторять одно и то же, перкрати ответ.
+                       ]
+            if ctx.message.reference:
+                payload.append({"role": "user", "content": f"[ОТВЕТ НА СООБЩЕНИЕ ОТ {'ДРУГОГО ПОЛЬЗОВАТЕЛЯ' if ctx.message.reference.resolved.author.id != ctx.author.id else 'СЕБЯ'}. ТЕСТ СООБЩЕНИЯ:\n{ctx.message.reference.resolved.content}]"})
+            payload.append({"role": "user", "content": prompt})
+            # print(payload)
+            response = await AIIO.askBetterLLM(payload, 1024)
+
+
+
+
+            tokenInfo = "\n" + f"||Использовано {response['total_tokens']} токен{'ов' if response['total_tokens'] % 100 in (11, 12, 13, 14, 15) else 'а' if response['total_tokens'] % 10 in (2, 3, 4) else '' if response['total_tokens'] % 10 == 1 else 'ов'}||"
+            output = response['result'] + tokenInfo
+            parsed = utils.parseTagInStart(output, "DRAW")
+
+            if parsed[1] != "":
+                await self.runKandinsky(ctx, parsed[1], f"ИИ по просьбе <@{ctx.author.id}>")
+
+            output = parsed[2]
+            # embed = discord.Embed(title="Информация о генерации",description=f"",colour=Data.getEmbedColor(Data.EmbedColor.Neutral))
+            outputs = utils.split_string(output, 2000, len(tokenInfo))
+            for content in outputs:
+                await ctx.reply(content)
+
+    @commands.cooldown(1, 60, commands.BucketType.user)
+    @commands.message_command(name="Пересказать")
+    async def summarize(self, ctx, message: discord.Message):
+
+        if len(message.content) < 512:
+            await ctx.respond("Сообщение и так короткое, куда ещё короче-то?")
+            return
+        else:
+            payload = [{"role": "system",
+                        "content": f"Перескажи текст вкратце, выдели основные моменты."
+                        },
+                       # Если в ответе ты начинаешь повторять одно и то же, перкрати ответ.
+                       {"role": "user", "content": message.content}]
+            # print(payload)
+            response = await AIIO.askBetterLLM(payload)
+
+
+
+
+            tokenInfo = "\n" + f"||Использовано {response['total_tokens']} токен{'ов' if response['total_tokens'] % 100 in (11, 12, 13, 14, 15) else 'а' if response['total_tokens'] % 10 in (2, 3, 4) else '' if response['total_tokens'] % 10 == 1 else 'ов'}||"
+            output = response['result'] + tokenInfo
+
+            outputs = utils.split_string(output, 2000, len(tokenInfo))
+            for content in outputs:
+
+
+                await ctx.respond(content)
+                # print("...")
+                #
+                # await ctx.send(content)
+
+    @commands.cooldown(1, 60, commands.BucketType.channel)
+    @commands.command(aliases=["пересказать-чат", "перескажи-чат"])
+    async def summarize(self, ctx: commands.Context):
+        history_size = 40
+
+        messages = await ctx.channel.history(limit=history_size).flatten()
+        # messages.reverse()
+        messages_content=[]
+        total_symbols = 0
+        max_symbols = 8000
+        for message in messages:
+            if total_symbols<=max_symbols:
+                messages_content.append({"content": message.content, "name":message.author.name})
+                total_symbols+=len(message.content)
+            else:
+                break
+
+        if max_symbols < 512:
+            await ctx.reply("История и так короткая, куда ещё короче-то?")
+            return
+        else:
+            payload = [{"role": "system",
+                        "content": f"Перескажи историю чата вкратце, выдели основные моменты. В квадратных скобочках имя пользователя"
+                        },
+                       # Если в ответе ты начинаешь повторять одно и то же, перкрати ответ.
+                       ]
+            for msg in messages_content:
+                payload.append({"role": "user", "content": f'[{msg["name"]}]: {msg["content"]}'})
+            # print(payload)
+            response = await AIIO.askBetterLLM(payload)
+
+            tokenInfo = "\n" + f"||Использовано {response['total_tokens']} токен{'ов' if response['total_tokens'] % 100 in (11, 12, 13, 14, 15) else 'а' if response['total_tokens'] % 10 in (2, 3, 4) else '' if response['total_tokens'] % 10 == 1 else 'ов'}. {len(messages_content)}/{history_size} сообщ. {total_symbols}/{max_symbols} симв.||"
+            output = response['result'] + tokenInfo
+
+            outputs = utils.split_string(output, 2000, len(tokenInfo))
+            for content in outputs:
+                await ctx.reply(content)
+                # print("...")
+                #
+                # await ctx.send(content)
 
 
 def setup(bot):
