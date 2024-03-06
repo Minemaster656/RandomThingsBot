@@ -34,6 +34,7 @@ class fun(commands.Cog):
         embed = discord.Embed(title=f"Zalgo {intensity}", description=f"{output}", colour=0xffffff)
         await ctx.respond(embed=embed, ephemeral=ephemeral)
 
+    @commands.has_permissions(administrator=True)
     @commands.slash_command(name="интерсервер", description="Помечает канал как интерсервер")
     async def interserver(self, ctx,
                           type: Option(str, description="Тип канала. Можно иметь одновременно несколько на сервер.",
