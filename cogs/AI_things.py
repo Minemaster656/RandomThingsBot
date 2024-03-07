@@ -177,7 +177,7 @@ class AI_things(commands.Cog):
 
     @commands.cooldown(1, 60, commands.BucketType.user)
     @commands.message_command(name="Пересказать")
-    async def summarize(self, ctx, message: discord.Message):
+    async def summarize_msg(self, ctx, message: discord.Message):
 
         if len(message.content) < 512:
             await ctx.respond("Сообщение и так короткое, куда ещё короче-то?")
@@ -207,12 +207,12 @@ class AI_things(commands.Cog):
                 # await ctx.send(content)
 
     @commands.cooldown(1, 300, commands.BucketType.channel)
-    @commands.command(aliases=["пересказать-чат", "перескажи-чат"])
+    @commands.command(aliases=["пересказать-чат", "перескажи-чат", "перскажи-чат"])
     async def summarize(self, ctx: commands.Context):
         history_size = 40
 
         messages = await ctx.channel.history(limit=history_size).flatten()
-        # messages.reverse()
+        messages.reverse()
         messages_content=[]
         total_symbols = 0
         max_symbols = 8000
