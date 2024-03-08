@@ -11,6 +11,7 @@ class Schemes(enum.Enum):
     character = 1
     logconfig = 2
     server = 3
+    AI_conversation = 4
 
 
 def schema(document, scheme):
@@ -73,7 +74,20 @@ def schema(document, scheme):
             "shortened": None, "id": None, "owner": 0,
             "prefix": None, "totalMessages": 0
         }
-
+    if scheme==Schemes.AI_conversation:
+      fields={"type":"","userid":0,
+      "username":"",
+      "model":"",
+      "tokens_cutoff":1500,
+      "symbols_cutoff":4000,
+      "last_message_utc":0,
+      "system_prompt":"",
+      "history":[],
+      "memory":[],
+      "total_messages":0,
+      "last_tokens":0,
+      "total_tokens":0
+      }
     fields_check = {}
     if not document:
         document = fields
