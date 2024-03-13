@@ -13,6 +13,8 @@ class Schemes(enum.Enum):
     server = 3
     AI_conversation = 4
 
+  
+  
 
 def schema(document, scheme):
     fields = {}
@@ -151,3 +153,26 @@ def getUser(id, name) -> dict:
     if updated:
         db.users.update_one({"userid": id}, {"$set": doc})
     return doc
+
+def makeBasicConversation(userid, username):
+  
+  # fields={"type":"","userid":0,
+#       "username":"",
+#       "model":"",
+#       "tokens_cutoff":1500,
+#       "symbols_cutoff":4000,
+#       "last_message_utc":0,
+#       "system_prompt":"",
+#       "history":[],
+#       "memory":[],
+#       "total_messages":0,
+#       "last_tokens":0,
+#       "total_tokens":0
+#       }
+  doc={}
+  doc = schema(doc, Schemes.AI_conversation)
+  doc["userid"]=userid
+  doc["username"]=username
+  doc["model"]="mistralai/Mixtral-8x7B-Instruct-v0.1"
+  doc["tokens_cutoff"]=3000
+  
