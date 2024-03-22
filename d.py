@@ -13,8 +13,6 @@ class Schemes(enum.Enum):
     server = 3
     AI_conversation = 4
 
-  
-  
 
 def schema(document, scheme):
     fields = {}
@@ -25,7 +23,9 @@ def schema(document, scheme):
                   "money": None, "money_bank": None, "xp": 0, 'banned': 0, 'autoresponder': False,
                   "autoresponder-offline": None, "autoresponder-inactive": None, "autoresponder-disturb": None,
                   "premium_end": 0, "total_reminders": 0, "inventory": {},
-                  "birthday_day": 0, "birthday_month": 0, "birthday_year": 0, "activity_changes":[], "access_token": None, "access_token_expires": 0}
+                  "birthday_day": 0, "birthday_month": 0, "birthday_year": 0, "activity_changes": [],
+                  "access_token": None, "access_token_expires": 0, "LLM_memories": [], "LLM_system_prompt": "",
+                  "NSFW_LLM_memories": [], "NSFW_LLM_system_prompt": [], "triggers_achieved":{}, "call_AI_on_mention":False}
         '''banned: 0 - нет бана, 1 - нет команд, 2 - опасный пользователь'''
 
     # if scheme == Schemes.logconfig:
@@ -76,20 +76,23 @@ def schema(document, scheme):
             "shortened": None, "id": None, "owner": 0,
             "prefix": None, "totalMessages": 0
         }
-    if scheme==Schemes.AI_conversation:
-      fields={"type":"","userid":0,
-      "username":"",
-      "model":"",
-      "tokens_cutoff":1500,
-      "symbols_cutoff":4000,
-      "last_message_utc":0,
-      "system_prompt":"",
-      "history":[],
-      "memory":[],
-      "total_messages":0,
-      "last_tokens":0,
-      "total_tokens":0
-      }
+    if scheme == Schemes.AI_conversation:
+        fields = {"type": "", "userid": 0,
+                  "username": "",
+                  "model": "",
+                  "tokens_cutoff": 1500,
+                  "symbols_cutoff": 4000,
+                  "last_message_utc": 0,
+                  "system_prompt": "",
+                  "history": [],
+                  "memory": [],
+                  "total_messages": 0,
+                  "last_tokens": 0,
+                  "total_tokens": 0,
+                  "NSFW":False,
+                  "max_tokens": 512
+                  }
+        '''types: [user_conversation, user_conversation_nsfw]'''
     fields_check = {}
     if not document:
         document = fields
@@ -148,31 +151,35 @@ def getUser(id, name) -> dict:
     if not new and doc["username"] != name:
         updated = True
     doc["username"] = name
+    doc.pop("_id")
     if new:
         db.users.insert_one(doc)
     if updated:
         db.users.update_one({"userid": id}, {"$set": doc})
     return doc
 
+
 def makeBasicConversation(userid, username):
-  
-  # fields={"type":"","userid":0,
-#       "username":"",
-#       "model":"",
-#       "tokens_cutoff":1500,
-#       "symbols_cutoff":4000,
-#       "last_message_utc":0,
-#       "system_prompt":"",
-#       "history":[],
-#       "memory":[],
-#       "total_messages":0,
-#       "last_tokens":0,
-#       "total_tokens":0
-#       }
-  doc={}
-  doc = schema(doc, Schemes.AI_conversation)
-  doc["userid"]=userid
-  doc["username"]=username
-  doc["model"]="mistralai/Mixtral-8x7B-Instruct-v0.1"
-  doc["tokens_cutoff"]=3000
-  
+    # fields={"type":"","userid":0,
+    #       "username":"",
+    #       "model":"",
+    #       "tokens_cutoff":1500,
+    #       "symbols_cutoff":4000,
+    #       "last_message_utc":0,
+    #       "system_prompt":"",
+    #       "history":[],
+    #       "memory":[],
+    #       "total_messages":0,
+    #       "last_tokens":0,
+    #       "total_tokens":0
+    #       }
+    doc = {}
+    doc = schema(doc, Schemes.AI_conversation)
+    doc["userid"] = userid
+    doc["username"] = username
+    doc["model"] = "mistralai/Mixtral-8x7B-Instruct-v0.1"
+    doc["tokens_cutoff"] = 3000
+
+
+
+    return doc

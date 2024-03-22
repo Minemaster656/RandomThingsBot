@@ -200,18 +200,18 @@ async def askT2I(prompt: str, model: Text2Imgs,
         "censored": False,
         "image": "base64 string"
     }'''
-    print(prompt)
+    # print(prompt)
     output = {
         "code": 200,
         "censored": False,
         "image": ""
     }
-    print("Building headers...")
+    # print("Building headers...")
     headers = {
         'X-Key': f'Key {core.API_KEYS["kandinskiy3"][0]["X-Key"]}',
         'X-Secret': f'Secret {core.API_KEYS["kandinskiy3"][0]["X-Secret"]}',
     }
-    print("Headers build complete...")
+    # print("Headers build complete...")
     params = {
         "type": "GENERATE",
         "numImages": 1,
@@ -256,11 +256,11 @@ async def askT2I(prompt: str, model: Text2Imgs,
     files.add_field(name='params', value=json.dumps(params), content_type='application/json')
     files.add_field(name='model_id', value=str(get_model()))
 
-    print("Data: ", data)
+    # print("Data: ", data)
     url = "https://api-key.fusionbrain.ai/" + "key/api/v1/text2image/run"
-    print("URL: ", url)
-
-    print(isinstance(data, dict))
+    # print("URL: ", url)
+    #
+    # print(isinstance(data, dict))
     uuid = ""
     async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(verify_ssl=False)) as session:
         async with session.post(url, headers=headers, data=files) as response:
@@ -277,7 +277,7 @@ async def askT2I(prompt: str, model: Text2Imgs,
             else:
                 uuid = "NSFW"
 
-            print(response_json)
+            # print(response_json)
 
     async def check_generation(request_id, attempts=10, delay=15):
         while attempts > 0:

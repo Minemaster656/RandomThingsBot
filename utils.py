@@ -1,6 +1,7 @@
 import asyncio
 import codecs
 import datetime
+import difflib
 import hashlib
 import io
 import math
@@ -474,7 +475,13 @@ def parse_duration_string(input_str: str):
     return total_seconds
 def seconds_to_ds_timestamp(seconds, mode:str)->str:
     return f"<t:{int(seconds)}:{mode}>"
-
+def get_utc_ms() -> int:
+    current_time_utc = datetime.datetime.utcnow()
+    timestamp_utc_ms = int(current_time_utc.timestamp() * 1000)
+    return timestamp_utc_ms
+# def cut_differences_in_strings(str1, str2):
+#     '''return tuple: 0th is difference in 1st string, 1st is difference in 2nd string'''
+#     return (difflib.ndiff(str1, str2), difflib.ndiff(str2, str1))
 if __name__ == '__main__':
     ...
 
