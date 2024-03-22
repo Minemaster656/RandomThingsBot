@@ -25,7 +25,7 @@ def schema(document, scheme):
                   "premium_end": 0, "total_reminders": 0, "inventory": {},
                   "birthday_day": 0, "birthday_month": 0, "birthday_year": 0, "activity_changes": [],
                   "access_token": None, "access_token_expires": 0, "LLM_memories": [], "LLM_system_prompt": "",
-                  "NSFW_LLM_memories": [], "NSFW_LLM_system_prompt": [], "triggers_achieved":{}, "call_AI_on_mention":False}
+                  "NSFW_LLM_memories": [], "NSFW_LLM_system_prompt": [], "triggers_achieved":{}, "call_AI_on_mention":True}
         '''banned: 0 - нет бана, 1 - нет команд, 2 - опасный пользователь'''
 
     # if scheme == Schemes.logconfig:

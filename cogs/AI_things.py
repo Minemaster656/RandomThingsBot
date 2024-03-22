@@ -26,7 +26,8 @@ class AI_things(commands.Cog):
         self.default_LLM_prompt = "Ты ИИ. Твоя цель - помогать людям.\n" \
                                   "Не выдавай одни и те же фразы много раз подряд.\n" \
                                   "Отвечай на том же языке, что и пользователь. Вероятно, это будет русский."
-
+        self.cooldowns_history_LLM = {}
+        '''userid:{timestamp:timestamp, ms:ms}'''
 
     async def runKandinsky(self, ctx, prompt, author):
         time_start = time.time()
@@ -141,6 +142,8 @@ class AI_things(commands.Cog):
     async def kandinsky(self, ctx, *, prompt: str):
         await self.runKandinsky(ctx, prompt, f"<@{ctx.author.id}>")
 
+
+
     @commands.cooldown(1, 30, commands.BucketType.member)
     @commands.command(aliases=["ллм", "ии"])
     async def call_Mixtral(self, ctx: commands.Context, *, prompt: str):
@@ -156,7 +159,7 @@ class AI_things(commands.Cog):
         # if ctx.author.id in bannedIDs:
             await ctx.reply("Вам запрещено использовать эту команду!")
             return
-        conversation = db.ai_conversations.find_one({"type": f"user_conversation{'_nsfw' if ctx.channel.nsfw else ''}", "userid": ctx.author.id})
+        # conversation = db.ai_conversations.find_one({"type": f"user_conversation{'_nsfw' if ctx.channel.nsfw else ''}", "userid": ctx.author.id})
         # print("-----", "\nConversation after loading: ", conversation)
         async def send_help():
             embed = discord.Embed(title="Руководство по использованию ИИ",description=f"# Команды:\n"
@@ -181,14 +184,14 @@ class AI_things(commands.Cog):
             await send_help()
             user["triggers_achieved"]["used_AI"] = True
 
-
+        conversation = None
         # print(conversation)
         if not conversation:
 
             conversation = d.makeBasicConversation(ctx.author.id, ctx.author.name)
             conversation["type"] = f"user_conversation{'_nsfw' if ctx.channel.nsfw else ''}"
             conversation["tokens_cutoff"]=3000
-            conversation["symbols_cutoff"]=6000
+            conversation["symbols_cutoff"]=3000
             if not ctx.channel.nsfw:
                 conversation["system_prompt"] = user["LLM_system_prompt"] if user[
                     "LLM_system_prompt"] else self.default_LLM_prompt
@@ -197,7 +200,7 @@ class AI_things(commands.Cog):
                 conversation["system_prompt"] = user["NSFW_LLM_system_prompt"] if user["NSFW_LLM_system_prompt"] else self.default_LLM_prompt
                 conversation["memory"]= user["NSFW_LLM_memories"] if user["NSFW_LLM_memories"] else []
                 conversation["NSFW"]=True
-            db.ai_conversations.insert_one(conversation)
+            # db.ai_conversations.insert_one(conversation)
         # print(conversation)
         async with ctx.typing():
 
@@ -245,18 +248,15 @@ class AI_things(commands.Cog):
             conversation["total_messages"]+=2
             conversation["last_tokens"] = response["total_tokens"]
             conversation["total_tokens"] += response["total_tokens"]
-            print("UPDATING CONVERSATION!!!!!")
-            print(conversation)
-            print(db.ai_conversations.find_one({"type": conversation["type"], "userid": ctx.author.id}), "\n\n\n", conversation)
+
             # temp = utils.cut_differences_in_strings(str({"type": conversation["type"], "userid": ctx.author.id}), str(conversation))
             # print(temp[0], '\n', temp[1])
-            conversation.pop("_id")
-            db.ai_conversations.update_one({"type": conversation["type"], "userid": ctx.author.id}, {"$set": conversation})
-            print("UPDATING USER!!!!!")
-            print(user)
+            # conversation.pop("_id")
+            # db.ai_conversations.update_one({"type": conversation["type"], "userid": ctx.author.id}, {"$set": conversation})
+
             #db.users.update_one({"userid": ctx.author.id}, {"$set": user}) #{"triggers_achieved":user["triggers_achieved"]}
             db.users.update_one({"userid": ctx.author.id}, {"$set": user})
-            tokenInfo = "\n" + f"||Использовано {response['total_tokens']} токен{'ов' if response['total_tokens'] % 100 in (11, 12, 13, 14, 15) else 'а' if response['total_tokens'] % 10 in (2, 3, 4) else '' if response['total_tokens'] % 10 == 1 else 'ов'}||"
+            tokenInfo = "\n" + f"||Использовано {response['total_tokens']} токен{'ов' if response['total_tokens'] % 100 in (11, 12, 13, 14, 15) else 'а' if response['total_tokens'] % 10 in (2, 3, 4) else '' if response['total_tokens'] % 10 == 1 else 'ов'}, суммарно за диалог {conversation['total_tokens']}||"
             output = response['result'] + tokenInfo
             parsed = utils.parseTagInStart(output, "DRAW")
 
@@ -377,6 +377,167 @@ class AI_things(commands.Cog):
                     #
                     # await ctx.send(content)
 
+    @commands.Cog.listener("on_message")
+    async def AI_on_message(self, message:discord.Message):
+        if self.bot.user.mentioned_in(message):
+            # async with ctx.typing():
+            #     output = await AIIO.askBetterLLM([{"role": "system",
+            #                                        f"content": "Отвечай на том же языке, что и пользователь. Скорее всего, это будет русский.\n"
+            #                                                    "Твоя задача - помогать пользователю."},
+            #                                       {"role": "user", "content": prompt}])
+            #     await ctx.reply(output['result'] + f"\n||{output['total_tokens']} использовано токенов||")
+            user = d.getUser(message.author.id, message.author.name)
+            if not user["call_AI_on_mention"]:
+                return
+            if user["banned"] > 0:
+                # bannedIDs=[]
+                # if ctx.author.id in bannedIDs:
+
+                await message.reply("Вам запрещено использовать этого бота!")
+                return
+            if message.author.id in self.cooldowns_history_LLM.keys():
+                if self.cooldowns_history_LLM[message.author.id]["timestamp"]+self.cooldowns_history_LLM[message.author.id]["ms"]>utils.get_utc_ms():
+                    await message.reply(f'Задавать вопрос боту можно раз в 30 сек. Попробуйте снова через {round(((utils.get_utc_ms()-self.cooldowns_history_LLM[message.author.id]["timestamp"]-self.cooldowns_history_LLM[message.author.id]["ms"]))/1000, 2)} сек.', delete_after=4)
+                    return
+
+            conversation = db.ai_conversations.find_one(
+                {"type": f"user_conversation{'_nsfw' if message.channel.nsfw else ''}", "userid": message.author.id})
+
+            # print("-----", "\nConversation after loading: ", conversation)
+            async def send_help():
+                embed = discord.Embed(title="Руководство по использованию ИИ", description=f"# Команды:\n"
+                                                                                           f"- !!редактировать-ии - редактирует параметры, связанные с ИИ. Впишите без аргументов для их отображения.\n"
+                                                                                           f"- !!ллм-ресет - ПОЛНОСТЬЮ сбрасывает диалог с ИИ, но оставляет настройки.\n"
+                                                                                           f"- !!ллм-отчистить - сбрасывает только сообщения в диалоге с ИИ.\n"
+                                                                                           f"- !!ллм-назад - удаляет последнюю пару сообщений в диалоге (ваше и ИИ).\n"
+                                                                                           f"- !!ллм-помощь - Выводит эту справку.\n"
+                                                                                           f"# NSFW\n"
+                                                                                           f"В NSFW каналах диалог с ИИ отдельный. Все команды выше работают отдельно в обычных каналах и их NSFW вариантах.\n"
+                                                                                           f"Насчёт приватности: мы не знаем, как вы показываете диалоги ИИ в NSFW канале, но лично МЫ не проверяем, не модерируем и не сливаем эти диалоги.\n"
+                                                                                           f"# ОТВЕТЫ ИИ НЕ ЗАВИСЯТ ОТ РАЗРАБОТЧИКА БОТА, МОДЕЛИ РОАЗРАБОТАНЫ НЕ ИМ! МЫ НЕ НЕСЁМ ОТВСЕТСТВЕННОСТИ ЗА КОНТЕНТ, СОЗДАННЫЙ ИИ!\n"
+                                                                                           f"## Используемая модель:\n"
+                                                                                           f"[mistralai/Mixtral-8x7B-Instruct-v0.1](https://huggingface.co/mistralai/Mixtral-8x7B-Instruct-v0.1)"
+                                      , colour=Data.getEmbedColor(Data.EmbedColor.Neutral))
+                await message.author.send(embed=embed)
+
+            if "used_AI" in user["triggers_achieved"].keys():
+                if not user["triggers_achieved"]["used_AI"]:
+                    await send_help()
+                    user["triggers_achieved"]["used_AI"] = True
+            else:
+                await send_help()
+                user["triggers_achieved"]["used_AI"] = True
+
+            # print(conversation)
+            if not conversation:
+
+                conversation = d.makeBasicConversation(message.author.id, message.author.name)
+                conversation["type"] = f"user_conversation{'_nsfw' if message.channel.nsfw else ''}"
+                conversation["tokens_cutoff"] = 3000
+                conversation["symbols_cutoff"] = 3000
+                if not message.channel.nsfw:
+                    conversation["system_prompt"] = user["LLM_system_prompt"] if user[
+                        "LLM_system_prompt"] else self.default_LLM_prompt
+                    conversation["memory"] = user["LLM_memories"] if user["LLM_memories"] else []
+                else:
+                    conversation["system_prompt"] = user["NSFW_LLM_system_prompt"] if user[
+                        "NSFW_LLM_system_prompt"] else self.default_LLM_prompt
+                    conversation["memory"] = user["NSFW_LLM_memories"] if user["NSFW_LLM_memories"] else []
+                    conversation["NSFW"] = True
+                db.ai_conversations.insert_one(conversation)
+            # print(conversation)
+            async with message.channel.typing():
+
+
+                payload = []
+                # payload = [{"role": "system", "content": f"Ты ИИ. Твоя цель - помогать людям.\nНе выдавай одни и те же фразы много раз подряд.\nОтвечай на том же языке, что и пользователь. Вероятно, это будет русский."
+                #                                          f"{self.drawprompt if 'рису' in prompt.lower() or 'изобраз' in prompt.lower() else ''}"},
+                #            # Если в ответе ты начинаешь повторять одно и то же, перкрати ответ.
+                #            ]
+
+                memories_str = ""
+                for m in conversation["memory"]:
+                    memories_str += "\n".join(m)
+                payload.append({"role": "system", "content": conversation["system_prompt"] + memories_str})
+                for msg in conversation["history"]:
+                    payload.append(msg)
+                if message.reference:
+                    payload.append({"role": "user",
+                                    "content": f"[ОТВЕТ НА СООБЩЕНИЕ ОТ {f'ДРУГОГО ПОЛЬЗОВАТЕЛЯ: {message.reference.resolved.author.name}' if message.reference.resolved.author.id != message.author.id else 'СЕБЯ'}. ТЕСТ СООБЩЕНИЯ:\n{message.reference.resolved.content}]"})
+                payload.append({"role": "user", "content": message.content})
+
+                # print(payload)
+                def calc_history_size(payload_history):
+                    o = 0
+                    print(payload_history)
+                    for msg in payload_history:
+                        print(msg)
+                        o += len(msg["content"])
+                    print(o)
+                    return o
+
+                # calc_history_size(payload)
+
+                if conversation["total_tokens"] > conversation["tokens_cutoff"]:
+                    while calc_history_size(conversation["history"]) > conversation["symbols_cutoff"]:
+                        print(conversation["history"])
+                        conversation["history"].pop(0)
+                        payload.pop(1)
+
+                response = await AIIO.askBetterLLM(payload)  # conversation["max_tokens"]
+                # {"result":result, "output":payload, "total_tokens":total_tokens}
+                conversation["history"].append({"role": "user", "content": message.content})
+                if message.reference:
+                    if message.reference.resolved.author.id != self.bot.user.id:
+                        conversation["history"].append({"role": "user",
+                                                        "content": f"[ОТВЕТ НА СООБЩЕНИЕ ОТ {f'ДРУГОГО ПОЛЬЗОВАТЕЛЯ: {message.reference.resolved.author.name}' if message.reference.resolved.author.id != message.author.id else 'СЕБЯ'}. ТЕСТ СООБЩЕНИЯ:\n{message.reference.resolved.content}]"})
+
+                        conversation["total_messages"] += 1
+                conversation["history"].append({"role": "assistant", "content": response['result']})
+                conversation["last_message_utc"] = utils.get_utc_ms()
+                conversation["total_messages"] += 2
+                conversation["last_tokens"] = response["total_tokens"]
+                conversation["total_tokens"] += response["total_tokens"]
+                print("UPDATING CONVERSATION!!!!!")
+                print(conversation)
+                print(db.ai_conversations.find_one({"type": conversation["type"], "userid": message.author.id}), "\n\n\n",
+                      conversation)
+                # temp = utils.cut_differences_in_strings(str({"type": conversation["type"], "userid": ctx.author.id}), str(conversation))
+                # print(temp[0], '\n', temp[1])
+                conversation.pop("_id")
+                db.ai_conversations.update_one({"type": conversation["type"], "userid": message.author.id},
+                                               {"$set": conversation})
+                print("UPDATING USER!!!!!")
+                print(user)
+                async def send_help_me():
+                    embed = discord.Embed(title="ПАМАГИТИ!!!",description=f"Не, ну я конечно ценю ваш энтузиазм и всё такое, но блин... У меня нет монетизации, и хоть токены и достаточно дешёвые,"
+                                                                          f" но блин... В вашем диалоге их было потрачено уже больше, чем добрый десяток тысяч! 1 диалог то ещё ничего, но "
+                                                                          f"если масштабировать, то выйдёт сотни тысяч токенов в день, если не миллионы. Я хочу плакац, это слишком много.\n"
+                                                                          f"-Разработчик бота",colour=Data.getEmbedColor(Data.EmbedColor.Error))
+                    await message.author.send(embed=embed)
+                if conversation['total_tokens'] > 15000:
+                    if "big_AI_conversation" in user["triggers_achieved"].keys():
+                        if not user["triggers_achieved"]["big_AI_conversation"]:
+                            await send_help_me()
+                            user["triggers_achieved"]["big_AI_conversation"] = True
+                    else:
+                        await send_help_me()
+                        user["triggers_achieved"]["big_AI_conversation"] = True
+                # db.users.update_one({"userid": ctx.author.id}, {"$set": user}) #{"triggers_achieved":user["triggers_achieved"]}
+                db.users.update_one({"userid": message.author.id}, {"$set": user})
+                tokenInfo = "\n" + f"||Использовано {response['total_tokens']} токен{'ов' if response['total_tokens'] % 100 in (11, 12, 13, 14, 15) else 'а' if response['total_tokens'] % 10 in (2, 3, 4) else '' if response['total_tokens'] % 10 == 1 else 'ов'}, суммарно за диалог {conversation['total_tokens']}||"
+                output = response['result'] + tokenInfo
+                parsed = utils.parseTagInStart(output, "DRAW")
+
+                # if parsed[1] != "":
+                #     await self.runKandinsky(ctx, parsed[1], f"ИИ по просьбе <@{message.author.id}>")
+
+                output = parsed[2]
+                # embed = discord.Embed(title="Информация о генерации",description=f"",colour=Data.getEmbedColor(Data.EmbedColor.Neutral))
+                outputs = utils.split_string(output, 2000, len(tokenInfo))
+                for content in outputs:
+                    await message.reply(content)
+                self.cooldowns_history_LLM[message.author.id]={"timestamp":utils.get_utc_ms(), "ms":30000}
 
 def setup(bot):
     bot.add_cog(AI_things(bot))
