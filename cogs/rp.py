@@ -424,7 +424,9 @@ class RP(commands.Cog):
         embed = discord.Embed(title=f"Персонаж {utils.formatStringLength(doc['name'], 120)}",
                               description=f"{utils.formatStringLength(doc['bio'], 4000)}",
                               colour=Data.embedColors["Warp"])
-        embed.add_field(name="Данные", value=f"Автор: <@{doc['owner']}>\nID: ``{doc['id']}``\n[Открыть на сайте](https://glitchdev.ru/character/{doc['id']})", inline=False)
+        embed.add_field(name="Данные",
+                        value=f"Автор: <@{doc['owner']}>\nID: ``{doc['id']}``\n[Открыть на сайте](https://glitchdev.ru/character/{doc['id']})",
+                        inline=False)
         embed.add_field(name="Рост, вес, возраст, мир", value=f"{doc['bodystats']}\n{doc['age']} лет",
                         inline=False)
         embed.add_field(name="Способности", value=f"{utils.formatStringLength(doc['abilities'], 1024)}",
@@ -905,25 +907,19 @@ class RP(commands.Cog):
             if response == "No token":
                 response = await AIIO.askLLM(payload, AIIO.LLMs.GIGACHAT, 3, AIIO.gigachat_temptoken)
 
-
             resp = response[0]
             tokens = response[1]['total_tokens']
             tokenInfo = "\n" + f"||Использовано {tokens} токен{'ов' if tokens % 100 in (11, 12, 13, 14, 15) else 'а' if tokens % 10 in (2, 3, 4) else '' if tokens % 10 == 1 else 'ов'}||"
             output = resp + tokenInfo
 
-
-
-
-
             outputs = utils.split_string(output, 2000, len(tokenInfo))
             for content in outputs:
-                print( "|||", content)
+                print("|||", content)
 
                 await ctx.respond(content)
                 # print("...")
                 #
                 # await ctx.send(content)
-
 
             # await ctx.respond()
             # else:

@@ -47,7 +47,6 @@ class Interchat(commands.Cog):
                     else:
                         thread = None
 
-
                     send = False
                     found = True
                     # Поиск сервера по ID
@@ -86,7 +85,8 @@ class Interchat(commands.Cog):
                                         # print(udoc)
                                         embed = discord.Embed(title="⤴️ Reply",
                                                               description=f"{message.reference.resolved.content}",
-                                                              colour=Data.embedColors["Neutral"] #if not udoc else int(udoc["color"])
+                                                              colour=Data.embedColors["Neutral"]
+                                                              # if not udoc else int(udoc["color"])
                                                               )
                                         embed.set_author(name=message.reference.resolved.author.name,
                                                          icon_url=message.reference.resolved.author.avatar.url if message.reference.resolved.author.avatar else message.reference.resolved.author.default_avatar.url)
@@ -152,8 +152,8 @@ class Interchat(commands.Cog):
         try:
             target = {'guild': message.guild.id, 'channel': message.channel.id}
             if isinstance(message.channel, discord.Thread):
-                target['thread']=message.channel.id
-                target['channel']=message.channel.parent.id
+                target['thread'] = message.channel.id
+                target['channel'] = message.channel.parent.id
 
         except:
             target = {'guild': 0, 'channel': 0}
@@ -165,11 +165,12 @@ class Interchat(commands.Cog):
                     for object in Data.interchats[hub]:
                         if target['guild'] == object['guild'] and target['channel'] == object['channel']:
                             # найдено
-                            #print("THIS IS INTERCHAT")
+                            # print("THIS IS INTERCHAT")
                             if message.author.id in Data.interbans:
                                 await message.add_reaction("🔒")
                             else:
-                                if ("thread" in object.keys() and "thread" in target.keys()) or (not "thread" in object.keys() and not "thread" in target.keys()):
+                                if ("thread" in object.keys() and "thread" in target.keys()) or (
+                                        not "thread" in object.keys() and not "thread" in target.keys()):
                                     await interchat(hub, message, name, avatar, target)
                             # print("FOUND pair normal")
                             break

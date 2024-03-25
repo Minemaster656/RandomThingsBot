@@ -26,13 +26,12 @@ class ConfirmSavePreset(discord.ui.View):
         result = {}
         if self.category == "channels":
             for channel in interaction.guild.channels:
-
-                result[str(channel.id)]=channel.name
-        elif self.category=="roles":
+                result[str(channel.id)] = channel.name
+        elif self.category == "roles":
             for role in interaction.guild.roles:
-                result[str(role.id)]=role.name
-        doc['presets'][self.category][self.slot]=result
-        db.servers.update_one({"serverid":guildid}, {"$set":doc})
+                result[str(role.id)] = role.name
+        doc['presets'][self.category][self.slot] = result
+        db.servers.update_one({"serverid": guildid}, {"$set": doc})
         self.value = True
         self.stop()
 
@@ -41,6 +40,8 @@ class ConfirmSavePreset(discord.ui.View):
         await interaction.response.edit_message(content="Отменено.", view=None)
         self.value = False
         self.stop()
+
+
 class ConfirmLoadPreset(discord.ui.View):
     def __init__(self, slot, category):
         super().__init__()
@@ -50,7 +51,8 @@ class ConfirmLoadPreset(discord.ui.View):
 
     @discord.ui.button(label="Да", style=discord.ButtonStyle.green)
     async def confirm_callback(self, button: discord.ui.Button, interaction: discord.Interaction):
-        await interaction.response.edit_message(content="Выполняется. К сожалению, вывести сообщение о выполнении не удастся.", view=None)
+        await interaction.response.edit_message(
+            content="Выполняется. К сожалению, вывести сообщение о выполнении не удастся.", view=None)
 
         guildid = interaction.guild_id
         print(self.slot, self.category)
@@ -62,14 +64,14 @@ class ConfirmLoadPreset(discord.ui.View):
         print(result)
         print(result.keys())
         print(self.category)
-        if self.category=="channels":
+        if self.category == "channels":
             for k in result.keys():
                 try:
                     await interaction.guild.get_channel(int(k)).edit(name=result[k])
                     print(k, " ", result[k])
                 except:
                     print(f"Excepted on {k}")
-        elif self.category=="roles":
+        elif self.category == "roles":
             for k in result.keys():
                 try:
                     await interaction.guild.get_role(int(k)).edit(name=result[k])
@@ -127,7 +129,9 @@ class GuildTools(commands.Cog):
                 await ctx.respond("Для доступа к слотам 11-20 нужен премиум у Вас или владельца сервера!",
                                   ephemeral=True)
                 return
-        embed = discord.Embed(title="Вы уверены?",description=f"Вы уверены? Это действие перезапишет слот {slot} в категории {str(category).lower()}!\nПосмотреть содержимое слота можно командой /сервер посмотреть-пресет",colour=Data.getEmbedColor(Data.EmbedColor.Economy))
+        embed = discord.Embed(title="Вы уверены?",
+                              description=f"Вы уверены? Это действие перезапишет слот {slot} в категории {str(category).lower()}!\nПосмотреть содержимое слота можно командой /сервер посмотреть-пресет",
+                              colour=Data.getEmbedColor(Data.EmbedColor.Economy))
         view = ConfirmSavePreset(slot_num, category_key)
         await ctx.respond(embed=embed, view=view)
 
@@ -192,10 +196,14 @@ class GuildTools(commands.Cog):
         result = doc["presets"][category_key][slot_num]
         value = ""
         for v in result.values():
-            value+=v+"\n"
-        if value=="":
-            value="Слот пуст!"
-        embed = discord.Embed(title=f"Содержимое пресета {category}:{slot}",description=f"{utils.formatStringLength(value, 3990)}",colour=Data.getEmbedColor(Data.EmbedColor.Success))
+            value += v + "\n"
+        if value == "":
+            value = "Слот пуст!"
+        embed = discord.Embed(title=f"Содержимое пресета {category}:{slot}",
+                              description=f"{utils.formatStringLength(value, 3990)}",
+                              colour=Data.getEmbedColor(Data.EmbedColor.Success))
         await ctx.respond(embed=embed)
+
+
 def setup(bot):
     bot.add_cog(GuildTools(bot))

@@ -4,6 +4,7 @@ from discord.ext import commands, tasks
 import socket
 import select
 
+
 class PingCog(commands.Cog):
     # инициализируем cog
     def __init__(self, bot):
@@ -27,9 +28,9 @@ class PingCog(commands.Cog):
             conn.close()
 
     def cog_unload(self):
-            self.listen_ping.cancel()
-            self.s.close()
+        self.listen_ping.cancel()
+        self.s.close()
+
 
 def setup(bot):
     bot.add_cog(PingCog(bot))
-

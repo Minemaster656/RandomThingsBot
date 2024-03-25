@@ -13,6 +13,7 @@ class Moderation(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+
     @commands.command(aliases=["маты", "брань", "swears", "swear"])
     async def checkSwear(self, ctx, *, line):
         async with ctx.typing():
@@ -22,6 +23,7 @@ class Moderation(commands.Cog):
             # print("LINE: ", line)
             # print(line_checked)
             await ctx.reply(utils.formatStringLength("Ругань: \n" + line_checked, 1950))
+
 
 def setup(bot):
     bot.add_cog(Moderation(bot))

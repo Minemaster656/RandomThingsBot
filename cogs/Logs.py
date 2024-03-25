@@ -7,6 +7,7 @@ import utils
 from Data import db
 import datetime
 
+
 class Logs(commands.Cog):
     ''' Logs | BOT COG'''
     name = "Logs"
@@ -36,14 +37,14 @@ class Logs(commands.Cog):
             doc["channels"][category] = channel.id
             db.logscfg.update_one({"id": ctx.guild.id}, {"$set": doc})
         else:
-            default_channels={}
+            default_channels = {}
             default_states = {}
             for k in self.events:
-                default_states[k]=0
-                default_channels[k]=0
+                default_states[k] = 0
+                default_channels[k] = 0
             doc = {"id": ctx.guild.id, "states": default_states, "channels": default_channels}
-            doc["states"][category]=parsedmode
-            doc["channels"][category]=channel.id
+            doc["states"][category] = parsedmode
+            doc["channels"][category] = channel.id
 
             db.logscfg.insert_one(doc)
         embed = discord.Embed(title="Лог настроен!",
@@ -51,21 +52,23 @@ class Logs(commands.Cog):
                               colour=Data.embedColors["Success"])
         await ctx.respond(embed=embed)
 
-
     async def sendLog(self, category, embed):
         ...
+
     @commands.Cog.listener("on_member_ban")
     async def on_member_ban(self, guild, user):
-        doc = db.logscfg.find_one({"id":guild.id})
+        doc = db.logscfg.find_one({"id": guild.id})
         if doc:
             channel = guild.get_channel(doc["channels"]["Баны"])
             state = doc["states"]["Баны"]
-            if channel and state>0:
+            if channel and state > 0:
                 try:
                     hook = await utils.initWebhook(channel, self.bot.user.id)
                     if not hook:
                         return
-                    embed = discord.Embed(title="Бан пользователя",description=f"Пользователь `{user.name}` был забанен!",colour=discord.Colour.red())
+                    embed = discord.Embed(title="Бан пользователя",
+                                          description=f"Пользователь `{user.name}` был забанен!",
+                                          colour=discord.Colour.red())
                     if isinstance(user, discord.Member):
                         result = ', '.join([f'<@&{role.id}>' for role in user.roles[1:]])
                         output = f'{result}, ' if len(user.roles) > 1 else ''
@@ -73,10 +76,10 @@ class Logs(commands.Cog):
                                    f"**Роли:**{output}"
                     else:
                         userdata = "Больше информации не найдено."
-                    embed.add_field(name="Дополнительная информация", value=f"Аккаунт создан <t:{'AAA'}:R>\n"+userdata
-                                                                            , inline=False)
+                    embed.add_field(name="Дополнительная информация", value=f"Аккаунт создан <t:{'AAA'}:R>\n" + userdata
+                                    , inline=False)
                     embed.set_footer(text=f"ID: {user.id}")
-                    if state>1:
+                    if state > 1:
                         ...
                     await hook.send(avatar_url=Data.webhook_avatar_url, username=f"{self.bot.user.name} | 📚Логи",
                                     embed=embed)
@@ -132,10 +135,8 @@ class Logs(commands.Cog):
                 if state > 1:
                     ...
                 await hook.send(avatar_url=Data.webhook_avatar_url, username=f"{self.bot.user.name} | 📚Логи",
-                                embed=embed,content="** **")
+                                embed=embed, content="** **")
                 print("SENT")
-
-
 
                 # except:
                 #     ...

@@ -84,7 +84,6 @@ class Utilities(commands.Cog):
                 match = match[2:-1]
             return matches
 
-
         for doc in db.reminders.find({"expires": {"$lt": time.time()}}):
             # print(doc)
             channel = self.bot.get_channel(doc['channel'])
@@ -137,14 +136,15 @@ class Utilities(commands.Cog):
             "created": time.time(),
             "expires": expire,
             "id": user["total_reminders"] + 1,
-            "channel":ctx.channel.id
+            "channel": ctx.channel.id
         }
 
         user["total_reminders"] += 1
         db.users.update_one({"userid": user['userid']}, {"$set": user})
         db.reminders.insert_one(doc)
-        await ctx.reply(f"Напоминание создано с ID {user['total_reminders']}! Оповещение {utils.seconds_to_ds_timestamp(expire, 'R')}!\n"
-                        f"Удалить напоминание можно командой `{Data.preffix}удалить-напоминание`, а посмотреть все - `{Data.preffix}напоминания`")
+        await ctx.reply(
+            f"Напоминание создано с ID {user['total_reminders']}! Оповещение {utils.seconds_to_ds_timestamp(expire, 'R')}!\n"
+            f"Удалить напоминание можно командой `{Data.preffix}удалить-напоминание`, а посмотреть все - `{Data.preffix}напоминания`")
 
     @commands.command(aliases=["напоминания"])
     async def reminders(self, ctx: commands.Context):
@@ -159,16 +159,17 @@ class Utilities(commands.Cog):
         await ctx.reply(embed=embed)
 
     @commands.command(aliases=["удалить-напоминание"])
-    async def deleteReminder(self, ctx: commands.Context, id:int=-1):
-        if id <0:
+    async def deleteReminder(self, ctx: commands.Context, id: int = -1):
+        if id < 0:
             await ctx.reply("Некорректный ID напоминания!", delete_after=5)
             return
         else:
             try:
-                db.reminders.delete_one({"author":ctx.author.id, "id":id})
+                db.reminders.delete_one({"author": ctx.author.id, "id": id})
                 await ctx.reply("Напоминание удалено!")
             except:
                 await ctx.reply("Напоминание не найдено!")
+
     async def massChannelsEdit(self, ctx,
                                mode: Option(str, description="Режим работы", required=False,
                                             choices=["Справка", "Имя", "Копировать права", "DEBUG"]) = None,  #
@@ -398,6 +399,7 @@ class Utilities(commands.Cog):
 
                 except:
                     ...
+
     @commands.command(aliases=["токен", "token", "токендоступа", "токен-доступа", "access-token"])
     async def update_user_token(self, ctx: commands.Context):
         doc = d.getUser(ctx.author.id, ctx.author.name)
@@ -406,7 +408,8 @@ class Utilities(commands.Cog):
         token = token[:8]
         print(token)
         expire_at = int(time.time()) + 14400
-        db.users.update_one({"userid": ctx.author.id}, {"$set": {"access_token": token, "access_token_expires": expire_at}})
+        db.users.update_one({"userid": ctx.author.id},
+                            {"$set": {"access_token": token, "access_token_expires": expire_at}})
         await ctx.author.send(f"# Токен доступа обновлён!\n"
                               f"Никому не показывайте его!\n"
                               f"Токен: {token}\n"
@@ -415,7 +418,6 @@ class Utilities(commands.Cog):
                               f"Не отправляйте токен никому! Он предназначен ТОЛЬКО для использования [на нашем сайте](https://glitchdev.ru).\n"
                               f"Токен одноразовый.")
         await ctx.message.delete()
-
 
 
 def setup(bot):

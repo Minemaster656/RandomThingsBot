@@ -20,7 +20,6 @@ import utils
 import assets.resources.tataroCards as tataro
 
 
-
 class fun(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -42,8 +41,8 @@ class fun(commands.Cog):
                           reset: Option(bool, description="True для отчистки поля", required=False) = False):
         channel = ctx.channel
         if await Data.parsePermissionFromUser(ctx.author.id, "root") or (
-                await Data.parsePermissionFromUser(ctx.author.id, "verified") and True):#(
-                #ctx.author.permissions.administrator or ctx.author.permissions.manage_channels)):
+                await Data.parsePermissionFromUser(ctx.author.id, "verified") and True):  # (
+            # ctx.author.permissions.administrator or ctx.author.permissions.manage_channels)):
             # with open('private/data.json', 'r') as file:
             #     try:
             #         data = json.load(file)
@@ -158,14 +157,13 @@ class fun(commands.Cog):
         else:
             await ctx.reply("Нет такого кода.")
 
-
     # @commands.command(aliases=["бассбуст"])
     # async def bassboost(self, ctx):
 
     @commands.command(aliases=["таро", "гадание", "карты", "татаро"])
     async def tataro(self, ctx: commands.Context):
         user = d.getUser(ctx.author.id, ctx.author.name)
-        updateUserDoc=False
+        updateUserDoc = False
         card = choice(tataro.cards)
         file = None
         if not "image" in card.keys():
@@ -182,11 +180,9 @@ class fun(commands.Cog):
                 ...
             else:
 
+                exec(card["code"])  # TODO: убарть ивал
 
-
-                exec(card["code"]) #TODO: убарть ивал
-
-                updateUserDoc=True
+                updateUserDoc = True
 
                 ...
         content = f"# {card['name']}\n" \
@@ -197,12 +193,8 @@ class fun(commands.Cog):
             await ctx.send(card["image"])
 
         if updateUserDoc:
-            user["money"]=round(user["money"], 5)
-            db.users.update_one({"userid":ctx.author.id}, {"$set":user})
-
-
-
-
+            user["money"] = round(user["money"], 5)
+            db.users.update_one({"userid": ctx.author.id}, {"$set": user})
 
 
 def setup(bot):

@@ -440,14 +440,15 @@ async def urls2files(urls):
 def parse_duration_string(input_str: str):
     input_str = input_str.lower()
     time_units = {
-        'г': 31536000, "го":31536000, "год":31536000, "годов":31536000, "года":31536000, "годо":31536000,
-        "y":31536000, "yr":31536000,"ye":31536000,"year":31536000,"years":31536000,"yrs":31536000, "yars":31536000,# год
+        'г': 31536000, "го": 31536000, "год": 31536000, "годов": 31536000, "года": 31536000, "годо": 31536000,
+        "y": 31536000, "yr": 31536000, "ye": 31536000, "year": 31536000, "years": 31536000, "yrs": 31536000,
+        "yars": 31536000,  # год
 
-        'ме': 2628000, "мес":2628000, "месяцев":2628000, "месяцов":2628000, "мсц":2628000, "месц":2628000,
-        "mo":2628000, "mth":2628000, "mths":2628000, "month":2628000, "months":2628000,# месяц (средний)
+        'ме': 2628000, "мес": 2628000, "месяцев": 2628000, "месяцов": 2628000, "мсц": 2628000, "месц": 2628000,
+        "mo": 2628000, "mth": 2628000, "mths": 2628000, "month": 2628000, "months": 2628000,  # месяц (средний)
 
-        'нед': 604800,"не":604800, "н":604800, "неде":604800, "недель":604800, "неделя":604800,
-        "week":604800, "we":604800, "wek":604800, "w":604800, "weeks":604800,# неделя
+        'нед': 604800, "не": 604800, "н": 604800, "неде": 604800, "недель": 604800, "неделя": 604800,
+        "week": 604800, "we": 604800, "wek": 604800, "w": 604800, "weeks": 604800,  # неделя
 
         'д': 86400, "d": 86400, "day": 86400, "день": 86400, "da": 86400, "де": 86400, "дн": 86400, "days": 86400,
         "дня": 86400, "дней": 86400,  # день
@@ -473,12 +474,18 @@ def parse_duration_string(input_str: str):
         #     return None
 
     return total_seconds
-def seconds_to_ds_timestamp(seconds, mode:str)->str:
+
+
+def seconds_to_ds_timestamp(seconds, mode: str) -> str:
     return f"<t:{int(seconds)}:{mode}>"
+
+
 def get_utc_ms() -> int:
     current_time_utc = datetime.datetime.utcnow()
     timestamp_utc_ms = int(current_time_utc.timestamp() * 1000)
     return timestamp_utc_ms
+
+
 # def cut_differences_in_strings(str1, str2):
 #     '''return tuple: 0th is difference in 1st string, 1st is difference in 2nd string'''
 #     return (difflib.ndiff(str1, str2), difflib.ndiff(str2, str1))

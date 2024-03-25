@@ -22,6 +22,8 @@ class MyView(discord.ui.View):  # Create a class called MyView that subclasses d
     async def button_callback(self, button, interaction):
         await interaction.response.send_message(
             "You clicked the button!")  # Send a message when the button is clicked
+
+
 class Tests(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -39,10 +41,9 @@ class Tests(commands.Cog):
     #         webhook = await channel.create_webhook(name=str(webhook_name), avatar=avatar_bytes)
     #     user = ctx.author
     #     await webhook.send(f'Username: **{user.name}**, server: **{ctx.guild.name}**', username=user.name)#,
-                           #
+    #
 
-
-        #avatar_url=user.avatar_url)
+    # avatar_url=user.avatar_url)
 
     # @commands.command(aliasses=["шахматы"])
     # async def chessboard(ctx):
@@ -74,19 +75,20 @@ class Tests(commands.Cog):
     #     # Отправляем шахматную доску в качестве сообщения
     #     await ctx.send(file=discord.File(chessboard, 'chessboard.png'))
 
-
     @commands.slash_command()  # Create a slash command
     async def button(self, ctx):
         await ctx.respond("This is a button!",
                           view=MyView())  # Send a message with our View class that contains the button
-    @commands.slash_command(name="тест-форматтера",description="Тестирование форматирования строк", guilds=Data.test_guilds)
-    async def test_formatter(self, ctx, text : Option(str, description="Строка", required=True)=" ", length : Option(int, description="Максимальная длина", required=True)=10):
-        embed = discord.Embed(title="Информация о строке",description=f"Длина исходной строки - {len(text)}"
-                                                                      f"\nДлина выходной строки - {len(str(utils.formatStringLength(text, length)))}",colour=0xffffff)
-        await ctx.respond(utils.formatStringLength(text, length),embed=embed)
+
+    @commands.slash_command(name="тест-форматтера", description="Тестирование форматирования строк",
+                            guilds=Data.test_guilds)
+    async def test_formatter(self, ctx, text: Option(str, description="Строка", required=True) = " ",
+                             length: Option(int, description="Максимальная длина", required=True) = 10):
+        embed = discord.Embed(title="Информация о строке", description=f"Длина исходной строки - {len(text)}"
+                                                                       f"\nДлина выходной строки - {len(str(utils.formatStringLength(text, length)))}",
+                              colour=0xffffff)
+        await ctx.respond(utils.formatStringLength(text, length), embed=embed)
 
 
 def setup(bot):
     bot.add_cog(Tests(bot))
-
-

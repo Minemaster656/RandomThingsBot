@@ -7,9 +7,11 @@ import perlin_noise
 from discord import Option
 from random import *
 
+
 class Game(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+
     # @commands.slash_command(name="сгенерировать-карту",description="Генерирует мир")
     # async def genmap(self, ctx, x : Option(float, description="Координата x",required=True), y : Option(float, description="Координата x",required=True),
     #                  seed : Option(float, description="Сид",required=True),octaves : Option(float, description="Октавы",required=True),iterations : Option(int, description="Итерации добавления для отладки",required=True),add : Option(float, description="Добавление за итерацию для отладки",required=True),):
@@ -35,18 +37,21 @@ class Game(commands.Cog):
                      rd: Option(int, description="Дистанция прорисовки", required=True),
                      cx: Option(int, description="Позиция камеры по x", required=True),
                      cy: Option(int, description="Позиция камеры по y", required=True),
-                     seed: Option(float, description="Сид. Оставьте пустым для случайного.", required=False)=None, scale : Option(float, description="Умножение результата шума", required=False)=2.0, octaves : Option(float, description="Октавы шума", required=False)=1):
-
+                     seed: Option(float, description="Сид. Оставьте пустым для случайного.", required=False) = None,
+                     scale: Option(float, description="Умножение результата шума", required=False) = 2.0,
+                     octaves: Option(float, description="Октавы шума", required=False) = 1):
 
         octaves = octaves
 
         shift = 0.2
         async with ctx.typing():
-            if seed==None:
-                seed=randint(0, 100000)
+            if seed == None:
+                seed = randint(0, 100000)
 
             noise = perlin_noise.PerlinNoise(octaves=octaves, seed=seed)
-            noises = {"height": perlin_noise.PerlinNoise(octaves=octaves, seed=seed+1000), "humidity": perlin_noise.PerlinNoise(octaves=octaves, seed=seed+5000), "temperature": perlin_noise.PerlinNoise(octaves=octaves, seed=seed+9000)}
+            noises = {"height": perlin_noise.PerlinNoise(octaves=octaves, seed=seed + 1000),
+                      "humidity": perlin_noise.PerlinNoise(octaves=octaves, seed=seed + 5000),
+                      "temperature": perlin_noise.PerlinNoise(octaves=octaves, seed=seed + 9000)}
 
             def fill_array(size):
 
@@ -56,8 +61,8 @@ class Game(commands.Cog):
                 for i in range(size[0]):
                     for j in range(size[1]):
                         array_hgh[i, j] = gen_cell(j, i, "height")
-                        array_hum[i, j]= gen_cell(j, i, "humidity")
-                        array_tmp[i, j]= gen_cell(j, i, "temperature")
+                        array_hum[i, j] = gen_cell(j, i, "humidity")
+                        array_tmp[i, j] = gen_cell(j, i, "temperature")
 
                 return (array_hgh, array_hum, array_tmp)
 
@@ -76,10 +81,10 @@ class Game(commands.Cog):
                         output_hgh = False
                         output_hum = False
                         output_tmp = False
-                        if array0[i, j]*scale<=0:#abs(array[i, j])*scale<0.5:
-                            out+="⬛"
+                        if array0[i, j] * scale <= 0:  # abs(array[i, j])*scale<0.5:
+                            out += "⬛"
                         else:
-                            out+="⬜"
+                            out += "⬜"
                         # if array0[i, j]*scale<=0:#abs(array[i, j])*scale<0.5:
                         #     output_hgh=True
                         # else:
@@ -108,17 +113,18 @@ class Game(commands.Cog):
                         #     else:
                         #         out+="🧊"
 
-
                         # abs(array[i, j])*100
 
-
-                    out+="\n"
+                    out += "\n"
 
                 return (out)
-            arrays = fill_array((size,size))
+
+            arrays = fill_array((size, size))
             arr0 = arrays[0]
             arr1 = arrays[1]
             arr2 = arrays[2]
             await ctx.respond(print_array_with_emoji(arr0, arr1, arr2))
+
+
 def setup(bot):
     bot.add_cog(Game(bot))

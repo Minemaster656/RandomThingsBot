@@ -4,6 +4,7 @@ from discord import Option
 import AIIO
 import utils
 
+
 class AGI_RPGM(commands.Cog):
     ''' AGI_RPGM | BOT COG'''
     name = "AGI_RPGM"
@@ -21,7 +22,7 @@ class AGI_RPGM(commands.Cog):
         messages.reverse()
         for message in messages:
             await ctx.reply(message.content)
-            
+
     @commands.cooldown(1, 60, commands.BucketType.user)
     @commands.message_command(name="Сгенерировать РП пост")
     async def gen_RP_post(self, ctx, message: discord.Message):
@@ -30,15 +31,15 @@ class AGI_RPGM(commands.Cog):
 
         messages = await ctx.channel.history(limit=history_size).flatten()
         messages.reverse()
-        messages_content=[]
+        messages_content = []
         total_symbols = 0
         max_symbols = 8000
         for message in messages:
-            if total_symbols<=max_symbols:
-               
+            if total_symbols <= max_symbols:
+
                 if not message.content.startswith("//") and not message.content.startswith("(("):
-                    messages_content.append({"content": message.content, "name":message.author.name})
-                    total_symbols+=len(message.content)
+                    messages_content.append({"content": message.content, "name": message.author.name})
+                    total_symbols += len(message.content)
             else:
                 break
         if False:
@@ -52,45 +53,32 @@ class AGI_RPGM(commands.Cog):
                        # Если в ответе ты начинаешь повторять одно и то же, перкрати ответ.
                        {"role": "user", "content": message.content}]
             for msg in messages_content:
-                if "окружение" in msg["name"].lower() or "NPC" in msg["name"].lower() or "судьба" in msg["name"].lower() or msg["name"]==str(self.bot.user)[:-5]:
-                    payload.append({"role":"assistant", "content":msg['content']})
+                if "окружение" in msg["name"].lower() or "NPC" in msg["name"].lower() or "судьба" in msg[
+                    "name"].lower() or msg["name"] == str(self.bot.user)[:-5]:
+                    payload.append({"role": "assistant", "content": msg['content']})
                 else:
-                    payload.append({"role":"user", "content": "["+msg["name"]+"]: "+msg['content']})
+                    payload.append({"role": "user", "content": "[" + msg["name"] + "]: " + msg['content']})
             # print(payload)
             response = await AIIO.askBetterLLM(payload, 8000)
 
-            
-
-
-            
             tokens = response['total_tokens']
-            resp= response['result']
-     
+            resp = response['result']
+
             tokenInfo = "\n" + f"||Использовано {tokens} токен{'ов' if tokens % 100 in (11, 12, 13, 14, 15) else 'а' if tokens % 10 in (2, 3, 4) else '' if tokens % 10 == 1 else 'ов'}||"
             output = resp + tokenInfo
 
-
-
-
-
             outputs = utils.split_string(output, 2000, len(tokenInfo))
             for content in outputs:
-                print( "|||", content)
+                print("|||", content)
 
                 await ctx.send(content)
                 # print("...")
                 #
                 # await ctx.send(content)
 
-
             # await ctx.respond()
             # else:
             # await ctx.respond("Вы не анкетолог.")
-
-
-
-
-
 
 
 def setup(bot):

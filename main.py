@@ -221,8 +221,6 @@ async def help(ctx):
 #     await ctx.message.delete()
 
 
-
-
 @bot.command()
 async def send_message(ctx):
     message = await ctx.send("Нажми на реакцию ❓, чтобы отправить это сообщение.")

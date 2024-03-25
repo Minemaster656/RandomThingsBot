@@ -20,9 +20,11 @@ from private import coreData as core
 gigachat_temptoken = None
 
 openai = AsyncOpenAI(
-            api_key=private.coreData.API_KEYS["deepinfra"],
-            base_url="https://api.deepinfra.com/v1/openai",
-        )
+    api_key=private.coreData.API_KEYS["deepinfra"],
+    base_url="https://api.deepinfra.com/v1/openai",
+)
+
+
 class LLMs(enum.Enum):
     '''Text generation Large Language Models'''
     ANY = 0
@@ -313,7 +315,8 @@ def kandinskyOutputToFile(gen):
     else:
         return None
 
-async def askBetterLLM(payload:list, max_tokens=512):
+
+async def askBetterLLM(payload: list, max_tokens=512):
     '''payload structure:
         [{"role": "system", "content": "Hello world"},
         {"role": "user", "content": "Hello world"},
@@ -324,10 +327,6 @@ async def askBetterLLM(payload:list, max_tokens=512):
         {"result":result, "output":payload, "total_tokens":total_tokens}
     '''
 
-
-
-
-
     result = "Something went terribly wrong."
     fail = False
     tokens = 0
@@ -336,7 +335,7 @@ async def askBetterLLM(payload:list, max_tokens=512):
         chat_completion = await openai.chat.completions.create(
             model="mistralai/Mixtral-8x7B-Instruct-v0.1",
             # model="mistralai/Mistral-7B-Instruct-v0.1",
-            #model="openchat/openchat_3.5",
+            # model="openchat/openchat_3.5",
             messages=payload,
             max_tokens=max_tokens,
         )
@@ -353,10 +352,4 @@ async def askBetterLLM(payload:list, max_tokens=512):
     if fail:
         payload = payload[:-2]
 
-
-
-
-
-    return {"result":result, "output":payload, "prompt_tokens":tokens, "total_tokens":total_tokens}
-
-
+    return {"result": result, "output": payload, "prompt_tokens": tokens, "total_tokens": total_tokens}
