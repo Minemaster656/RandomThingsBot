@@ -1,5 +1,8 @@
+import asyncio
+import re
+
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 from discord import Option, Forbidden
 
 import Data
@@ -13,6 +16,20 @@ class Interchat(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+        # self.deleted_messages = {}
+        # self.edited_messages = {}
+
+    @tasks.loop(seconds=10)  # Указываете интервал в секундах
+    async def background(self):
+        # print("BG")
+        # for doc in self.deleted_messages:
+        #     if self.deleted_messages[doc]["expires"] < time.time():
+        #         self.deleted_messages.pop(doc)
+        # for doc in self.edited_messages:
+        #     if self.edited_messages[doc]["expires"] < time.time():
+        #         self.edited_messages.pop(doc)
+        # print("BG")
+        ...
 
     def inter_formatName(self, message):
         if not message:
@@ -30,7 +47,8 @@ class Interchat(commands.Cog):
             message.guild.name, 32) + " | " + type
 
     @commands.Cog.listener("on_message")
-    async def interchat_on_message(self, message):
+    async def interchat_on_message(self, message: discord.Message):
+        # await asyncio.sleep(0.25)
         # print("MESSEGE")
         async def interchat(mode, message, hname, havatar, data_pair):  # h - webHook
             # print("DETECTED")
@@ -79,8 +97,21 @@ class Interchat(commands.Cog):
                                 hooks = await channel.webhooks()
 
                                 async def send(hook):
+                                    content = message.content
+                                    if re.search(
+                                            r"(https?:\/\/|http?:\/\/)?(www.)?(discord.(gg|io|me|li)|discordapp.com\/invite|discord.com\/invite)\/[^\s\/]+?(?=\b)",
+                                            content):
+                                        await message.author.send(
+                                            "Приглашения рассылать по интерчату запрещено.\nInvites are blocked in the Interchat.")
+                                        embed = discord.Embed(title="Ваше сообщение | Your message",
+                                                              description=f"{message.content}",
+                                                              colour=Data.getEmbedColor(Data.EmbedColor.Error))
+                                        await message.author.send(embed=embed)
+                                        await message.delete()
+                                        return
 
                                     if message.reference:
+
                                         # udoc = Data.db.users.find_one({"id":message.reference.resolved.author.id})
                                         # print(udoc)
                                         embed = discord.Embed(title="⤴️ Reply",
