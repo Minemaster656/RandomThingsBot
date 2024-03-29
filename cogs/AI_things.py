@@ -25,7 +25,8 @@ class AI_things(commands.Cog):
                           '<$DRAW промпт /$>, замени слово промпт на запрос (описание изображения) для нейросети-художника (Если запрос сложнее простого предмета - в качестве промпта опиши то, что должно быть на картинке). Добавь в конец ответа что-то вроде "Вот ваше изображение:"'
         self.default_LLM_prompt = "Ты ИИ. Твоя цель - помогать людям.\n" \
                                   "Не выдавай одни и те же фразы много раз подряд.\n" \
-                                  "Отвечай на том же языке, что и пользователь. Вероятно, это будет русский."
+                                  "Отвечай на том же языке, что и пользователь. Вероятно, это будет русский." \
+                                  f"Ты - {Data.bot_AI_name}"
         self.cooldowns_history_LLM = {}
         '''userid:{timestamp:timestamp, ms:ms}'''
 
@@ -386,6 +387,7 @@ class AI_things(commands.Cog):
     @commands.Cog.listener("on_message")
     async def AI_on_message(self, message: discord.Message):
         if self.bot.user.mentioned_in(message):
+            usedReply=False
             # async with ctx.typing():
             #     output = await AIIO.askBetterLLM([{"role": "system",
             #                                        f"content": "Отвечай на том же языке, что и пользователь. Скорее всего, это будет русский.\n"
@@ -472,7 +474,8 @@ class AI_things(commands.Cog):
                 if message.reference:
                     payload.append({"role": "user",
                                     "content": f"[ОТВЕТ НА СООБЩЕНИЕ ОТ {f'ДРУГОГО ПОЛЬЗОВАТЕЛЯ: {message.reference.resolved.author.name}' if message.reference.resolved.author.id != message.author.id else 'СЕБЯ'}. ТЕСТ СООБЩЕНИЯ:\n{message.reference.resolved.content}]"})
-                payload.append({"role": "user", "content": message.content})
+                    usedReply = True
+                payload.append({"role": "user", "content": str(message.content).replace(f"<{self.bot.user.id}>", Data.bot_AI_name)})
 
                 # print(payload)
                 def calc_history_size(payload_history):
@@ -506,18 +509,23 @@ class AI_things(commands.Cog):
                 conversation["total_messages"] += 2
                 conversation["last_tokens"] = response["total_tokens"]
                 conversation["total_tokens"] += response["total_tokens"]
-                print("UPDATING CONVERSATION!!!!!")
-                print(conversation)
-                print(db.ai_conversations.find_one({"type": conversation["type"], "userid": message.author.id}),
-                      "\n\n\n",
-                      conversation)
+                # print("UPDATING CONVERSATION!!!!!")
+                # print(conversation)
+                # print(db.ai_conversations.find_one({"type": conversation["type"], "userid": message.author.id}),
+                #       "\n\n\n",
+                #       conversation)
                 # temp = utils.cut_differences_in_strings(str({"type": conversation["type"], "userid": ctx.author.id}), str(conversation))
                 # print(temp[0], '\n', temp[1])
                 conversation.pop("_id")
+                if response['result']=="Something went terribly wrong.":
+                    conversation["history"].pop(len(conversation["history"]) - 1)
+                    conversation["history"].pop(len(conversation["history"]) - 1)
+                    if usedReply:
+                        conversation["history"].pop(len(conversation["history"]) - 1)
                 db.ai_conversations.update_one({"type": conversation["type"], "userid": message.author.id},
                                                {"$set": conversation})
-                print("UPDATING USER!!!!!")
-                print(user)
+                # print("UPDATING USER!!!!!")
+                # print(user)
 
                 async def send_help_me():
                     embed = discord.Embed(title="ПАМАГИТИ!!!",
@@ -547,9 +555,13 @@ class AI_things(commands.Cog):
 
                 output = parsed[2]
                 # embed = discord.Embed(title="Информация о генерации",description=f"",colour=Data.getEmbedColor(Data.EmbedColor.Neutral))
-                outputs = utils.split_string(output, 2000, len(tokenInfo))
-                for content in outputs:
-                    await message.reply(content)
+                if response['result'] != "Something went terribly wrong.":
+                    outputs = utils.split_string(output, 2000, len(tokenInfo))
+                    for content in outputs:
+                        await message.reply(content)
+                else:
+                    embed = discord.Embed(title="Ошибка",description="Ой-ой, кажется что-то пошло не так! Попробуйте позже!",colour=Data.getEmbedColor(Data.EmbedColor.Error))
+                    await message.reply(embed=embed)
                 self.cooldowns_history_LLM[message.author.id] = {"timestamp": utils.get_utc_ms(), "ms": 30000}
 
 

@@ -68,7 +68,11 @@ else:
 
 interhubs = ["normal", "rp", "rp2", "rp_bottomOfTheAbyss", "rp_void", "admins", "normal2", "normal_en", "rp_tavern",
              "rp_cafe", "tests", "rp_mysteriousShop", "memes", "rp_space", "media"]
-interbans = [897193427479973961]
+interbans = [] #897193427479973961
+
+bot_name="Какой-то бот"
+bot_AI_name = "Какой-то бот"
+
 
 
 class EmbedColor(enum.Enum):

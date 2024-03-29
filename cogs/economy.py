@@ -1,3 +1,4 @@
+import random
 import random as rd
 import time
 
@@ -10,6 +11,7 @@ from discord import Option
 from random import *
 
 import Data
+import d
 from Data import db
 import utils
 from Data import cursor
@@ -56,6 +58,8 @@ class Economy(commands.Cog):
                                           f"")
         embed.add_field(name=f"{Data.preffix}искатьДеньги",
                         value="Даёт вам случайное количество деняк. КД раз в минуту.")
+        embed.add_field(name=f"{Data.preffix}казино",
+                        value="КАЗИНО!!! Поставьте сумму и с шансом *50%* получите её в удвоенном размере, ну или потеряйте. КД раз в 10 сек.")
         await ctx.respond(embed=embed)
 
     @commands.command(aliases=["искатьДеньги"])
@@ -67,6 +71,24 @@ class Economy(commands.Cog):
 
         db.users.update_one({"userid": ctx.author.id}, {"$inc": {"money": rand}})
         await ctx.send(f"Получено **{rand}{Data.currency}**")
+
+    @commands.command(aliases=["казино"])
+    @commands.cooldown(1, 10, commands.BucketType.user)
+    async def casino(self, ctx,value:int):
+
+        # rand = rd.randint(0, utils.throwDice(ctx.author.id, ctx.author.name))
+        # rand = utils.throwDice(ctx.author.id, ctx.author.name)
+        user = d.getUser(ctx.author.id, ctx.author.name)
+        if user['money'] >= value:
+            isWin = random.randint(0, 100) < 50
+            db.users.update_one({"userid": ctx.author.id}, {"$inc": {"money": value * 1 if isWin else value * -1}})
+            if isWin:
+                await ctx.send(f"💸 Вы выиграли **{value}**{Data.currency}!")
+            else:
+                await ctx.send(f"🧨 Вы проиграли **{value}**{Data.currency}!")
+        else:
+            await ctx.send(f"Вам не хватает **{value - user['money']}**{Data.currency}!")
+
 
     @cmds.command(name="лидеры", description="Лидеры экономики")
     async def ec_leaders(self, ctx):
@@ -89,9 +111,16 @@ class Economy(commands.Cog):
     @cmds.command(name="перевод-денег", description="Пересылает деньги")
     async def pay(self, ctx, member: Option(discord.Member, description="Кому переслать?", required=True) = None,
                   value: Option(int, description="Сколько переслать?", required=True) = 0):
-        ...
+        user_sender = d.getUser(ctx.author.id, ctx.author.name)
+        user_receiver = d.getUser(member.id, member.name)
+        if user_sender["money"] < value:
+            await ctx.respond(f"Вам нехватает {round(value - user_sender['money'],2)}{Data.currency}!")
+        else:
+            db.users.update_one({"userid": ctx.author.id}, {"$inc": {"money": -value}})
+            db.users.update_one({"userid": member.id}, {"$inc": {"money": value}})
+            await ctx.respond(f"Вы перевели {value}{Data.currency} пользователю {member.mention}!")
 
-    @cmds.command(name="регистрация-предмета", description="Регистрирует новый товар в экономике.")
+    # @cmds.command(name="регистрация-предмета", description="Регистрирует новый товар в экономике.")
     async def registerItem(self, ctx, name: Option(str, description="Название предмета", required=True) = " ",
                            description: Option(str, description="Описание предмета", required=True) = " ",
                            id: Option(str, description="Уникальный ID предмета", required=True) = " ",
