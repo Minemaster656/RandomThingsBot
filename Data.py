@@ -70,8 +70,8 @@ interhubs = ["normal", "rp", "rp2", "rp_bottomOfTheAbyss", "rp_void", "admins", 
              "rp_cafe", "tests", "rp_mysteriousShop", "memes", "rp_space", "media"]
 interbans = [] #897193427479973961
 
-bot_name="Какой-то бот"
-bot_AI_name = "Какой-то бот"
+bot_name="Лягушка"
+bot_AI_name = "Лягушка AI"
 
 
 

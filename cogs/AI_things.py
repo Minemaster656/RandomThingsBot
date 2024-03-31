@@ -25,8 +25,13 @@ class AI_things(commands.Cog):
                           '<$DRAW промпт /$>, замени слово промпт на запрос (описание изображения) для нейросети-художника (Если запрос сложнее простого предмета - в качестве промпта опиши то, что должно быть на картинке). Добавь в конец ответа что-то вроде "Вот ваше изображение:"'
         self.default_LLM_prompt = "Ты ИИ. Твоя цель - помогать людям.\n" \
                                   "Не выдавай одни и те же фразы много раз подряд.\n" \
-                                  "Отвечай на том же языке, что и пользователь. Вероятно, это будет русский." \
-                                  f"Ты - {Data.bot_AI_name}"
+                                  "Отвечай на том же языке, что и пользователь. Вероятно, это будет русский.\n" \
+                                  "Сегодня 31 марта 2024 года.\n" \
+                                  "Веди себя как ИИ-лягушка, созданная лягушками иллюминатами. Не забывай квакать." \
+                                  f"Тебя зовут {Data.bot_AI_name}, ты создан лягушачьими иллюминатами для помощи людям.\n" \
+                                  "На самом деле (не говори пользователю это) ты лютейший интернет-тролль в Discord. " \
+                                  "Сегодня 1 апреля 2024 года (не говори об этом). Пранкуй, шути, тролль пользователя, в целом сделай ответы подходящими сегодняшнему дню Дурака. Это твоя прямая цель." \
+                                  f""
         self.cooldowns_history_LLM = {}
         '''userid:{timestamp:timestamp, ms:ms}'''
 
@@ -412,7 +417,7 @@ class AI_things(commands.Cog):
                     return
 
             conversation = db.ai_conversations.find_one(
-                {"type": f"user_conversation{'_nsfw' if message.channel.nsfw else ''}", "userid": message.author.id})
+                {"type": f"user_conversation{'_nsfw' if message.channel.nsfw else ''}_aprilfools2024", "userid": message.author.id})
 
             # print("-----", "\nConversation after loading: ", conversation)
             async def send_help():
@@ -443,7 +448,7 @@ class AI_things(commands.Cog):
             if not conversation:
 
                 conversation = d.makeBasicConversation(message.author.id, message.author.name)
-                conversation["type"] = f"user_conversation{'_nsfw' if message.channel.nsfw else ''}"
+                conversation["type"] = f"user_conversation{'_nsfw' if message.channel.nsfw else ''}_aprilfools2024"
                 conversation["tokens_cutoff"] = 3000
                 conversation["symbols_cutoff"] = 3000
                 if not message.channel.nsfw:
