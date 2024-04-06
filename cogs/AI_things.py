@@ -28,6 +28,7 @@ class AI_things(commands.Cog):
                                   "Отвечай на том же языке, что и пользователь. Вероятно, это будет русский." \
                                   f"Ты - {Data.bot_AI_name}"
         self.cooldowns_history_LLM = {}
+        self.noimages_prompt = "Пользователь прикрепил вложение, увы, ты нее можешь его посмотреть."
         '''userid:{timestamp:timestamp, ms:ms}'''
 
     async def runKandinsky(self, ctx, prompt, author):
@@ -468,7 +469,7 @@ class AI_things(commands.Cog):
                 memories_str = ""
                 for m in conversation["memory"]:
                     memories_str += "\n".join(m)
-                payload.append({"role": "system", "content": conversation["system_prompt"] + memories_str})
+                payload.append({"role": "system", "content": conversation["system_prompt"] + memories_str + self.noimages_prompt if len(message.attachments)>0 else ''})
                 for msg in conversation["history"]:
                     payload.append(msg)
                 if message.reference:
