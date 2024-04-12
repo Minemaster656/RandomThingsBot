@@ -150,11 +150,12 @@ async def on_command_error(ctx, error):
         print(db)
         print(Data.client)
         await ctx.send(error)
-    if (sendAllExceptionsToChat):
+    if not sendAllExceptionsToChat:
         await ctx.send("Произошла ошибка! Обратитесь к разработчику.")
         print(error)
-    # else:
-    #     await ctx.send(f'Произошла ошибка при выполнении команды: {error}')
+    else:
+        await ctx.send(f'Произошла ошибка при выполнении команды: {error}')
+        print(error)
 
 
 @bot.slash_command(name="настройки-бота", description="Задать определённую настройку бота",

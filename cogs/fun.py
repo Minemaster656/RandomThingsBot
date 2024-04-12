@@ -19,6 +19,9 @@ import utils
 
 import assets.resources.tataroCards as tataro
 
+from PIL import Image, ImageEnhance
+import io
+
 
 class fun(commands.Cog):
     def __init__(self, bot):
@@ -197,5 +200,84 @@ class fun(commands.Cog):
             db.users.update_one({"userid": ctx.author.id}, {"$set": user})
 
 
+    # @commands.command(aliases=["шакал", "шакалайз", "зашакалить"])
+    # async def shakalize(self, ctx, iterations=1):
+    #     MAX_ITERATIONS = 5
+    #     # Проверяем, что количество итераций находится в пределах допустимых значений
+    #     iterations = min(int(iterations), MAX_ITERATIONS)
+    #     if iterations <= 0:
+    #         iterations = 1
+    #
+    #     # Проверяем, что пользователь прикрепил изображение к сообщению
+    #     if len(ctx.message.attachments) == 0:
+    #         await ctx.send("Ошибка: Пожалуйста, прикрепите изображение к вашему сообщению.")
+    #         return
+    #
+    #     # Получаем прикрепленное изображение
+    #     attachment = ctx.message.attachments[0]
+    #     # if attachment.url.lower().endswith(("png", "jpg", "jpeg")):
+    #     image_bytes = await attachment.read()
+    #     print(image_bytes)
+    #     # Обработка изображения
+    #     with Image.open(io.BytesIO(image_bytes)) as img:
+    #         enhancer = ImageEnhance.Contrast(img)
+    #         # for _ in range(iterations):
+    #         # Изменение контрастности
+    #
+    #         img = enhancer.enhance(2.0)
+    #
+    #         # "Повреждение" изображения
+    #         img = img.convert('RGB').quantize(5).convert('RGB')
+    #
+    #         # Сохранение нового изображения
+    #         output = io.BytesIO()
+    #         img.save(output, format='JPEG', quality=10)
+    #         output.seek(0)
+    #
+    #             # Отправка обработанного изображения обратно в чат
+    #         await ctx.send(file=discord.File(output, filename='shakal.jpg'))
+    #     # else:
+    #     #     await ctx.send("Ошибка: Изображение должно быть в форматах PNG или JPEG.")
+
+    @commands.command(aliases=["шакал", "шакалайз", "зашакалить"])
+    async def shakalize(self, ctx, iterations=1):
+        MAX_ITERATIONS=500
+        # Проверяем, что количество итераций находится в пределах допустимых значений
+        iterations = min(int(iterations), MAX_ITERATIONS)
+        if iterations <= 0:
+            iterations = 1
+
+        # Проверяем, что пользователь прикрепил изображение к сообщению
+        if len(ctx.message.attachments) == 0:
+            await ctx.send("Ошибка: Пожалуйста, прикрепите изображение к вашему сообщению.")
+            return
+
+        # Получаем прикрепленное изображение
+        attachment = ctx.message.attachments[0]
+        if True:#attachment.url.lower().endswith(("png", "jpg", "jpeg")):
+            image_bytes = await attachment.read()
+
+            # Обработка изображения
+            with Image.open(io.BytesIO(image_bytes)) as img:
+                # Сохраняем изображение несколько раз с разным качеством JPEG
+                for i in range(iterations):
+                    output = io.BytesIO()
+                    img.save(output, format='JPEG', quality=10 + iterations - i)
+                    output.seek(0)
+                    img = Image.open(output)
+
+                # Усиление контрастности
+                enhancer = ImageEnhance.Contrast(img)
+                img = enhancer.enhance(iterations)
+
+                # Сохранение обработанного изображения
+                final_output = io.BytesIO()
+                img.save(final_output, format='JPEG', quality=10)
+                final_output.seek(0)
+
+                # Отправка обработанного изображения обратно в чат
+                await ctx.send(file=discord.File(final_output, filename='shakal.jpg'))
+        # else:
+        #     await ctx.send("Ошибка: Изображение должно быть в форматах PNG или JPEG.")
 def setup(bot):
     bot.add_cog(fun(bot))
