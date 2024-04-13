@@ -65,7 +65,7 @@ class AI_things(commands.Cog):
                                 inline=False)
 
                 await ctx.reply(embed=embed)
-                await ctx.reply(prompt, file=file)
+                await ctx.reply(prompt, file=file, allowed_mentions=discord.AllowedMentions.none())
 
     # AI_cooldown = commands.CooldownMapping.from_cooldown(1, 30, commands.BucketType.user)
     @commands.cooldown(1, 30, commands.BucketType.member)
@@ -105,7 +105,7 @@ class AI_things(commands.Cog):
             # embed = discord.Embed(title="Информация о генерации",description=f"",colour=Data.getEmbedColor(Data.EmbedColor.Neutral))
             outputs = utils.split_string(output, 2000, len(tokenInfo))
             for content in outputs:
-                await ctx.reply(content)
+                await ctx.reply(content, allowed_mentions=discord.AllowedMentions.none())
 
     # @commands.cooldown(1, 35, commands.BucketType.member)
     # @commands.command(aliases=["атк", "аткгпт", "atk", "ATK", "АТК", "atkgpt"])
@@ -138,7 +138,7 @@ class AI_things(commands.Cog):
             # embed = discord.Embed(title="Информация о генерации",description=f"",colour=Data.getEmbedColor(Data.EmbedColor.Neutral))
             outputs = utils.split_string(output, 2000, len(tokenInfo))
             for content in outputs:
-                await ctx.reply(content)
+                await ctx.reply(content, allowed_mentions=discord.AllowedMentions.none())
 
     @commands.cooldown(1, 15, commands.BucketType.member)
     @commands.command(aliases=["кандинский"])
@@ -274,7 +274,7 @@ class AI_things(commands.Cog):
             # embed = discord.Embed(title="Информация о генерации",description=f"",colour=Data.getEmbedColor(Data.EmbedColor.Neutral))
             outputs = utils.split_string(output, 2000, len(tokenInfo))
             for content in outputs:
-                await ctx.reply(content)
+                await ctx.reply(content, allowed_mentions=discord.AllowedMentions.none())
 
     @commands.command(aliases=["редактировать-ии", "ё-ии"])
     async def edit_ai(self, ctx: commands.Context, field: str = None, *, arg: str = None):
@@ -298,7 +298,7 @@ class AI_things(commands.Cog):
                                               f"- задать-промпт [текст]\n> Задаёт системный промпт. Максимальный размер 300 символов\n\n"
                                               f"- применить\n> Применяет изменения памяти ИИ о Вас а так же заменяет системный промпт в уже существующем диалоге без его сброса.",
                                   colour=Data.getEmbedColor(Data.EmbedColor.Neutral))
-            await ctx.reply(embed=embed)
+            await ctx.reply(embed=embed, allowed_mentions=discord.AllowedMentions.none())
         elif field == "память":
             memory_conv = ""
             memory_user = ""
@@ -313,7 +313,7 @@ class AI_things(commands.Cog):
             embed = discord.Embed(title="Память ИИ о Вас:",
                                   description=f"# Общая:\n{memory_user}\n# Диалог:\n{memory_conv}",
                                   colour=Data.getEmbedColor(Data.EmbedColor.Neutral))
-            await ctx.reply(embed=embed)
+            await ctx.reply(embed=embed, allowed_mentions=discord.AllowedMentions.none())
         # elif field== "добавить-память" #TODO: доделать.
 
     @commands.cooldown(1, 60, commands.BucketType.user)
@@ -380,7 +380,7 @@ class AI_things(commands.Cog):
 
                 outputs = utils.split_string(output, 2000, len(tokenInfo))
                 for content in outputs:
-                    await ctx.reply(content)
+                    await ctx.reply(content, allowed_mentions=discord.AllowedMentions.none())
                     # print("...")
                     #
                     # await ctx.send(content)
@@ -559,10 +559,10 @@ class AI_things(commands.Cog):
                 if response['result'] != "Something went terribly wrong.":
                     outputs = utils.split_string(output, 2000, len(tokenInfo))
                     for content in outputs:
-                        await message.reply(content)
+                        await message.reply(content, allowed_mentions=discord.AllowedMentions.none())
                 else:
                     embed = discord.Embed(title="Ошибка",description="Ой-ой, кажется что-то пошло не так! Попробуйте позже!",colour=Data.getEmbedColor(Data.EmbedColor.Error))
-                    await message.reply(embed=embed)
+                    await message.reply(embed=embed, allowed_mentions=discord.AllowedMentions.none())
                 self.cooldowns_history_LLM[message.author.id] = {"timestamp": utils.get_utc_ms(), "ms": 30000}
 
 
