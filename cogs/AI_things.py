@@ -387,7 +387,8 @@ class AI_things(commands.Cog):
 
     @commands.Cog.listener("on_message")
     async def AI_on_message(self, message: discord.Message):
-        if self.bot.user.mentioned_in(message):
+
+        if self.bot.user.mentioned_in(message) and not "@everyone" in message.content and not "@here" in message.content:
             usedReply=False
             # async with ctx.typing():
             #     output = await AIIO.askBetterLLM([{"role": "system",
