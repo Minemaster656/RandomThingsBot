@@ -68,13 +68,13 @@ class Interchat(commands.Cog):
                     send = False
                     found = True
                     # Поиск сервера по ID
-                    server = await self.bot.get_guild(server_id)
+                    server = self.bot.get_guild(server_id)
                     if server is None:
                         found = False
 
                     # Поиск канала по ID
                     # server.get_channel(channel_id)
-                    channel = self.bot.fetch_channel(channel_id)
+                    channel = await self.bot.fetch_channel(channel_id)
                     print(channel_id)
                     if channel is None:
                         found = False
