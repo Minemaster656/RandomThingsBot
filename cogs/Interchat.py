@@ -74,7 +74,8 @@ class Interchat(commands.Cog):
 
                     # Поиск канала по ID
                     # server.get_channel(channel_id)
-                    channel = self.bot.get_channel(channel_id)
+                    channel = self.bot.fetch_channel(channel_id)
+                    print(channel_id)
                     if channel is None:
                         found = False
 
