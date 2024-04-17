@@ -57,131 +57,133 @@ class Interchat(commands.Cog):
                 leng = len(Data.interchats[mode])
                 i = 0
                 for array in Data.interchats[mode]:
-                    i += 1
-                    server_id = array['guild']
-                    channel_id = array['channel']
-                    if 'thread' in array.keys():
-                        thread = array["thread"]
-                    else:
-                        thread = None
-
-                    send = False
-                    found = True
-                    # Поиск сервера по ID
-                    server = self.bot.get_guild(server_id)
-                    if server is None:
-                        found = False
-
-                    # Поиск канала по ID
-                    # server.get_channel(channel_id)
-                    channel = await self.bot.fetch_channel(channel_id)
-                    print(channel_id)
-                    if channel is None:
-                        found = False
-
-                    isBotHook = False
                     try:
-                        hooks = await channel.webhooks()
-                        for hook in hooks:
-                            isBotHook = hook.user.id in Data.botIDs
-                            break
-                    except Forbidden:
-                        isBotHook = True
+                        i += 1
+                        server_id = array['guild']
+                        channel_id = array['channel']
+                        if 'thread' in array.keys():
+                            thread = array["thread"]
+                        else:
+                            thread = None
 
-                    isInterchatter = str(message.author.name).startswith(
-                        ">» ")
+                        send = False
+                        found = True
+                        # Поиск сервера по ID
+                        server = self.bot.get_guild(server_id)
+                        if server is None:
+                            found = False
 
-                    if channel_id != message.channel.id and server_id != message.guild.id and not isInterchatter:
+                        # Поиск канала по ID
+                        # server.get_channel(channel_id)
+                        channel = await self.bot.fetch_channel(channel_id)
+                        print(channel_id)
+                        if channel is None:
+                            found = False
 
-                        if found and not send:
+                        isBotHook = False
+                        try:
+                            hooks = await channel.webhooks()
+                            for hook in hooks:
+                                isBotHook = hook.user.id in Data.botIDs
+                                break
+                        except Forbidden:
+                            isBotHook = True
+
+                        isInterchatter = str(message.author.name).startswith(
+                            ">» ")
+
+                        if channel_id != message.channel.id and server_id != message.guild.id and not isInterchatter:
+
+                            if found and not send:
+
+                                try:
+                                    hooks = await channel.webhooks()
+
+                                    async def send(hook):
+                                        content = message.content
+                                        if re.search(
+                                                r"(https?:\/\/|http?:\/\/)?(www.)?(discord.(gg|io|me|li)|discordapp.com\/invite|discord.com\/invite)\/[^\s\/]+?(?=\b)",
+                                                content):
+                                            await message.author.send(
+                                                "Приглашения рассылать по интерчату запрещено.\nInvites are blocked in the Interchat.")
+                                            embed = discord.Embed(title="Ваше сообщение | Your message",
+                                                                  description=f"{message.content}",
+                                                                  colour=Data.getEmbedColor(Data.EmbedColor.Error))
+                                            await message.author.send(embed=embed)
+                                            await message.delete()
+                                            return
+
+                                        if message.reference:
+
+                                            # udoc = Data.db.users.find_one({"id":message.reference.resolved.author.id})
+                                            # print(udoc)
+                                            embed = discord.Embed(title="⤴️ Reply",
+                                                                  description=f"{message.reference.resolved.content}",
+                                                                  colour=Data.embedColors["Neutral"]
+                                                                  # if not udoc else int(udoc["color"])
+                                                                  )
+                                            embed.set_author(name=message.reference.resolved.author.name,
+                                                             icon_url=message.reference.resolved.author.avatar.url if message.reference.resolved.author.avatar else message.reference.resolved.author.default_avatar.url)
+                                            try:
+                                                if thread:
+                                                    await hook.send(content=message.content, username=hname,
+                                                                    avatar_url=havatar,
+                                                                    embed=embed, thread=discord.Object(thread),
+                                                                    files=[await i.to_file() for i in message.attachments]
+                                                                    )
+                                                else:
+                                                    await hook.send(content=message.content, username=hname,
+                                                                    avatar_url=havatar, embed=embed,
+                                                                    files=[await i.to_file() for i in message.attachments]
+                                                                    )
+                                            except:
+                                                print("No hook?")
+                                        else:
+
+                                            try:
+                                                if thread:
+
+                                                    # TODO: ветки
+                                                    await hook.send(content=message.content, username=hname,
+                                                                    avatar_url=havatar,
+                                                                    allowed_mentions=discord.AllowedMentions.none()
+                                                                    ,
+                                                                    files=[await i.to_file() for i in message.attachments],
+                                                                    thread=discord.Object(thread))
+                                                else:
+                                                    await hook.send(content=message.content, username=hname,
+                                                                    avatar_url=havatar,
+                                                                    allowed_mentions=discord.AllowedMentions.none()
+                                                                    ,
+                                                                    files=[await i.to_file() for i in message.attachments])
+                                            except:
+                                                ...
+
+                                        send = True
+
+                                    for hook in hooks:
+                                        if hook.user.id == self.bot.user.id:
+                                            await send(hook)
+                                            break
+                                    if not send:
+                                        print("No hook.")
+                                        _hook = await channel.create_webhook(name="RTB hook")
+                                        await send(_hook)
+
+                                except Forbidden:
+                                    ...
+
+                                send = True
+                        if i >= leng:
 
                             try:
-                                hooks = await channel.webhooks()
-
-                                async def send(hook):
-                                    content = message.content
-                                    if re.search(
-                                            r"(https?:\/\/|http?:\/\/)?(www.)?(discord.(gg|io|me|li)|discordapp.com\/invite|discord.com\/invite)\/[^\s\/]+?(?=\b)",
-                                            content):
-                                        await message.author.send(
-                                            "Приглашения рассылать по интерчату запрещено.\nInvites are blocked in the Interchat.")
-                                        embed = discord.Embed(title="Ваше сообщение | Your message",
-                                                              description=f"{message.content}",
-                                                              colour=Data.getEmbedColor(Data.EmbedColor.Error))
-                                        await message.author.send(embed=embed)
-                                        await message.delete()
-                                        return
-
-                                    if message.reference:
-
-                                        # udoc = Data.db.users.find_one({"id":message.reference.resolved.author.id})
-                                        # print(udoc)
-                                        embed = discord.Embed(title="⤴️ Reply",
-                                                              description=f"{message.reference.resolved.content}",
-                                                              colour=Data.embedColors["Neutral"]
-                                                              # if not udoc else int(udoc["color"])
-                                                              )
-                                        embed.set_author(name=message.reference.resolved.author.name,
-                                                         icon_url=message.reference.resolved.author.avatar.url if message.reference.resolved.author.avatar else message.reference.resolved.author.default_avatar.url)
-                                        try:
-                                            if thread:
-                                                await hook.send(content=message.content, username=hname,
-                                                                avatar_url=havatar,
-                                                                embed=embed, thread=discord.Object(thread),
-                                                                files=[await i.to_file() for i in message.attachments]
-                                                                )
-                                            else:
-                                                await hook.send(content=message.content, username=hname,
-                                                                avatar_url=havatar, embed=embed,
-                                                                files=[await i.to_file() for i in message.attachments]
-                                                                )
-                                        except:
-                                            print("No hook?")
-                                    else:
-
-                                        try:
-                                            if thread:
-
-                                                # TODO: ветки
-                                                await hook.send(content=message.content, username=hname,
-                                                                avatar_url=havatar,
-                                                                allowed_mentions=discord.AllowedMentions.none()
-                                                                ,
-                                                                files=[await i.to_file() for i in message.attachments],
-                                                                thread=discord.Object(thread))
-                                            else:
-                                                await hook.send(content=message.content, username=hname,
-                                                                avatar_url=havatar,
-                                                                allowed_mentions=discord.AllowedMentions.none()
-                                                                ,
-                                                                files=[await i.to_file() for i in message.attachments])
-                                        except:
-                                            ...
-
-                                    send = True
-
-                                for hook in hooks:
-                                    if hook.user.id == self.bot.user.id:
-                                        await send(hook)
-                                        break
-                                if not send:
-                                    print("No hook.")
-                                    _hook = await channel.create_webhook(name="RTB hook")
-                                    await send(_hook)
-
-                            except Forbidden:
+                                # await message.add_reaction("🚀")
                                 ...
-
-                            send = True
-                    if i >= leng:
-
-                        try:
-                            # await message.add_reaction("🚀")
-                            ...
-                        except:
-                            ...
-                        break
-
+                            except:
+                                ...
+                            break
+                    except:
+                        ...
         try:
             target = {'guild': message.guild.id, 'channel': message.channel.id}
             if isinstance(message.channel, discord.Thread):
