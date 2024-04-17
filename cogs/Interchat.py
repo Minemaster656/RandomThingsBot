@@ -14,7 +14,7 @@ class Interchat(commands.Cog):
     name = "Interchat"
     author = "Minemaster"
 
-    def __init__(self, bot):
+    def __init__(self, bot:commands.Bot):
         self.bot = bot
         # self.deleted_messages = {}
         # self.edited_messages = {}
@@ -73,7 +73,8 @@ class Interchat(commands.Cog):
                         found = False
 
                     # Поиск канала по ID
-                    channel = server.get_channel(channel_id)
+                    # server.get_channel(channel_id)
+                    channel = self.bot.get_channel(channel_id)
                     if channel is None:
                         found = False
 
