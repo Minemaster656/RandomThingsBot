@@ -68,7 +68,7 @@ class Interchat(commands.Cog):
                     send = False
                     found = True
                     # Поиск сервера по ID
-                    server = self.bot.get_guild(server_id)
+                    server = await self.bot.get_guild(server_id)
                     if server is None:
                         found = False
 
