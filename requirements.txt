@@ -6,7 +6,7 @@ annotated-types==0.6.0
 anyio==4.0.0
 async-timeout==4.0.3
 attrs==23.1.0
-auto-gptq==0.4.2
+
 blinker==1.6.3
 Brotli==1.1.0
 browser-cookie3==0.19.1
