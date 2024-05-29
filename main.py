@@ -7,49 +7,24 @@ import time
 
 import aiohttp
 # -*- coding: utf-8 -*-
-import discord
-# from discord_components import DiscordComponents, Button
-from discord import Option, Webhook, Forbidden
-import pymongo
-from pymongo import MongoClient
-
-# from discord_components import DiscordComponents, Button, ButtonStyle
-
-# from discord import Option
-
-# from commands import *
-
-# from pyowm import OWM
-# import torch
-# import torchvision
-# from stable_diffusion import DiffusionModel
-
+try:
+    import discord
+    # from discord_components import DiscordComponents, Button
+    from discord import Option, Webhook, Forbidden
+except:
+    import pycord as discord
+    from pycord import Option, Webhook, Forbidden
 # import Apocalypse
 # import HetTol
-import ServerCore
-import _AI_Stuff
 import d
-# import fun
-import voice
 from tests_and_utils import dbClone
-# import economy
 import Data
-# import utilities
 import utils
 
-# cogs
-# import game
-# import rp
-# import tests
 
 from private import coreData
-# from Data import cursor
-# from Data import conn
 from Data import db
-from Data import collections
 
-# db = MongoClient(coreData.mongo_url)
-# mongo_db = db[coreData.mongo_db_name]
 import os
 
 whitelist = [609348530498437140, 617243612857761803]

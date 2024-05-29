@@ -7,11 +7,17 @@ import uuid
 import aiohttp
 # import numpy as np
 # import matplotlib.pyplot as plt
-import discord
-from discord.ext import commands, tasks
 # import perlin_noise
-from discord import Option, Webhook
 from random import *
+
+try:
+    import discord
+    from discord import Option, Webhook, Forbidden
+    from discord.ext import commands, tasks
+except:
+    import pycord as discord
+    from pycord import Option, Webhook, Forbidden
+    from discord.ext import commands, tasks
 
 import Apocalypse
 import Data

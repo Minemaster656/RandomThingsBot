@@ -1,12 +1,18 @@
 import asyncio
 import re
 
-import discord
-from discord.ext import commands, tasks
-from discord import Option, Forbidden
 
 import Data
 import utils
+
+try:
+    import discord
+    from discord import Option, Webhook, Forbidden
+    from discord.ext import commands, tasks
+except:
+    import pycord as discord
+    from pycord import Option, Webhook, Forbidden
+    from discord.ext import commands, tasks
 
 
 class Interchat(commands.Cog):

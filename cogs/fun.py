@@ -3,10 +3,18 @@ import typing
 
 # import numpy as np
 # import matplotlib.pyplot as plt
-import discord
-from discord.ext import commands
+
 # import perlin_noise
-from discord import Option
+
+try:
+    import discord
+    from discord import Option, Webhook, Forbidden
+    from discord.ext import commands
+except:
+    import pycord as discord
+    from pycord import Option, Webhook, Forbidden
+    from discord.ext import commands
+
 from random import *
 import json
 import os

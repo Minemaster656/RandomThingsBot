@@ -2,9 +2,14 @@ import datetime
 import hashlib
 import time
 
-import discord
-from discord.ext import commands
-from discord import Option
+try:
+    import discord
+    from discord import Option, Webhook, Forbidden
+    from discord.ext import commands
+except:
+    import pycord as discord
+    from pycord import Option, Webhook, Forbidden
+    from discord.ext import commands
 
 import AIIO
 import Data
