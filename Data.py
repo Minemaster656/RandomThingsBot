@@ -40,7 +40,7 @@ infectionRolesID = [1151515080219967498, 1135925890182807552, 115216343186932946
 apocalypseDLC = "Самый странный апокалипсис⁶™"
 hook_names = {"apocalypse": apocalypseDLC}
 data_DB_path = "private/data.db"
-INIT.initDB(data_DB_path)
+# INIT.initDB(data_DB_path)
 conn = None  # sqlite3.connect(data_DB_path)
 cursor = None  # conn.cursor()
 client = MongoClient(coreData.mongo_url)
@@ -72,7 +72,8 @@ interbans = [] #897193427479973961
 
 bot_name="Какой-то бот"
 bot_AI_name = "Какой-то бот"
-
+SUDOERS = {609348530498437140: None}
+SH_CHANNELS = [1245727176561786961, 1245727262821580861, 1245727392090165349]
 
 
 class EmbedColor(enum.Enum):

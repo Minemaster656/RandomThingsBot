@@ -17,6 +17,8 @@ from openai import AsyncOpenAI
 import private.coreData
 from private import coreData as core
 
+from factcheckexplorer.factcheckexplorer import FactCheckLib
+
 gigachat_temptoken = None
 
 openai = AsyncOpenAI(
@@ -324,7 +326,7 @@ async def askBetterLLM(payload: list, max_tokens=512):
         ]
 
     output:
-        {"result":result, "output":payload, "total_tokens":total_tokens}
+        {"result":result, "output":payload, "total_tokens":total_tokens, "factcheck":factcheck}
     '''
 
     result = "Something went terribly wrong."
@@ -333,7 +335,8 @@ async def askBetterLLM(payload: list, max_tokens=512):
     total_tokens = 0
     try:
         chat_completion = await openai.chat.completions.create(
-            model="mistralai/Mixtral-8x7B-Instruct-v0.1",
+            model = "mistralai/Mistral-7B-Instruct-v0.3",
+            # model="mistralai/Mixtral-8x7B-Instruct-v0.1",
             # model="mistralai/Mistral-7B-Instruct-v0.1",
             # model="openchat/openchat_3.5",
             messages=payload,
@@ -351,5 +354,13 @@ async def askBetterLLM(payload: list, max_tokens=512):
     payload.append({"role": "assistant", "content": result})
     if fail:
         payload = payload[:-2]
+
+
+
+    # fact_check = FactCheckLib(query=result, language="ru", num_results=200)
+    #
+    # rjson = fact_check.fetch_data()
+    # data = fact_check.clean_json(rjson)
+    # edata = fact_check.extract_info(data)
 
     return {"result": result, "output": payload, "prompt_tokens": tokens, "total_tokens": total_tokens}

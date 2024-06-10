@@ -18,3 +18,5 @@ API_KEYS={
 Спасибо Googer (Def-try) за помощь с MongoDB
 Спасибо Clyde (ChatGPT) за помощь с изучением библиотек
 
+FactCheckExplorer ставится командой:
+pip install git+https://github.com/GONZOsint/factcheckexplorer.git

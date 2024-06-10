@@ -177,7 +177,7 @@ def makeBasicConversation(userid, username):
     doc = schema(doc, Schemes.AI_conversation)
     doc["userid"] = userid
     doc["username"] = username
-    doc["model"] = "mistralai/Mixtral-8x7B-Instruct-v0.1"
+    doc["model"] = "mistralai/Mistral-7B-Instruct-v0.3"
     doc["tokens_cutoff"] = 3000
 
 

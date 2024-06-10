@@ -287,5 +287,6 @@ class fun(commands.Cog):
                 await ctx.send(file=discord.File(final_output, filename='shakal.jpg'))
         # else:
         #     await ctx.send("Ошибка: Изображение должно быть в форматах PNG или JPEG.")
+
 def setup(bot):
     bot.add_cog(fun(bot))
