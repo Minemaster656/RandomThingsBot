@@ -306,6 +306,9 @@ class Interchat2(commands.Cog):
             if hub_key != "": break
         else:
             if hub_key != "": return
+        if before is None: return
+        if hub[index] is None: return
+        if hub[index]["channel"] is None: return
         if before.channel.id != hub[index]["channel"]: return
         if "thread" in hub[index].keys():
             if isinstance(before.channel, discord.Thread):
