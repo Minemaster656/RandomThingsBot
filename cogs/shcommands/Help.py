@@ -4,7 +4,7 @@ class Help():
     require_whitelist = False
     def __init__(self):
         ...
-    async def execute(self, channel):
+    async def execute(self, channel, agrs, argflags, flags):
         await channel.send("RTB SH:\n"
                            "command_name = help\n"
                            "require_sudo = False\n"

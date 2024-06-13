@@ -61,8 +61,25 @@ class RTB_SH(commands.Cog):
             command = tokens[0]
             # print(tokens)
             # print(commands)
+            args = []
+            argflags = {}
+            flags = ""
+            for token in tokens:
+                if token.startswith("--"):
+                    if "=" in token:
+                        argflags[token.split("=")[0]] = token.split("=")[1]
+                    else:
+                        argflags[token] = True
+                elif token.startswith("-"):
+                    flags += token
+                else:
+                    args.append(token)
             if command in self.commands.keys():
-                await self.commands[command].execute(message.channel)
+                if commands[command].require_sudo:
+                    if not message.author.id in Data.SUDOERS:
+                        await message.channel.send("SUDO REQUIRED!")
+                        return
+                await self.commands[command].execute(message.channel, args, argflags, flags)
             else:
                 # print("Команда не найдена")
                 await message.channel.send("Команда не найдена!")

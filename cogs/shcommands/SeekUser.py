@@ -1,9 +1,10 @@
-class BASE_SH():
-    command_name = "EXECUTE_BASE_SH"
+class SeekUser():
+    command_name = "seekuser"
     require_sudo = True
     require_whitelist = False
 
     def __init__(self):
         ...
-    async def execute(self, channel, args, argflags, flags):
+    async def execute(self, channel, agrs, argflags, flags):
+
         await channel.send("А вот это выводить не надо.")

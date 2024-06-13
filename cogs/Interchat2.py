@@ -77,17 +77,19 @@ class Interchat2(commands.Cog):
             if hub_key != "": break
         else:
             if hub_key != "": return
+        if message.channel.id!= hub[index]["channel"]: return
         # print("Hub: ", hub_key)
         # print(hub_key)
-
-        if "thread" in hub[index].keys():
-            if isinstance(message.channel, discord.Thread):
-                if message.channel.id != hub[index]["thread"]:
+        try: #TODO: тут чё-то сломалось на сервере арбузов. Да, опять у них. Мнда.
+            if "thread" in hub[index].keys():
+                if isinstance(message.channel, discord.Thread):
+                    if message.channel.id != hub[index]["thread"]:
+                        return
+                else:
                     return
             else:
-                return
-        else:
-            if isinstance(message.channel, discord.Thread): return
+                if isinstance(message.channel, discord.Thread): return
+        except: ...
         # print(hub[index])
 
         if re.search(
@@ -234,7 +236,7 @@ class Interchat2(commands.Cog):
             if hub_key != "": return
         # print("Hub: ", hub_key)
         # print(hub_key)
-
+        if message.channel.id != hub[index]["channel"]: return
         if "thread" in hub[index].keys():
             if isinstance(message.channel, discord.Thread):
                 if message.channel.id != hub[index]["thread"]:
@@ -304,7 +306,7 @@ class Interchat2(commands.Cog):
             if hub_key != "": break
         else:
             if hub_key != "": return
-
+        if before.channel.id != hub[index]["channel"]: return
         if "thread" in hub[index].keys():
             if isinstance(before.channel, discord.Thread):
                 if before.channel.id != hub[index]["thread"]:
