@@ -77,6 +77,7 @@ class Interchat2(commands.Cog):
             if hub_key != "": break
         else:
             if hub_key != "": return
+        if hub is None: return
         if message.channel.id!= hub[index]["channel"]: return
         # print("Hub: ", hub_key)
         # print(hub_key)
@@ -236,6 +237,7 @@ class Interchat2(commands.Cog):
             if hub_key != "": return
         # print("Hub: ", hub_key)
         # print(hub_key)
+        if hub is None: return
         if message.channel.id != hub[index]["channel"]: return
         if "thread" in hub[index].keys():
             if isinstance(message.channel, discord.Thread):
@@ -306,13 +308,14 @@ class Interchat2(commands.Cog):
             if hub_key != "": break
         else:
             if hub_key != "": return
+        if hub is None: return
         try:
             if before is None: return
             if hub[index] is None: return
             if hub[index]["channel"] is None: return
             if before.channel.id != hub[index]["channel"]: return
         except:
-            print("Exception: ", before.channel.guild, "/", before.channel.id, ": None detected")
+            # print("Exception: ", before.channel.guild, "/", before.channel.id, ": None detected")
             return
 
         if "thread" in hub[index].keys():
