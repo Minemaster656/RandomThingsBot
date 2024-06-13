@@ -35,6 +35,11 @@ class Interchat2(commands.Cog):
             for msg in hub:
                 if msg["timestamp"] + self.cache_lifetime_sec < time.time():
                     self.delete_queue[hub].remove(msg)
+
+        for hub in self.edit_queue:
+            for msg in hub:
+                if msg["timestamp"] + self.cache_lifetime_sec < time.time():
+                    self.edit_queue[hub].remove(msg)
         ...
 
     def inter_formatName(self, message):
@@ -149,6 +154,18 @@ class Interchat2(commands.Cog):
                                     break
                             break
 
+                content = ""
+                if hub_key in self.edit_queue.keys():
+                    for msg_id in self.edit_queue[hub_key]:
+                        if msg_id == message.id:
+                            for msg in self.edit_queue[hub_key]:
+                                if msg["id"] == message.id:
+                                    content = msg["content"]
+                                    break
+                            break
+                if content == "":
+                    content = message.content
+
                 if message.reference:
                     embed = discord.Embed(
                         title=f"Ответ на: {utils.formatStringLength(message.reference.resolved.author.name, 16)}...{' (+🖼️)' if message.reference.resolved.attachments else ''}",
@@ -159,15 +176,19 @@ class Interchat2(commands.Cog):
                                      icon_url=message.reference.resolved.author.avatar.url if message.reference.resolved.author.avatar else message.reference.resolved.author.default_avatar.url)
                     if message.reference.resolved.attachments:
                         embed.set_image(url=message.reference.resolved.attachments[0].url)
+
+
+
+
                     if "thread" in guild_interchat.keys():
-                        await webhook.send(content=message.content, username=name,
+                        await webhook.send(content=content, username=name,
                                            avatar_url=avatar,
                                            allowed_mentions=discord.AllowedMentions.none()
                                            ,
                                            files=[await i.to_file() for i in message.attachments],
                                            thread=discord.Object(guild_interchat["thread"]), embed=embed)
                     else:
-                        await webhook.send(content=message.content, username=name,
+                        await webhook.send(content=content, username=name,
                                            avatar_url=avatar,
                                            allowed_mentions=discord.AllowedMentions.none()
                                            ,
@@ -175,14 +196,14 @@ class Interchat2(commands.Cog):
                                            embed=embed)
                 else:
                     if "thread" in guild_interchat.keys():
-                        await webhook.send(content=message.content, username=name,
+                        await webhook.send(content=content, username=name,
                                            avatar_url=avatar,
                                            allowed_mentions=discord.AllowedMentions.none()
                                            ,
                                            files=[await i.to_file() for i in message.attachments],
                                            thread=discord.Object(guild_interchat["thread"]))
                     else:
-                        await webhook.send(content=message.content, username=name,
+                        await webhook.send(content=content, username=name,
                                            avatar_url=avatar,
                                            allowed_mentions=discord.AllowedMentions.none()
                                            ,
@@ -192,27 +213,27 @@ class Interchat2(commands.Cog):
 
     @commands.Cog.listener("on_message_delete")
     async def interchat_on_message_delete(self, message: discord.Message):
-        print("Deleted something!")
+        # print("Deleted something!")
         if message.author.name.startswith(">»"): return
         hub_key = ""
         hub = None
         index = -1
-        print("Message detected")
+        # print("Message detected")
         for hub_k in Data.interchats.keys():
-            print(hub_k)
+            # print(hub_k)
             for guild_interchat in Data.interchats[hub_k]:
                 index += 1
-                print(guild_interchat)
+                # print(guild_interchat)
                 if guild_interchat["guild"] == message.guild.id:
-                    print("guild found")
+                    # print("guild found")
                     hub_key = hub_k
                     hub = Data.interchats[hub_k]
                     break
             if hub_key != "": break
         else:
             if hub_key != "": return
-        print("Hub: ", hub_key)
-        print(hub_key)
+        # print("Hub: ", hub_key)
+        # print(hub_key)
 
         if "thread" in hub[index].keys():
             if isinstance(message.channel, discord.Thread):
@@ -228,41 +249,123 @@ class Interchat2(commands.Cog):
             self.delete_queue[hub_key].append({"id": message.id, "timestamp": time.time()})
 
         for guild_interchat in hub:
-            print("Deleted in: ", guild_interchat)
+            # print("Deleted in: ", guild_interchat)
             if guild_interchat["guild"] == message.guild.id: continue
-            print("It is not this message, let's delete it!")
+            # print("It is not this message, let's delete it!")
             try:
                 guild = self.bot.get_guild(guild_interchat["guild"])
             except:
                 continue
             if not guild: continue
-            print("Guild fetchded!")
+            # print("Guild fetchded!")
             try:
                 channel = guild.get_channel(guild_interchat["channel"])
             except:
                 continue
             if not channel: continue
-            print("I got a channel object!")
+            # print("I got a channel object!")
             if "thread" in guild_interchat.keys():
                 channel = channel.get_thread(guild_interchat["thread"])
-                print("It's a thread!")
+                # print("It's a thread!")
 
             messages = await channel.history(limit=self.cache_size).flatten()
-            print("History fetched!")
+            # print("History fetched!")
             for msg in messages:
                 # print(message.author.name, " | ", self.inter_formatName(message))
                 # print(msg.channel.name," | ",message.author.name)
                 # print(msg.channel.name," | ",message.content, " | ", msg)
                 if msg.author.name == self.inter_formatName(message):
-                    print("Name the same, continue...")
-                    print("Content: ", msg.content)
+                    # print("Name the same, continue...")
+                    # print("Content: ", msg.content)
                     if msg.content == message.content:
-                        print("DELETING!")
+                        # print("DELETING!")
                         try: await msg.delete(reason="Interchat: deleted original message")
-                        except: print("Failed to delete!")
-                        print("EEEE, DELETED!!!")
+                        except: ...#print("Failed to delete!")
+                        # print("EEEE, DELETED!!!")
                         break
 
+    @commands.Cog.listener("on_message_edit")
+    async def interchat_on_message_edit(self, before: discord.Message, after: discord.Message):
+        if before.author.name.startswith(">»"): return
+        hub_key = ""
+        hub = None
+        index = -1
+        # print("Message detected")
+        for hub_k in Data.interchats.keys():
+            # print(hub_k)
+            for guild_interchat in Data.interchats[hub_k]:
+                index += 1
+                # print(guild_interchat)
+                if guild_interchat["guild"] == before.guild.id:
+                    # print("guild found")
+                    hub_key = hub_k
+                    hub = Data.interchats[hub_k]
+                    break
+            if hub_key != "": break
+        else:
+            if hub_key != "": return
+
+        if "thread" in hub[index].keys():
+            if isinstance(before.channel, discord.Thread):
+                if before.channel.id != hub[index]["thread"]:
+                    return
+            else:
+                return
+        else:
+            if isinstance(before.channel, discord.Thread): return
+
+        if not hub_key in self.edit_queue.keys():
+            self.edit_queue[hub_key] = []
+            self.edit_queue[hub_key].append({"id": before.id, "timestamp": time.time(), "content":after.content})
+
+        for guild_interchat in hub:
+            # print("Edited in: ", guild_interchat)
+            if guild_interchat["guild"] == before.guild.id: continue
+            # print("It is not this message, let's edit it!")
+            try:
+                guild = self.bot.get_guild(guild_interchat["guild"])
+            except:
+                continue
+            if not guild: continue
+            # print("Guild fetchded!")
+            try:
+                channel = guild.get_channel(guild_interchat["channel"])
+            except:
+                continue
+            if not channel: continue
+            # print("I got a channel object!")
+            if "thread" in guild_interchat.keys():
+                channel = channel.get_thread(guild_interchat["thread"])
+                # print("It's a thread!")
+
+            webhook = None
+            for hook in await channel.webhooks():
+                if hook.user.id == self.bot.user.id:
+                    webhook = hook
+                    break
+            else:
+                try:
+                    webhook = await channel.create_webhook(name="RTB hook")
+                except:
+                    continue
+
+            messages = await channel.history(limit=self.cache_size).flatten()
+            # print("History fetched!")
+            for msg in messages:
+                # print(message.author.name, " | ", self.inter_formatName(message))
+                # print(msg.channel.name," | ",message.author.name)
+                # print(msg.channel.name," | ",message.content, " | ", msg)
+                if msg.author.name == self.inter_formatName(before):
+                    # print("Name the same, continue...")
+                    # print("Content: ", msg.content)
+                    if msg.content == before.content:
+                        # print("EDITING!")
+                        try:
+                            # await msg.edit(content=after.content)
+                            await webhook.edit_message(msg.id, content=after.content)
+                        except: ...#print("Failed to delete!")
+                        # print("EEEE, EDITED!!!", channel.name, " | ", guild.name)
+                        break
 
 def setup(bot):
     bot.add_cog(Interchat2(bot))
