@@ -151,7 +151,8 @@ def getUser(id, name) -> dict:
     if not new and doc["username"] != name:
         updated = True
     doc["username"] = name
-    doc.pop("_id")
+    if "_id" in doc.keys():
+        doc.pop("_id")
     if new:
         db.users.insert_one(doc)
     if updated:

@@ -22,3 +22,5 @@ fact_check = FactCheckLib(query="global warming", language="ru", num_results=200
 
 fact_check.process()
 ```
+
+сделать так что бы авы персонажей через этого бота работали в интерчате нормально
