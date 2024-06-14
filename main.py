@@ -198,30 +198,12 @@ async def help(ctx):
 #     await ctx.message.delete()
 
 
-@bot.command()
-async def send_message(ctx):
-    message = await ctx.send("Нажми на реакцию ❓, чтобы отправить это сообщение.")
-    await message.add_reaction("❓")
+
 
 
 @bot.event
 async def on_reaction_add(reaction, user):
-    if user == bot.user:
-        return
-    if reaction.message.author == bot.user:
-        if str(reaction.emoji) == "❓":
-            # await reaction.message.remove_reaction("❓", user)
-
-            # reactors = await reaction.users().flatten()
-            # authors = [str(author) for author in reactors]
-
-            # for i in authors:
-            #     if i ==
-            # await reaction.message.channel.send(reaction.message.content)ё
-            reactors = await reaction.users().flatten()
-            # Проверка, что бот находится в списке авторов реакции
-            if bot.user in reactors:
-                await reaction.message.channel.send(reaction.message.content)
+    ...
 
 
 @bot.slash_command(description="Перевод раскладки", name="раскладка")  # guilds=[1076117733428711434]
@@ -312,106 +294,6 @@ async def info(ctx):
     await ctx.respond(embed=embed)
 
 
-# @bot.command(aliases=["код"])
-# async def code(ctx, length):
-#     if length:
-#         await ctx.send(utils.hashgen(int(length)))
-#     else:
-#         await ctx.send(utils.hashgen(16))
-
-def inter_formatContent(content: str):
-    content = content.replace("@everyone", "@еvеryonе")
-    content = content.replace("@here", "@hеrе")
-    return content
-
-
-# TODO: REMOVE THIS!!!
-def inter_formatName(message):
-    if not message:
-        return ">» ???"
-    if not message.guild:
-        return ">» [???]"
-    type = ""
-    if message.webhook_id:
-        type = "⚓"
-    elif message.author.bot:
-        type = "🤖"
-    else:
-        type = "😎"
-    return ">» " + utils.formatStringLength(message.author.name, 32) + " | " + utils.formatStringLength(
-        message.guild.name, 20) + " | " + type
-
-
-# @bot.event
-
-
-async def interdeletion(message):
-    async def interchat_delete(name, message, mode, data_pair):
-        # print("CALLED DELETE FUNC")
-        leng = len(Data.interchats[mode])
-        i = 0
-        for array in Data.interchats[mode]:
-            i += 1
-            server_id = array['guild']
-            channel_id = array['channel']
-            if 'thread' in array.keys():
-                thread = array["thread"]
-            else:
-                thread = None
-
-            send = False
-            found = True
-            # Поиск сервера по ID
-            server = bot.get_guild(server_id)
-            if server is None:
-                found = False
-
-            # Поиск канала по ID
-            channel = server.get_channel(channel_id)
-            if thread:
-                channel = channel.get_thread(thread)
-            if channel is None:
-                found = False
-            if found:
-                # print("FOUND")
-                msgs = list()
-                async for x in channel.history(limit=32):
-                    # print("FETCHING... ", (x.content == message.content and x.author.name == name), " ", datetime.datetime.now(x.created_at.tzinfo) - x.created_at <= datetime.timedelta(
-                    #             days=14))
-                    # print(x.content, "           ", message.content, "                             ", x.author.name, "      ", name)
-                    if ((x.content == message.content and x.author.name == name)
-                            # and "⭐" not in [i.emoji for i in x.reactions]
-                            and datetime.datetime.now(x.created_at.tzinfo) - x.created_at <= datetime.timedelta(
-                                days=14) and not x.pinned):
-                        msgs.append(x)
-                        # print("APPENDED")
-                        break
-
-                for i in range(0, len(msgs), 100):
-                    await channel.delete_messages(msgs[i:i + 100], reason="Удаление межсерверного сообщения")
-                    # print("DELETED")
-
-        ...
-
-    target = {'guild': message.guild.id, 'channel': message.channel.id}
-    if isinstance(message.channel, discord.Thread):
-        target['thread'] = message.channel.id
-        target['channel'] = message.channel.parent.id
-    name = inter_formatName(message)
-    # print("DELETION")
-    if not str(message.author.name).startswith(">» "):
-        # print("SOURCE FOUND")
-        for hub in Data.interhubs:
-            if hub in Data.interchats:
-                for pair in Data.interchats["normal"]:
-                    if target['guild'] in pair and target['channel'] in pair:
-                        # найдено
-                        await interchat_delete(name, message, "normal", target)
-                        # print("FOUND pair normal")
-                        break
-                        # print("BROKEN")
-
-
 @bot.event
 async def on_message(message):
     await bot.process_commands(message)
@@ -423,17 +305,15 @@ async def on_message(message):
 
 @bot.event
 async def on_message_delete(message):
-    try:
-        await interdeletion(message)
-    except:
-        ...
+    ...
 
 
 @bot.event
 async def on_bulk_message_delete(messages):
     for m in messages:
         try:
-            await interdeletion(m)
+            ...
+            # await interdeletion(m)
         except:
             ...
 
@@ -445,9 +325,9 @@ async def report(ctx):
     await ctx.respond("Жалобы не принимаются, эта фича ещё в разработке ;(")
 
 
-@bot.command(aliases=["код-от-ядерки"])
-async def getNukeCode(ctx):
-    await ctx.send(f"Одноразовый код от ядерки: ``nuke_{utils.hashgen(16)}::ot#FF#j#EX``")
+# @bot.command(aliases=["код-от-ядерки"])
+# async def getNukeCode(ctx):
+#     await ctx.send(f"Одноразовый код от ядерки: ``nuke_{utils.hashgen(16)}::ot#FF#j#EX``")
 
 
 # TODO: обработчик захода на сервер
