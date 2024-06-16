@@ -78,7 +78,10 @@ class Interchat2(commands.Cog):
         else:
             if hub_key != "": return
         if hub is None: return
-        if message.channel.id!= hub[index]["channel"]: return
+        try:
+            if message.channel.id!= hub[index]["channel"]: return
+        except:
+            return
         # print("Hub: ", hub_key)
         # print(hub_key)
         try: #TODO: тут чё-то сломалось на сервере арбузов. Да, опять у них. Мнда.
