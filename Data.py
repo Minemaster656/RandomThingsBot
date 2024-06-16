@@ -115,7 +115,7 @@ async def parsePermissionFromUser(id: int, permission: str):
         string = db.users.find_one({"userid": id}, {"permissions": 1})
         if string:
             if len(string["permissions"]) > 2:
-                print(string["permissions"])
+                # print(string["permissions"])
                 dictitonary = json.loads(string["permissions"])
 
                 if permission in dictitonary:

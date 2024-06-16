@@ -360,13 +360,13 @@ async def askBetterLLM(payload: list, max_tokens=512):
             messages=payload,
             max_tokens=max_tokens,
         )
-        print(chat_completion)
+        # print(chat_completion)
         result = chat_completion.choices[0].message.content
         total_tokens = chat_completion.usage.total_tokens
         # total_tokens = chat_completion.total_tokens
 
     except Exception as e:
-        print(e)
+        # print(e)
         fail = True
 
     payload.append({"role": "assistant", "content": result})

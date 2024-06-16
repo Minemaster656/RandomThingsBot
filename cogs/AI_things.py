@@ -53,7 +53,7 @@ class AI_things(commands.Cog):
             gen_arr = await AIIO.askT2I(prompt, AIIO.Text2Imgs.KANDINSKY,images_count=4)
             files = []
             for gen in gen_arr:
-                print(gen)
+                # print(gen)
                 if gen['censored']:
                     # embed = discord.Embed(title="Ошибка генерации!",
                     #                       description="NSFW изображения не разрешены этой моделью!",
@@ -105,18 +105,18 @@ class AI_things(commands.Cog):
             payload.append({"role": "user", "content": prompt})
             # print(payload)
             response = await AIIO.askLLM(payload, AIIO.LLMs.GIGACHAT, 3, AIIO.gigachat_temptoken)
-            print(response)
+            # print(response)
             if response == "No token":
                 response = await AIIO.askLLM(payload, AIIO.LLMs.GIGACHAT, 3, AIIO.gigachat_temptoken)
-                print(response)
+                # print(response)
 
             resp = response[0]
             tokens = response[1]['total_tokens']
             tokenInfo = "\n" + f"||Использовано {tokens} токен{'ов' if tokens % 100 in (11, 12, 13, 14, 15) else 'а' if tokens % 10 in (2, 3, 4) else '' if tokens % 10 == 1 else 'ов'}||"
             output = resp + tokenInfo
             parsed = utils.parseTagInStart(output, "DRAW")
-            print(parsed)
-            print(parsed[0])
+            # print(parsed)
+            # print(parsed[0])
             if parsed[1] != "":
                 await self.runKandinsky(ctx, parsed[1], f"ГигаЧат по просьбе <@{ctx.author.id}>")
 
@@ -141,10 +141,10 @@ class AI_things(commands.Cog):
                 {"role": "user", "content": prompt}]
             # print(payload)
             response = await AIIO.askLLM(payload, AIIO.LLMs.GIGACHAT, 3, AIIO.gigachat_temptoken)
-            print(response)
+            # print(response)
             if response == "No token":
                 response = await AIIO.askLLM(payload, AIIO.LLMs.GIGACHAT, 3, AIIO.gigachat_temptoken)
-                print(response)
+                # print(response)
 
             resp = response[0]
             tokens = response[1]['total_tokens']
@@ -251,18 +251,18 @@ class AI_things(commands.Cog):
             # print(payload)
             def calc_history_size(payload_history):
                 o = 0
-                print(payload_history)
+                # print(payload_history)
                 for msg in payload_history:
-                    print(msg)
+                    # print(msg)
                     o += len(msg["content"])
-                print(o)
+                # print(o)
                 return o
 
             # calc_history_size(payload)
 
             if conversation["total_tokens"] > conversation["tokens_cutoff"]:
                 while calc_history_size(conversation["history"]) > conversation["symbols_cutoff"]:
-                    print(conversation["history"])
+                    # print(conversation["history"])
                     conversation["history"].pop(0)
                     payload.pop(1)
 
@@ -505,18 +505,18 @@ class AI_things(commands.Cog):
                 # print(payload)
                 def calc_history_size(payload_history):
                     o = 0
-                    print(payload_history)
+                    # print(payload_history)
                     for msg in payload_history:
-                        print(msg)
+                        # print(msg)
                         o += len(msg["content"])
-                    print(o)
+                    # print(o)
                     return o
 
                 # calc_history_size(payload)
 
                 if conversation["total_tokens"] > conversation["tokens_cutoff"]:
                     while calc_history_size(conversation["history"]) > conversation["symbols_cutoff"]:
-                        print(conversation["history"])
+                        # print(conversation["history"])
                         conversation["history"].pop(0)
                         payload.pop(1)
 
