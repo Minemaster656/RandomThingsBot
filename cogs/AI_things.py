@@ -369,7 +369,7 @@ class AI_things(commands.Cog):
     @commands.command(aliases=["пересказать-чат", "перескажи-чат", "перскажи-чат"])
     async def summarize(self, ctx: commands.Context):
 
-        history_size = 40
+        history_size = 50
 
         messages = await ctx.channel.history(limit=history_size).flatten()
         messages.reverse()

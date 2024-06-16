@@ -32,9 +32,10 @@ class AGI_RPGM(commands.Cog):
     @commands.message_command(name="Сгенерировать РП пост")
     async def gen_RP_post(self, ctx, message: discord.Message):
 
+        initial_history_size = 50
         history_size = 25
 
-        messages = await ctx.channel.history(limit=history_size).flatten()
+        messages = await ctx.channel.history(limit=initial_history_size).flatten()
         messages.reverse()
         messages_content = []
         total_symbols = 0
@@ -47,13 +48,27 @@ class AGI_RPGM(commands.Cog):
                     total_symbols += len(message.content)
             else:
                 break
+        messages_content.reverse()
+        messages_content = messages_content[:history_size]
+        messages_content.reverse()
         if False:
             ...
         else:
             # userdoc = d.getUser(ctx.author.id, ctx.author.name)
             # if await Data.parsePermissionFromUser(ctx.author.id, "root") or await Data.parsePermissionFromUser(ctx.author.id, "edit_characters"):
             payload = [{"role": "system",
-                        "content": f"Ты ИИ-ГМ в текстовом РП. твоя задача - написать пост в ответ на пост пользователя. Вероятно, это будет описанием окружения, реже - описанием NPC и их действий. Как твои ответы помечены так же ответы от других ГМов, но если это не так, то их ники все равно зачастую либо Окружение, либо Окружение и NPC либо судьба и всякое в этом роде.\nДействия и описания (не речью) заключены в *описания или одинарные звездочки**, мысли в ||двойные палочки|| или иногда в (скобочки). Частью РП поста не является сообщение о расходе токенов. Структура > текст [jump](link) это ответ на сообщение. Отвечай на  русском!! В ответе пиши ТОЛЬКО текст поста от лица ГМа, не добавляй никаких прочих пояснений!! Название локации - {message.channel.name}. Не пиши от лица персонажей! Не отвечай на старые сообщения, они нужны только для предоставления контекста!"
+                        "content": f"Ты ИИ-ГМ в текстовом РП. твоя задача - написать пост в ответ на пост пользователя. "
+                                   f"Вероятно, это будет описанием окружения, реже - описанием NPC и их действий. "
+                                   f"Как твои ответы помечены так же ответы от других ГМов, но если это не так, "
+                                   f"то их ники все равно зачастую либо Окружение, либо Окружение и NPC либо судьба и "
+                                   f"всякое в этом роде."
+                                   f"\nДействия и описания (не речью) заключены в *описания или одинарные звездочки**, "
+                                   f"мысли в ||двойные палочки|| или иногда в (скобочки). Частью РП поста не является "
+                                   f"сообщение о расходе токенов. Структура > текст [jump](link) это ответ на сообщение."
+                                   f" Отвечай на  русском!! В ответе пиши ТОЛЬКО текст поста от лица ГМа, не добавляй "
+                                   f"никаких прочих пояснений!! Название локации - {message.channel.name}. Не пиши от "
+                                   f"лица персонажей! Не отвечай на старые сообщения, они нужны только для "
+                                   f"предоставления контекста!"
                         },
                        # Если в ответе ты начинаешь повторять одно и то же, перкрати ответ.
                        {"role": "user", "content": message.content}]
