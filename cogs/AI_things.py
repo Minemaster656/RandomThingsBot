@@ -3,6 +3,8 @@ import io
 import random
 import time
 
+import graphics.BASE64
+
 try:
     import discord
     from discord import Option, Webhook, Forbidden
@@ -48,30 +50,41 @@ class AI_things(commands.Cog):
             # embed.add_field(name="Подсказка",value="Используйте !: что бы начать вводить негативный промпт (делайте это после обычного)",inline=False)
             await ctx.reply(embed=embed)
 
-            gen = await AIIO.askT2I(prompt, AIIO.Text2Imgs.KANDINSKY)
-            if gen['censored']:
-                embed = discord.Embed(title="Ошибка генерации!",
-                                      description="NSFW изображения не разрешены этой моделью!",
-                                      colour=Data.getEmbedColor(Data.EmbedColor.Error))
-                await ctx.reply(embed=embed)
-            else:
-                if gen["image"] == "Error":
-                    embed = discord.Embed(title="Ошибка генерации!",
-                                          description="Время ожидания истекло!",
-                                          colour=Data.getEmbedColor(Data.EmbedColor.Error))
-                    await ctx.reply(embed=embed)
-                    return
-                file_content = io.BytesIO(base64.b64decode(gen["image"]))
+            gen_arr = await AIIO.askT2I(prompt, AIIO.Text2Imgs.KANDINSKY,images_count=4)
+            files = []
+            for gen in gen_arr:
+                print(gen)
+                if gen['censored']:
+                    # embed = discord.Embed(title="Ошибка генерации!",
+                    #                       description="NSFW изображения не разрешены этой моделью!",
+                    #                       colour=Data.getEmbedColor(Data.EmbedColor.Error))
+                    # await ctx.reply(embed=embed)
+                    # return
+                    file_content = io.BytesIO(base64.b64decode(graphics.BASE64.nsfw))
 
-                file = discord.File(filename=f"gen_kandinsky_{random.randint(0, 35565)}.png", fp=file_content)
-                embed = discord.Embed(title="Генерация завершена!", description=f"**Запрос:** {prompt}",
-                                      colour=Data.getEmbedColor(Data.EmbedColor.Success))
-                embed.add_field(name="Запросил генерацию", value=f"{author}", inline=False)
-                embed.add_field(name="Время генерации", value=f"{round(time.time() - time_start, 2)} сек.",
-                                inline=False)
+                    file = discord.File(filename=f"gen_kandinsky_{random.randint(0, 35565)}.png", fp=file_content)
+                    files.append(file)
+                else:
+                    if gen["image"] == "Error":
+                        # embed = discord.Embed(title="Ошибка генерации!",
+                        #                       description="Время ожидания истекло!",
+                        #                       colour=Data.getEmbedColor(Data.EmbedColor.Error))
+                        # await ctx.reply(embed=embed)
+                        # return
+                        file_content = io.BytesIO(base64.b64decode(graphics.BASE64.error))
+                    else:
+                        file_content = io.BytesIO(base64.b64decode(gen["image"]))
 
-                await ctx.reply(embed=embed)
-                await ctx.reply(prompt, file=file, allowed_mentions=discord.AllowedMentions.none())
+                    file = discord.File(filename=f"gen_kandinsky_{random.randint(0, 35565)}.png", fp=file_content)
+                    files.append(file)
+            embed = discord.Embed(title="Генерация завершена!", description=f"**Запрос:** {prompt}",
+                                  colour=Data.getEmbedColor(Data.EmbedColor.Success))
+            embed.add_field(name="Запросил генерацию", value=f"{author}", inline=False)
+            embed.add_field(name="Время генерации", value=f"{round(time.time() - time_start, 2)} сек.",
+                            inline=False)
+
+            await ctx.reply(embed=embed)
+            await ctx.reply(prompt, files=files, allowed_mentions=discord.AllowedMentions.none())
 
     # AI_cooldown = commands.CooldownMapping.from_cooldown(1, 30, commands.BucketType.user)
     @commands.cooldown(1, 30, commands.BucketType.member)
@@ -147,7 +160,7 @@ class AI_things(commands.Cog):
                 await ctx.reply(content, allowed_mentions=discord.AllowedMentions.none())
 
     @commands.cooldown(1, 15, commands.BucketType.member)
-    @commands.command(aliases=["кандинский"])
+    @commands.command(aliases=["кандинский", "Кандинский"])
     async def kandinsky(self, ctx, *, prompt: str):
         await self.runKandinsky(ctx, prompt, f"<@{ctx.author.id}>")
 

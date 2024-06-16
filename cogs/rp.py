@@ -47,8 +47,8 @@ class ConfirmGenArt(discord.ui.View):
         await interaction.response.edit_message(content="Генерация...", view=None)
 
         gen = await AIIO.askT2I(self.prompt, AIIO.Text2Imgs.KANDINSKY)
-        if gen:
-            file = AIIO.kandinskyOutputToFile(gen)
+        if gen[0]:
+            file = AIIO.kandinskyOutputToFile(gen[0])
             await interaction.guild.get_channel(interaction.channel_id).send(
                 f"Генерация `{self.prompt}` по запросу {self.character_registerer.name} завершена!\nСохраните в личке с этим ботом это изображение и используйте его ссылку в качестве арта. Если изображение вас не устраивает, создайте новое с помощью `{Data.preffix}кандинский {self.prompt}`!",
                 file=file)

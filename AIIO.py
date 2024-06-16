@@ -14,6 +14,7 @@ import discord
 import requests
 from openai import AsyncOpenAI
 
+import graphics.BASE64
 import private.coreData
 from private import coreData as core
 
@@ -198,119 +199,136 @@ class Text2ImageAPI:
 async def askT2I(prompt: str, model: Text2Imgs,
                  negative_prompt: str = "Кислотные оттенки, смазанная картинка, искажённые пропорции",
                  sizeX: int = 1024, sizeY: int = 1024,
-                 style: KandinskyStyles = KandinskyStyles.DEFAULT):
+                 style: KandinskyStyles = KandinskyStyles.DEFAULT, token_index=0, images_count=1):
     '''output = {
         "code": 200,
         "censored": False,
         "image": "base64 string"
     }'''
+    tasks = []
+    output_array = []
     # print(prompt)
-    output = {
-        "code": 200,
-        "censored": False,
-        "image": ""
-    }
-    # print("Building headers...")
-    headers = {
-        'X-Key': f'Key {core.API_KEYS["kandinskiy3"][0]["X-Key"]}',
-        'X-Secret': f'Secret {core.API_KEYS["kandinskiy3"][0]["X-Secret"]}',
-    }
-    # print("Headers build complete...")
-    params = {
-        "type": "GENERATE",
-        "numImages": 1,
-        "width": sizeX,
-        "height": sizeY,
-        "negativePromptUnclip": f"{negative_prompt}",
-        "generateParams": {
-            "query": f"{prompt}",
-
+    async def callAPI(token_index):
+        output = {
+            "code": 200,
+            "censored": False,
+            "image": ""
         }
-    }
+        # print("Building headers...")
+        headers = {
+            'X-Key': f'Key {core.API_KEYS["kandinskiy3"][token_index]["X-Key"]}',
+            'X-Secret': f'Secret {core.API_KEYS["kandinskiy3"][token_index]["X-Secret"]}',
+        }
+        # print("Headers build complete...")
+        params = {
+            "type": "GENERATE",
+            "numImages": 1,
+            "width": sizeX,
+            "height": sizeY,
+            "negativePromptUnclip": f"{negative_prompt}",
+            "generateParams": {
+                "query": f"{prompt}",
 
-    # data = {
-    #
-    #     "type": "GENERATE",
-    #     "style": "DEFAULT",
-    #     "width": sizeX,
-    #     "height": sizeY,
-    #     "num_images": 1,
-    #     "negativePromptUnclip": f"{negative_prompt}",
-    #     "generateParams": {
-    #         "query": f"{prompt}",
-    #     }
-    #
-    # }
+            }
+        }
 
-    def get_model():
-        response = requests.get("https://api-key.fusionbrain.ai/" + 'key/api/v1/models', headers=headers)
-        data = response.json()
-        return data[0]['id']
+        # data = {
+        #
+        #     "type": "GENERATE",
+        #     "style": "DEFAULT",
+        #     "width": sizeX,
+        #     "height": sizeY,
+        #     "num_images": 1,
+        #     "negativePromptUnclip": f"{negative_prompt}",
+        #     "generateParams": {
+        #         "query": f"{prompt}",
+        #     }
+        #
+        # }
 
-    # data = json.dumps(data)
-    data = {
-        'model_id': (None, get_model),
-        'params': (None, json.dumps(params), 'application/json')
-    }
-
-    # data = aiohttp.FormData()
-    # data.add_field('model_id', '1')
-    # data.add_field('params', json.dumps(params))
-    files = aiohttp.FormData()
-    files.add_field(name='params', value=json.dumps(params), content_type='application/json')
-    files.add_field(name='model_id', value=str(get_model()))
-
-    # print("Data: ", data)
-    url = "https://api-key.fusionbrain.ai/" + "key/api/v1/text2image/run"
-    # print("URL: ", url)
-    #
-    # print(isinstance(data, dict))
-    uuid = ""
-    async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(verify_ssl=False)) as session:
-        async with session.post(url, headers=headers, data=files) as response:
-            response_json = await response.json()
-            # {
-            #     "uuid": "string",
-            #     "status": "string",
-            #     "images": ["string"],
-            #     "errorDescription": "string",
-            #     "censored": "false"
-            # }
-            if "uuid" in response_json.keys():
-                uuid = response_json["uuid"]
-            else:
-                uuid = "NSFW"
-
-            # print(response_json)
-
-    async def check_generation(request_id, attempts=10, delay=15):
-        while attempts > 0:
-            response = requests.get("https://api-key.fusionbrain.ai/" + 'key/api/v1/text2image/status/' + request_id,
-                                    headers=headers)
+        def get_model():
+            response = requests.get("https://api-key.fusionbrain.ai/" + 'key/api/v1/models', headers=headers)
             data = response.json()
+            return data[0]['id']
 
-            if data['status'] == 'DONE':
-                output["censored"] = data["censored"]
-                return data['images'][0]
+        # data = json.dumps(data)
+        data = {
+            'model_id': (None, get_model),
+            'params': (None, json.dumps(params), 'application/json')
+        }
 
-            attempts -= 1
-            await asyncio.sleep(delay)
-        return "Error"
+        # data = aiohttp.FormData()
+        # data.add_field('model_id', '1')
+        # data.add_field('params', json.dumps(params))
+        files = aiohttp.FormData()
+        files.add_field(name='params', value=json.dumps(params), content_type='application/json')
+        files.add_field(name='model_id', value=str(get_model()))
 
-    # if uuid != "NSFW":
-    gen = await check_generation(uuid)
+        # print("Data: ", data)
+        url = "https://api-key.fusionbrain.ai/" + "key/api/v1/text2image/run"
+        # print("URL: ", url)
+        #
+        # print(isinstance(data, dict))
+        uuid = ""
+        async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(verify_ssl=False)) as session:
+            async with session.post(url, headers=headers, data=files) as response:
+                response_json = await response.json()
+                # {
+                #     "uuid": "string",
+                #     "status": "string",
+                #     "images": ["string"],
+                #     "errorDescription": "string",
+                #     "censored": "false"
+                # }
+                if "uuid" in response_json.keys():
+                    uuid = response_json["uuid"]
+                else:
+                    uuid = "NSFW"
 
-    # else:
-    #     gen ="NSFW"
+                # print(response_json)
 
-    # output['censored'] = response_json['censored']
-    output['image'] = gen
-    return output
+        async def check_generation(request_id, attempts=10, delay=15):
+            while attempts > 0:
+                response = requests.get("https://api-key.fusionbrain.ai/" + 'key/api/v1/text2image/status/' + request_id,
+                                        headers=headers)
+                data = response.json()
+
+                if data['status'] == 'DONE':
+                    output["censored"] = data["censored"]
+                    return data['images'][0]
+
+                attempts -= 1
+                await asyncio.sleep(delay)
+            return "Error"
+
+        # if uuid != "NSFW":
+        gen = await check_generation(uuid)
+
+        # else:
+        #     gen ="NSFW"
+
+        # output['censored'] = response_json['censored']
+        output['image'] = gen
+        output_array.append(output)
+
+    for i in range(images_count):
+        task = callAPI(i)
+        tasks.append(task)
+
+
+    await asyncio.gather(*tasks)
+
+    return output_array
 
 
 def kandinskyOutputToFile(gen):
     if gen['image']:
-        file_content = io.BytesIO(base64.b64decode(gen["image"]))
+        if gen['image'] == "Error":
+            file_content = io.BytesIO(base64.b64decode(graphics.BASE64.error))
+        elif gen['censored'] == True:
+            file_content = io.BytesIO(base64.b64decode(graphics.BASE64.nsfw))
+        else:
+            file_content = io.BytesIO(base64.b64decode(gen["image"]))
 
         file = discord.File(filename=f"gen_kandinsky_{random.randint(0, 35565)}.png", fp=file_content)
         return file
@@ -364,3 +382,4 @@ async def askBetterLLM(payload: list, max_tokens=512):
     # edata = fact_check.extract_info(data)
 
     return {"result": result, "output": payload, "prompt_tokens": tokens, "total_tokens": total_tokens}
+
