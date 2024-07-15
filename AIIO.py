@@ -38,7 +38,14 @@ class LLMs(enum.Enum):
     G4F = 5
     MISTRALAI = 6
     MIXTRAL7X8 = 7
+class DeepInfraLLMs(enum.Enum):
+    Mistral3_7B = 0
+    DolphinMixtral = 1
+    LLama3_8B = 2
 
+def _DeepInfraLLMsEnumToString(llm: DeepInfraLLMs):
+    codes = {DeepInfraLLMs.Mistral3_7B: "mistralai/Mistral-7B-Instruct-v0.3", DeepInfraLLMs.DolphinMixtral:"cognitivecomputations/dolphin-2.6-mixtral-8x7b", DeepInfraLLMs.LLama3_8B: "meta-llama/Meta-Llama-3-8B-Instruct"}
+    return codes[llm]
 
 class Text2Imgs(enum.Enum):
     '''Text prompt to image. Kandinsky supports русский язык'''
@@ -336,7 +343,7 @@ def kandinskyOutputToFile(gen):
         return None
 
 
-async def askBetterLLM(payload: list, max_tokens=512):
+async def askBetterLLM(payload: list, max_tokens=512, model=DeepInfraLLMs.Mistral3_7B):
     '''payload structure:
         [{"role": "system", "content": "Hello world"},
         {"role": "user", "content": "Hello world"},
@@ -353,7 +360,7 @@ async def askBetterLLM(payload: list, max_tokens=512):
     total_tokens = 0
     try:
         chat_completion = await openai.chat.completions.create(
-            model = "mistralai/Mistral-7B-Instruct-v0.3",
+            model = _DeepInfraLLMsEnumToString(model),#"mistralai/Mistral-7B-Instruct-v0.3",
             # model="mistralai/Mixtral-8x7B-Instruct-v0.1",
             # model="mistralai/Mistral-7B-Instruct-v0.1",
             # model="openchat/openchat_3.5",
