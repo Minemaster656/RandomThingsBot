@@ -11,10 +11,10 @@ from private import coreData
 import os
 
 host_type = os.getenv('HOST_TYPE', 'default_value')
-ISHOST = False
-
+ISHOST = True
+print(host_type)
 if not host_type or host_type != 'production':
-    ...
+    ISHOST = False
 else:
     ISHOST = True
 
@@ -38,7 +38,9 @@ embedColors = {"Error": 0xf03255, "Exception": 0xff2f00, "Success": 0x29ff4d, "W
                "Neutral": discord.Color.blue(), "Economy": 0xffcc12, "Notification": 0xfad243}
 WPG_whitelist = [609348530498437140]
 permission_root_whitelist = [609348530498437140, 617243612857761803]
+
 preffix = "!!" if ISHOST else ".!!"
+
 # preffix = ".!!"  # TODO: SET IF BETA
 currency = "<:catalist:1076130269867819099>"
 icons = {Icons.verified: "✅", Icons.root: "🔨", Icons.edit_characters: "🕵️",
