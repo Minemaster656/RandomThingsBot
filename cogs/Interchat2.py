@@ -64,7 +64,7 @@ class Interchat2(commands.Cog):
         hub = None
         index = -1
         # print("Message detected")
-        for hub_k in Data.interchats.keys():
+        for hub_k in Data.interchats.keys(): #TODO заменить на асинхронный поиск
             # print(hub_k)
             for guild_interchat in Data.interchats[hub_k]:
                 index += 1
