@@ -10,6 +10,8 @@ class TTS(commands.Cog):
     ''' TTS | BOT COG'''
     name = "TTS"
     author = "Minemaster"
+    SPEED = 1.5
+    SPEED_TTS = 1.25
 
     tts_channels = {}
     def __init__(self, bot: discord.Bot):
@@ -81,6 +83,13 @@ class TTS(commands.Cog):
             sequence.append(ttss["name_tts"])
             sequence.append(ttss["speaks_tts"])
             sequence.append(ttss["tts"])
+        # TODO: сделать что бы оно не повторяло имя если недавно писало
+        # history = message.channel.history(limit=2)
+        # if history[1].author.id == message.author.id:
+        #     if message.created_at - history[1].created_at <= 60000:
+        #         sequence.remove("name_tts")
+        #         if not message.reference:
+        #             sequence.remove("speaks_tts")
         for key in ttss.keys():
             if ttss[key] is None:
                 self.tts_channels[message.channel.id].play(discord.FFmpegPCMAudio(f"assets/tts_error.mp3"), after=lambda e: ...)
@@ -89,9 +98,12 @@ class TTS(commands.Cog):
                 # print(file)
                 # print(file.__class__)
                 # print(isinstance(file, libs.CachedTTS.TTS_phrase))
-                vc.play(discord.FFmpegPCMAudio(f"{file.path}/{file.filename}.mp3"), after=lambda e: ...)
+                if file == audio_files[-1]:
+                    vc.play(discord.FFmpegPCMAudio(f"{file.path}/{file.filename}.mp3", options=f"-filter:a 'atempo={self.SPEED_TTS}'"), after=lambda e: ...)
+                else:
+                    vc.play(discord.FFmpegPCMAudio(f"{file.path}/{file.filename}.mp3", options=f"-filter:a 'atempo={self.SPEED}'"), after=lambda e: ...)
                 while vc.is_playing():
-                    await asyncio.sleep(0.15)
+                    await asyncio.sleep(0.01)
         await play_audio(self.tts_channels[message.channel.id], sequence)
 
 
