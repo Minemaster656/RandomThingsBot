@@ -58,7 +58,8 @@ class TTS(commands.Cog):
             ttss["reply_tts"] = await TTS.tts("в ответ на сообщение")
             ttss["by_tts"] = await TTS.tts("от")
 
-            sequence.append(ttss["name_tts"])
+            if await self.checkIsNameSpeaksPhraseRequired(message):
+                sequence.append(ttss["name_tts"])
             sequence.append(ttss["reply_tts"])
             sequence.append(ttss["reply_content_tts"])
             sequence.append(ttss["by_tts"])
@@ -66,8 +67,9 @@ class TTS(commands.Cog):
             sequence.append(ttss["speaks_tts"])
             sequence.append(ttss["tts"])
         else:
-            sequence.append(ttss["name_tts"])
-            sequence.append(ttss["speaks_tts"])
+            if not await self.checkIsNameSpeaksPhraseRequired(message):
+                sequence.append(ttss["name_tts"])
+                sequence.append(ttss["speaks_tts"])
             sequence.append(ttss["tts"])
         # TODO: сделать что бы оно не повторяло имя если недавно писало
         # history = message.channel.history(limit=2)
@@ -76,16 +78,17 @@ class TTS(commands.Cog):
         #         sequence.remove("name_tts")
         #         if not message.reference:
         #             sequence.remove("speaks_tts")
-        if not await self.checkIsNameSpeaksPhraseRequired(message):
-            try:
-                sequence.remove("name_tts")
-            except:
-                ...
-            if not message.reference:
-                try:
-                    sequence.remove("speaks_tts")
-                except:
-                    ...
+
+        # if not await self.checkIsNameSpeaksPhraseRequired(message):
+        #     try:
+        #         sequence.remove("name_tts")
+        #     except:
+        #         ...
+        #     if not message.reference:
+        #         try:
+        #             sequence.remove("speaks_tts")
+        #         except:
+        #             ...
 
         for key in ttss.keys():
             if ttss[key] is None:
