@@ -16,7 +16,7 @@ class TTS(commands.Cog):
     tts_channels = {}
 
     tts_commands = discord.SlashCommandGroup(
-        "говорилка"
+        "говорилка", ""
 
     )
     def __init__(self, bot: discord.Bot):
