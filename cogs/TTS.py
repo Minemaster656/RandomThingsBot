@@ -77,9 +77,16 @@ class TTS(commands.Cog):
         #         if not message.reference:
         #             sequence.remove("speaks_tts")
         if await self.checkIsNameSpeaksPhraseRequired(message):
-            sequence.remove("name_tts")
+            try:
+                sequence.remove("name_tts")
+            except:
+                ...
             if not message.reference:
-                sequence.remove("speaks_tts")
+                try:
+                    sequence.remove("speaks_tts")
+                except:
+                    ...
+
         for key in ttss.keys():
             if ttss[key] is None:
                 self.tts_channels[message.channel.id]["vc"].play(discord.FFmpegPCMAudio(f"assets/tts_error.mp3"),
