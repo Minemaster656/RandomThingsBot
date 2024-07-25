@@ -89,10 +89,10 @@ class TTS(commands.Cog):
                 if len(voice_channel.members) == 1:  # Проверяем, что остался только один участник (бот)
                     await voice_channel.guild.voice_client.disconnect()
                     self.tts_channels.pop(voice_channel.id)
-        if member.bot:
-            if before.channel is not None and after.channel is None:
-                voice_channel = before.channel
-                self.tts_channels.pop(voice_channel.id)
+        # if member.bot:
+        #     if before.channel is not None and after.channel is None:
+        #         voice_channel = before.channel
+        #         self.tts_channels.pop(voice_channel.id)
 
     @tasks.loop(seconds=0.1)
     async def tts_background(self):
