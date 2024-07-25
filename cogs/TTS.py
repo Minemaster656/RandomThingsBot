@@ -105,7 +105,8 @@ class TTS(commands.Cog):
                     continue
                 else:
                     await self.TTSify(TTS_client["queue"][0])
-                    TTS_client.queue.pop(0)
+
+                    TTS_client["queue"].pop(0)
 
 
     @commands.slash_command(name="включить-говорилку",description="Включает озвучку чата войса говорилкой от гугла. Если она работает, конечно же...")
