@@ -23,6 +23,22 @@ class TTS(commands.Cog):
 
     def cog_unload(self):
         self.tts_background.cancel()
+    async def checkIsNameSpeaksPhraseRequired(self, message):
+        prev_message = message
+        async for msg in message.channel.history(limit=2):
+            if msg.id != message.id:
+                prev_message = msg
+                break
+
+        if prev_message.author == message.author:
+            # Проверяем, что предыдущее сообщение было отправлено не более 2 минут назад
+            time_diff = message.created_at - prev_message.created_at
+            if time_diff.total_seconds() <= 120:
+                # await message.channel.send(
+                #     f"Предыдущее сообщение отправлено тем же пользователем меньше чем 2 минуты назад.")
+                return True
+
+        return False
 
     async def TTSify(self, message):
         print(message.content)
@@ -60,6 +76,10 @@ class TTS(commands.Cog):
         #         sequence.remove("name_tts")
         #         if not message.reference:
         #             sequence.remove("speaks_tts")
+        if await self.checkIsNameSpeaksPhraseRequired(message):
+            sequence.remove("name_tts")
+            if not message.reference:
+                sequence.remove("speaks_tts")
         for key in ttss.keys():
             if ttss[key] is None:
                 self.tts_channels[message.channel.id]["vc"].play(discord.FFmpegPCMAudio(f"assets/tts_error.mp3"),
@@ -96,11 +116,11 @@ class TTS(commands.Cog):
 
     @tasks.loop(seconds=0.1)
     async def tts_background(self):
-        print("bg loop")
+        # print("bg loop")
         # print(self.tts_channels)
         for TTS_client in self.tts_channels.values():
             if not TTS_client["vc"].is_playing():
-                print(TTS_client)
+                # print(TTS_client)
                 if len(TTS_client["queue"]) == 0:
                     continue
                 else:
@@ -161,10 +181,10 @@ class TTS(commands.Cog):
         if message.author.id == self.bot.user.id:
             print("ids are same")
             return
-        print(self.tts_channels)
-        print(message.content)
+        # print(self.tts_channels)
+        # print(message.content)
         self.tts_channels[message.channel.id]["queue"].append(message)
-        print(self.tts_channels)
+        # print(self.tts_channels)
 
 
 
