@@ -67,7 +67,7 @@ class TTS(commands.Cog):
             sequence.append(ttss["speaks_tts"])
             sequence.append(ttss["tts"])
         else:
-            if not await self.checkIsNameSpeaksPhraseRequired(message):
+            if await self.checkIsNameSpeaksPhraseRequired(message):
                 sequence.append(ttss["name_tts"])
                 sequence.append(ttss["speaks_tts"])
             sequence.append(ttss["tts"])
