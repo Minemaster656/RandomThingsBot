@@ -30,7 +30,7 @@ class TTS(commands.Cog):
                 prev_message = msg
                 break
 
-        if prev_message.author == message.author:
+        if prev_message.author.id == message.author.id:
             # Проверяем, что предыдущее сообщение было отправлено не более 2 минут назад
             time_diff = message.created_at - prev_message.created_at
             if time_diff.total_seconds() <= 120:
@@ -76,7 +76,7 @@ class TTS(commands.Cog):
         #         sequence.remove("name_tts")
         #         if not message.reference:
         #             sequence.remove("speaks_tts")
-        if await self.checkIsNameSpeaksPhraseRequired(message):
+        if not await self.checkIsNameSpeaksPhraseRequired(message):
             try:
                 sequence.remove("name_tts")
             except:
