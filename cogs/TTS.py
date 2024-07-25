@@ -36,9 +36,9 @@ class TTS(commands.Cog):
             if time_diff.total_seconds() <= 120:
                 # await message.channel.send(
                 #     f"Предыдущее сообщение отправлено тем же пользователем меньше чем 2 минуты назад.")
-                return True
+                return False
 
-        return False
+        return True
 
     async def TTSify(self, message):
         print(message.content)
