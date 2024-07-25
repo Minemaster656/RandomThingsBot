@@ -100,6 +100,7 @@ class TTS(commands.Cog):
         # print(self.tts_channels)
         for TTS_client in self.tts_channels:
             if not self.tts_channels[TTS_client]["vc"].is_playing():
+                print(TTS_client)
                 if len(TTS_client["queue"]) == 0:
                     continue
                 else:
