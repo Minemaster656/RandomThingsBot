@@ -96,11 +96,11 @@ class TTS(commands.Cog):
 
     @tasks.loop(seconds=0.1)
     async def tts_background(self):
-        print("bg loop")
-        print(self.tts_channels)
+        # print("bg loop")
+        # print(self.tts_channels)
         for TTS_client in self.tts_channels:
             if not self.tts_channels[TTS_client]["vc"].is_playing():
-                if len(TTS_client.queue) == 0:
+                if len(TTS_client["queue"]) == 0:
                     continue
                 else:
                     await self.TTSify(TTS_client.queue[0])
