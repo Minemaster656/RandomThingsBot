@@ -104,7 +104,7 @@ class TTS(commands.Cog):
                 if len(TTS_client["queue"]) == 0:
                     continue
                 else:
-                    await self.TTSify(TTS_client.queue[0])
+                    await self.TTSify(TTS_client["queue"][0])
                     TTS_client.queue.pop(0)
 
 
