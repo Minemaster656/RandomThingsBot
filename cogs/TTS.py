@@ -14,6 +14,11 @@ class TTS(commands.Cog):
     SPEED_TTS = 1.25
 
     tts_channels = {}
+
+    tts_commands = discord.SlashCommandGroup(
+        "говорилка"
+
+    )
     def __init__(self, bot: discord.Bot):
         self.bot = bot
 
@@ -41,7 +46,7 @@ class TTS(commands.Cog):
         return True
 
     async def TTSify(self, message):
-        print(message.content)
+        # print(message.content)
         # vc = message.guild.me.voice.channel
         TTS = libs.CachedTTS.CachedTTS(f"files/TTS", f"files/db/TTS.db")
         # print(TTS.path_to_audio)
@@ -139,7 +144,7 @@ class TTS(commands.Cog):
                     TTS_client["queue"].pop(0)
 
 
-    @commands.slash_command(name="включить-говорилку",description="Включает озвучку чата войса говорилкой от гугла. Если она работает, конечно же...")
+    @tts_commands.command(name="включить",description="Включает озвучку чата войса говорилкой от гугла. Если она работает, конечно же...")
     async def initTTS(self, ctx):
         member = ctx.guild.get_member(ctx.author.id)
         if not member:
@@ -161,7 +166,7 @@ class TTS(commands.Cog):
         await channel.send("Говорилка включена!")
         self.tts_channels[channel.id] = {"vc":vc, "queue":[]}
         # print("ГОВОРИЛКА", vc)
-    @commands.slash_command(name="отключить-говорилку",description="выкидывает бота из войса и выключает эту ваши говорилку")
+    @tts_commands.command(name="отключить",description="выкидывает бота из войса и выключает эту ваши говорилку")
     async def disconnectSpeaker(self, ctx: discord.ApplicationContext):
         member = ctx.guild.get_member(ctx.author.id)
         if not member:
@@ -179,6 +184,28 @@ class TTS(commands.Cog):
             return
         await channel.guild.voice_client.disconnect()
         await ctx.respond("Говорилка выключена!")
+    @tts_commands.command(name="пропустить",description="пропускает фразу в говорилке")
+    async def skipTTS(self, ctx):
+        member = ctx.guild.get_member(ctx.author.id)
+        if not member:
+            await ctx.respond("Вы должны быть на сервере!", ephemeral=True)
+            return
+        if not member.voice:
+            await ctx.respond("Вы должны быть в голосовом чате!", ephemeral=True)
+            return
+        if not member.voice.channel:
+            await ctx.respond("Вы должны быть в голосовом чате!", ephemeral=True)
+            return
+        channel = member.voice.channel
+        if member.guild.me.voice.channel.id != channel.id:
+            await ctx.respond("Вы должны быть в голосовом чате с ботом!", ephemeral=True)
+            return
+        if len(self.tts_channels[channel.id]["queue"]) == 0:
+            await ctx.respond("Говорилка пуста!")
+            return
+        self.tts_channels[channel.id]["queue"].pop(0)
+        await ctx.respond("Фраза говорилки пропущена!")
+
 
     @commands.Cog.listener("on_message")
     async def TTS_on_message(self, message: discord.Message):
@@ -189,7 +216,7 @@ class TTS(commands.Cog):
         if len(message.content) == 0:
             return
         if message.author.id == self.bot.user.id:
-            print("ids are same")
+            # print("ids are same")
             return
         # print(self.tts_channels)
         # print(message.content)
