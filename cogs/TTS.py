@@ -184,7 +184,7 @@ class TTS(commands.Cog):
             return
         await channel.guild.voice_client.disconnect()
         await ctx.respond("Говорилка выключена!")
-    @tts_commands.command(name="пропустить",description="пропускает фразу в говорилке")
+    @tts_commands.command(name="пропустить",description="пропускает текущую фразу в говорилке")
     async def skipTTS(self, ctx):
         member = ctx.guild.get_member(ctx.author.id)
         if not member:
@@ -203,8 +203,9 @@ class TTS(commands.Cog):
         if len(self.tts_channels[channel.id]["queue"]) == 0:
             await ctx.respond("Говорилка пуста!")
             return
-        self.tts_channels[channel.id]["queue"].pop(0)
-        await ctx.respond("Фраза говорилки пропущена!")
+        # self.tts_channels[channel.id]["queue"].pop(0)
+        self.tts_channels[channel.id]["vc"].stop()
+        await ctx.respond("Текущая фраза говорилки пропущена!")
 
 
     @commands.Cog.listener("on_message")
