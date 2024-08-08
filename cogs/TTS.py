@@ -46,73 +46,81 @@ class TTS(commands.Cog):
         return True
 
     async def TTSify(self, message):
-        # print(message.content)
-        # vc = message.guild.me.voice.channel
-        TTS = libs.CachedTTS.CachedTTS(f"files/TTS", f"files/db/TTS.db")
-        # print(TTS.path_to_audio)
-        # print(TTS)
-        # print(os.getcwd())
-        ttss = {}
-        sequence = []
-        ttss["tts"] = await TTS.tts(message.content)
-        ttss["name_tts"] = await TTS.tts(message.author.display_name)
-        ttss["speaks_tts"] = await TTS.tts("говорит")
-        if message.reference:
-            ttss["reply_author_name_tts"] = await TTS.tts(message.reference.resolved.author.display_name)
-            ttss["reply_content_tts"] = await TTS.tts(message.reference.resolved.content)
-            ttss["reply_tts"] = await TTS.tts("в ответ на сообщение")
-            ttss["by_tts"] = await TTS.tts("от")
+        try:
+            # print(message.content)
+            # vc = message.guild.me.voice.channel
+            TTS = libs.CachedTTS.CachedTTS(f"files/TTS", f"files/db/TTS.db")
+            # print(TTS.path_to_audio)
+            # print(TTS)
+            # print(os.getcwd())
+            ttss = {}
+            sequence = []
+            ttss["tts"] = await TTS.tts(message.content)
+            ttss["name_tts"] = await TTS.tts(message.author.display_name)
+            ttss["speaks_tts"] = await TTS.tts("говорит")
+            if message.reference:
+                ttss["reply_author_name_tts"] = await TTS.tts(message.reference.resolved.author.display_name)
+                ttss["reply_content_tts"] = await TTS.tts(message.reference.resolved.content)
+                ttss["reply_tts"] = await TTS.tts("в ответ на сообщение")
+                ttss["by_tts"] = await TTS.tts("от")
 
-            if await self.checkIsNameSpeaksPhraseRequired(message):
-                sequence.append(ttss["name_tts"])
-            sequence.append(ttss["reply_tts"])
-            sequence.append(ttss["reply_content_tts"])
-            sequence.append(ttss["by_tts"])
-            sequence.append(ttss["reply_author_name_tts"])
-            sequence.append(ttss["speaks_tts"])
-            sequence.append(ttss["tts"])
-        else:
-            if await self.checkIsNameSpeaksPhraseRequired(message):
-                sequence.append(ttss["name_tts"])
+                if await self.checkIsNameSpeaksPhraseRequired(message):
+                    sequence.append(ttss["name_tts"])
+                sequence.append(ttss["reply_tts"])
+                sequence.append(ttss["reply_content_tts"])
+                sequence.append(ttss["by_tts"])
+                sequence.append(ttss["reply_author_name_tts"])
                 sequence.append(ttss["speaks_tts"])
-            sequence.append(ttss["tts"])
-        # TODO: сделать что бы оно не повторяло имя если недавно писало
-        # history = message.channel.history(limit=2)
-        # if history[1].author.id == message.author.id:
-        #     if message.created_at - history[1].created_at <= 60000:
-        #         sequence.remove("name_tts")
-        #         if not message.reference:
-        #             sequence.remove("speaks_tts")
+                sequence.append(ttss["tts"])
+            else:
+                if await self.checkIsNameSpeaksPhraseRequired(message):
+                    sequence.append(ttss["name_tts"])
+                    sequence.append(ttss["speaks_tts"])
+                sequence.append(ttss["tts"])
+            # TODO: сделать что бы оно не повторяло имя если недавно писало
+            # history = message.channel.history(limit=2)
+            # if history[1].author.id == message.author.id:
+            #     if message.created_at - history[1].created_at <= 60000:
+            #         sequence.remove("name_tts")
+            #         if not message.reference:
+            #             sequence.remove("speaks_tts")
 
-        # if not await self.checkIsNameSpeaksPhraseRequired(message):
-        #     try:
-        #         sequence.remove("name_tts")
-        #     except:
-        #         ...
-        #     if not message.reference:
-        #         try:
-        #             sequence.remove("speaks_tts")
-        #         except:
-        #             ...
+            # if not await self.checkIsNameSpeaksPhraseRequired(message):
+            #     try:
+            #         sequence.remove("name_tts")
+            #     except:
+            #         ...
+            #     if not message.reference:
+            #         try:
+            #             sequence.remove("speaks_tts")
+            #         except:
+            #             ...
 
-        for key in ttss.keys():
-            if ttss[key] is None:
-                self.tts_channels[message.channel.id]["vc"].play(discord.FFmpegPCMAudio(f"assets/tts_error.mp3"),
-                                                                 after=lambda e: ...)
+            for key in ttss.keys():
+                if ttss[key] is None:
+                    self.tts_channels[message.channel.id]["vc"].play(discord.FFmpegPCMAudio(f"assets/tts_error.mp3"),
+                                                                     after=lambda e: ...)
+        except:
+            self.tts_channels[message.channel.id]["vc"].play(discord.FFmpegPCMAudio(f"assets/tts_error.mp3"),
+                                                             after=lambda e: ...)
 
         async def play_audio(vc, audio_files):
-            for file in audio_files:
-                # print(file)
-                # print(file.__class__)
-                # print(isinstance(file, libs.CachedTTS.TTS_phrase))
-                if file == audio_files[-1]:
-                    vc.play(discord.FFmpegPCMAudio(f"{file.path}/{file.filename}.mp3",
-                                                   options=f"-filter:a 'atempo={self.SPEED_TTS}'"), after=lambda e: ...)
-                else:
-                    vc.play(discord.FFmpegPCMAudio(f"{file.path}/{file.filename}.mp3",
-                                                   options=f"-filter:a 'atempo={self.SPEED}'"), after=lambda e: ...)
-                while vc.is_playing():
-                    await asyncio.sleep(0.01)
+            try:
+                for file in audio_files:
+                    # print(file)
+                    # print(file.__class__)
+                    # print(isinstance(file, libs.CachedTTS.TTS_phrase))
+                    if file == audio_files[-1]:
+                        vc.play(discord.FFmpegPCMAudio(f"{file.path}/{file.filename}.mp3",
+                                                       options=f"-filter:a 'atempo={self.SPEED_TTS}'"), after=lambda e: ...)
+                    else:
+                        vc.play(discord.FFmpegPCMAudio(f"{file.path}/{file.filename}.mp3",
+                                                       options=f"-filter:a 'atempo={self.SPEED}'"), after=lambda e: ...)
+                    while vc.is_playing():
+                        await asyncio.sleep(0.01)
+            except:
+                self.tts_channels[message.channel.id]["vc"].play(discord.FFmpegPCMAudio(f"assets/tts_error.mp3"),
+                                                                 after=lambda e: ...)
 
         await play_audio(self.tts_channels[message.channel.id]["vc"], sequence)
 
@@ -133,15 +141,18 @@ class TTS(commands.Cog):
     async def tts_background(self):
         # print("bg loop")
         # print(self.tts_channels)
-        for TTS_client in self.tts_channels.values():
-            if not TTS_client["vc"].is_playing():
-                # print(TTS_client)
-                if len(TTS_client["queue"]) == 0:
-                    continue
-                else:
-                    await self.TTSify(TTS_client["queue"][0])
+        try:
+            for TTS_client in self.tts_channels.values():
+                if not TTS_client["vc"].is_playing():
+                    # print(TTS_client)
+                    if len(TTS_client["queue"]) == 0:
+                        continue
+                    else:
+                        await self.TTSify(TTS_client["queue"][0])
 
-                    TTS_client["queue"].pop(0)
+                        TTS_client["queue"].pop(0)
+        except:
+            ...
 
 
     @tts_commands.command(name="включить",description="Включает озвучку чата войса говорилкой от гугла. Если она работает, конечно же...")
