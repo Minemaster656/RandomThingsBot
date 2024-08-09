@@ -1,11 +1,11 @@
-try:
-    import discord
-    from discord import Option, Webhook, Forbidden
-    from discord.ext import commands
-except:
-    import pycord as discord
-    from pycord import Option, Webhook, Forbidden
-    from discord.ext import commands
+# try:
+import discord
+from discord import Option, Webhook, Forbidden
+from discord.ext import commands
+# except:
+#     import pycord as discord
+#     from pycord import Option, Webhook, Forbidden
+#     from discord.ext import commands
 
 import swearfilter as sw
 import utils

@@ -1,4 +1,4 @@
-import g4f
+# import g4f
 
 import utils
 import json
@@ -7,10 +7,10 @@ import time
 import requests
 from private import coreData
 
-g4f.logging = True  # enable logging
-g4f.check_version = False  # Disable automatic version checking
-print(g4f.version)  # check version
-print(g4f.Provider.Ails.params)  # supported args
+# g4f.logging = True  # enable logging
+# g4f.check_version = False  # Disable automatic version checking
+# print(g4f.version)  # check version
+# print(g4f.Provider.Ails.params)  # supported args
 
 
 # Automatic selection of provider
@@ -39,10 +39,11 @@ async def askGPT(system_prompt: str, user_prompt: str, useGPT4: bool):
         messages.append({{"role": "system", "content": f"{system_prompt}"}})
     messages.append({"role": "user", "content": f"{user_prompt}"})
     # normal response
-    response = g4f.ChatCompletion.create(
-        model=g4f.models.gpt_4 if useGPT4 else "gpt-3.5-turbo",
-        messages=messages,
-    )  # alternative model setting
+    # response = g4f.ChatCompletion.create(
+    #     model=g4f.models.gpt_4 if useGPT4 else "gpt-3.5-turbo",
+    #     messages=messages,
+    # )  # alternative model setting
+    response = None
 
     return response
 

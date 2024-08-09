@@ -18,7 +18,7 @@ import graphics.BASE64
 import private.coreData
 from private import coreData as core
 
-from factcheckexplorer.factcheckexplorer import FactCheckLib
+# from factcheckexplorer.factcheckexplorer import FactCheckLib
 
 gigachat_temptoken = None
 

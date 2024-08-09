@@ -7,13 +7,13 @@ import time
 
 import aiohttp
 # -*- coding: utf-8 -*-
-try:
-    import discord
-    # from discord_components import DiscordComponents, Button
-    from discord import Option, Webhook, Forbidden
-except:
-    import pycord as discord
-    from pycord import Option, Webhook, Forbidden
+# try:
+import discord
+# from discord_components import DiscordComponents, Button
+from discord import Option, Webhook, Forbidden
+# except:
+#     import pycord as discord
+#     from pycord import Option, Webhook, Forbidden
 # import Apocalypse
 # import HetTol
 import d

@@ -4,14 +4,14 @@ import matplotlib.pyplot as plt
 import perlin_noise
 
 
-try:
-    import discord
-    from discord import Option, Webhook, Forbidden, ButtonStyle
-    from discord.ext import commands
-except:
-    import pycord as discord
-    from pycord import Option, Webhook, Forbidden, ButtonStyle
-    from discord.ext import commands
+# try:
+import discord
+from discord import Option, Webhook, Forbidden, ButtonStyle
+from discord.ext import commands
+# except:
+#     import pycord as discord
+#     from pycord import Option, Webhook, Forbidden, ButtonStyle
+#     from discord.ext import commands
 from random import *
 from PIL import Image
 import requests

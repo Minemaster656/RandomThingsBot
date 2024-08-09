@@ -5,14 +5,14 @@ import time
 import Data
 import utils
 
-try:
-    import discord
-    from discord import Option, Webhook, Forbidden
-    from discord.ext import commands, tasks
-except:
-    import pycord as discord
-    from pycord import Option, Webhook, Forbidden
-    from discord.ext import commands, tasks
+# try:
+import discord
+from discord import Option, Webhook, Forbidden
+from discord.ext import commands, tasks
+# except:
+#     import pycord as discord
+#     from pycord import Option, Webhook, Forbidden
+#     from discord.ext import commands, tasks
 
 
 class Interchat2(commands.Cog):
