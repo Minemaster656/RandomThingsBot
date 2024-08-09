@@ -47,6 +47,7 @@ class CachedTTS():
                 # print("GTTS INIT")
                 # Используем gTTS для озвучивания фразы
                 tts = gTTS(text=phrase, lang='ru')
+
                 # print("MAKING PATH")
                 # Генерируем уникальное имя файла для сохранения
                 output_file = os.path.join(self.path_to_audio, f"{filename}.mp3")
