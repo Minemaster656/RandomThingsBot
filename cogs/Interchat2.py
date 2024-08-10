@@ -59,7 +59,9 @@ class Interchat2(commands.Cog):
 
     @commands.Cog.listener("on_message")
     async def interchat_on_message(self, message: discord.Message):
+
         if message.author.name.startswith(">»"): return
+        if message.channel.type == discord.ChannelType.group or message.channel.type == discord.ChannelType.private: return
         hub_key = ""
         hub = None
         index = -1
