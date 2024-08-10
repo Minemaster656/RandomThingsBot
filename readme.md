@@ -6,7 +6,7 @@ tokens = {"OWM":'токен для OWM'}
 mongo_url = "mongodb://localhost:27017/"
 mongo_db_name = 'RTB_data'
 API_KEYS={
-"kandinskiy3":[{"X-Key":"публичный ключ", "X-Secret":"секрет"}],
+"kandinskiy3":[{"X-Key":"публичный ключ", "X-Secret":"секрет"}], #сейчас в боте используется 4 таких пары, если вдруг вы решили стырить этого бота, то вам в лицо кинет ошибку, если вы не оставите тут 4 ключа
 "GigaChat":{"secret":"client secret", "auth":"auth string, окно client secret, строка 2",
             "clientID":"client id", "scope":"scope"},
 "deepinfra":"token"
