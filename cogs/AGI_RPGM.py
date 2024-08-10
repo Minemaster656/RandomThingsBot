@@ -85,7 +85,7 @@ class AGI_RPGM(commands.Cog):
                 else:
                     payload.append({"role": "user", "content": "[" + msg["name"] + "]: " + msg['content']})
             # print(payload)
-            response = await AIIO.askBetterLLM(payload, 8000, AIIO.DeepInfraLLMs.DolphinMixtral)
+            response = await AIIO.askBetterLLM(payload, 8000, AIIO.DeepInfraLLMs.Mistral3_7B)
 
             tokens = response['total_tokens']
             resp = response['result']
