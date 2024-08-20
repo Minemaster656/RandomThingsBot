@@ -136,7 +136,7 @@ async def on_command_error(ctx, error):
 
 
 @bot.slash_command(name="настройки-бота", description="Задать определённую настройку бота",
-                   guilds=[1019180616731873290, 855045703235928094])
+                   guilds=Data.BOT_INTERNAL_COMMANDS_GUILDS)
 async def set_settings(ctx, field: Option(str, description="Поле", required=True,
                                           choices=["SQL+commit", "eval", "Таблицы", "Баланс"]) = 0,
                        value: Option(str, description="Значение", required=True) = 0,
@@ -151,20 +151,12 @@ async def set_settings(ctx, field: Option(str, description="Поле", required=
     if hasPermission == True:
         embed = discord.Embed(title="В разработке...", description="Вам необходимо разрешение root для использования.",
                               color=Data.embedColors["Warp"])
-        if field == "SQL+commit":
-            # cursor.execute(value)
-            # conn.commit()
-            embed = discord.Embed(title="Не поддерживается!",
-                                  description=f"БАЗА ДАННЫХ ПЕРЕЕЗЖАЕТ НА MONGODB! Запрос: {value}",
-                                  color=Data.embedColors["Exception"])
-        elif field == "eval":
-            eval(value)
-            embed = discord.Embed(title="Код выполнен!", description=f"Код: {value}",
+
+        if field == "eval":
+            # eval(value)
+            embed = discord.Embed(title="Код не выполнен!", description=f"Код: {value}",
                                   color=Data.embedColors["Success"])
-        elif field == "Таблицы":
-            embed = discord.Embed(title="Таблицы получены!",
-                                  description=f"БАЗА ДАННЫХ ПЕРЕЕЗЖАЕТ НА MONGODB! Запросы: \n=====\n\n{dbClone.getSQLs(False)}",
-                                  color=Data.embedColors["Exception"])
+
 
         await ctx.respond(embed=embed, ephemeral=ephemeral)
     else:
@@ -174,37 +166,12 @@ async def set_settings(ctx, field: Option(str, description="Поле", required=
 @bot.command(aliases=['me', 'я', '>'])
 async def sendMsg(ctx, *, args):
     """Отправка сообщения от лица бота."""
-    if Data.parsePermissionFromUser(ctx.author.id, "say_as_bot"):
+    if await Data.parsePermissionFromUser(ctx.author.id, "say_as_bot"):
         if ctx.message.reference:
             await ctx.send(args, reference=ctx.message.reference)
         else:
             await ctx.send(args)
     await ctx.message.delete()
-
-
-@bot.slash_command(description="Список команд.", name="хелп")  # guilds=[1076117733428711434]
-async def help(ctx):
-    await ctx.respond(
-        f"Тут должен быть нормальный help"
-    )
-
-
-# @bot.slash_command(description="Сообщение от лица бота.", name="бот")
-# async def me(ctx, text):
-#     if Data.parsePermissionFromUser(ctx.author.id, "say_as_bot"):
-#         if ctx.message.reference:
-#             await ctx.send(text, reference=ctx.message.reference)
-#         else:
-#             await ctx.send(text)
-#     await ctx.message.delete()
-
-
-
-
-
-@bot.event
-async def on_reaction_add(reaction, user):
-    ...
 
 
 @bot.slash_command(description="Перевод раскладки", name="раскладка")  # guilds=[1076117733428711434]
@@ -224,7 +191,7 @@ async def keyboard_layout_switcher(ctx, text):
     await ctx.respond(result, ephemeral=True)
 
 
-@bot.slash_command(name="разрешения", description="Редактирование разрешений пользователя")
+@bot.slash_command(name="разрешения", description="Редактирование разрешений пользователя", guilds=Data.BOT_INTERNAL_COMMANDS_GUILDS)
 async def editMemberPermissions(ctx, permission: Option(str, description="Разрешение. ? для списка",
                                                         choises=Data.permissions_user,
                                                         required=True) = "none",
@@ -259,7 +226,7 @@ async def editMemberPermissions(ctx, permission: Option(str, description="Раз
         await ctx.respond(json.dumps(Data.permissions_user))
 
 
-@bot.slash_command(name="добавить-опыт", description="Даёт опыт пользователю")
+@bot.slash_command(name="добавить-опыт", description="Даёт опыт пользователю", guilds=Data.BOT_INTERNAL_COMMANDS_GUILDS)
 async def addXP(ctx, user: Option(discord.Member, description="Пользователь", required=True) = 0,
                 value: Option(float, description="Количество. Отрицательное для уменьшения", required=True) = 0):
     if await Data.parsePermissionFromUser(ctx.author.id, "root"):
@@ -304,23 +271,10 @@ async def on_message(message):
         ...
 
 
-@bot.event
-async def on_message_delete(message):
-    ...
 
 
-@bot.event
-async def on_bulk_message_delete(messages):
-    for m in messages:
-        try:
-            ...
-            # await interdeletion(m)
-        except:
-            ...
 
 
-# if message.content.lower() in commands:
-#        await commands[message.content.lower()](message)
 @bot.slash_command(name="отправить-жалобу-на-пользователя", description="Отправить жалобу на пользователя")
 async def report(ctx):
     await ctx.respond("Жалобы не принимаются, эта фича ещё в разработке ;(")
@@ -333,17 +287,7 @@ async def report(ctx):
 
 # TODO: обработчик захода на сервер
 
-# @bot.event
-# async def on_member_join(member):
-#     guild = member.guild
-#     community_updates_channel_id = guild.system_channel.id
-#     community_updates_channel = guild.get_channel(community_updates_channel_id)
-#     cursor.execute("SELECT reports FROM users WHERE id = ?", (member.id, ))
-#     dt = cursor.fetchone()
-#     if dt is not None and dt != "":
-#         data = utils.load_report_from_json(dt[0])
-#         if len(data)>0:
-#             await community_updates_channel.send(f"На пользователя {member.name} аж {len(data)} жалоб!")
+
 
 
 async def statusLoop():
@@ -369,32 +313,7 @@ async def statusLoop():
 
 # # voice:.idea/1696585352512.wav
 # # voice:.idea/1696530559952.wav
-# # bot.add_cog(Weather(bot))
-# bot.add_cog(game.Game(bot))
-# # for f in os.listdir("./cogs"):
-# #     if f.endswith(".py"):
-# #         bot.load_extension("cogs." + f[:-3])
-# bot.add_cog(tests.Tests(bot))
-# bot.add_cog(rp.RP(bot))
-# bot.add_cog(economy.Economy(bot))
-# bot.add_cog(utilities.BotCog(bot))
-# bot.add_cog(Apocalypse.Apocalypse(bot))
-# bot.add_cog(ServerCore.ServerCore(bot))
-# bot.add_cog(_AI_Stuff._AI_Stuff(bot))
-# bot.add_cog(fun.fun(bot))
-# # bot.add_cog(voice.voice(bot))
-# # bot.add_cog(paginator.PageTest(bot))
-# # asyncio.run(loop())
-# bot.add_cog(HetTol.PingCog(bot))
-#
-# # loop_thread = Thread(target=loopRunner())
-# # loop_thread.start()
-#
-# # client = discord.Client()
-#
-# # client.loop.create_task(loop())
-# bot.run(token)
-# # asyncio.run(statusLoop())
+
 def main():
     for f in os.listdir("./cogs"):
         if f.endswith("py"):
