@@ -1,4 +1,6 @@
 import asyncio
+import json
+import os
 import re
 import time
 
@@ -42,6 +44,7 @@ class Interchat2(commands.Cog):
                     self.edit_queue[hub].remove(msg)
         ...
 
+
     def inter_formatName(self, message):
         if not message:
             return ">» ???"
@@ -56,6 +59,103 @@ class Interchat2(commands.Cog):
             type = "😎"
         return ">» " + utils.formatStringLength(message.author.name, 48) + " | " + utils.formatStringLength(
             message.guild.name, 32) + " | " + type
+
+    @commands.has_permissions(administrator=True)
+    @commands.slash_command(name="интерсервер", description="Помечает канал как интерсервер")
+    async def interserver(self, ctx,
+                          type: Option(str, description="Тип канала. Можно иметь одновременно несколько на сервер.",
+                                       choices=Data.interhubs, required=True) = 0,
+                          reset: Option(bool, description="True для отчистки поля", required=False) = False):
+        channel = ctx.channel
+        if await Data.parsePermissionFromUser(ctx.author.id, "root") or Data.parsePermissionFromUser(ctx.author.id, "verified"):  # (
+            # ctx.author.permissions.administrator or ctx.author.permissions.manage_channels)):
+            # with open('private/data.json', 'r') as file:
+            #     try:
+            #         data = json.load(file)
+            #     except json.JSONDecodeError:
+            #         data = {}
+            #     except FileNotFoundError:
+            #         data = {}
+            #
+            #
+            #
+            #
+            #
+            # with open('private/data.json', 'w') as file:
+            #     json.dump(data, file)
+
+            def update_json(data, array_name, delete=False):
+                file_path = os.path.join('private', 'interchats.json')
+
+                # Проверяем наличие файла
+                if not os.path.exists(file_path):
+                    # Если файла нет, создаем пустой JSON объект
+                    json_data = {}
+                else:
+                    # Если файл существует, считываем его содержимое
+                    with open(file_path, 'r') as file:
+                        try:
+                            json_data = json.load(file)
+                        except json.JSONDecodeError:
+                            # В случае ошибки при чтении файла (некорректный JSON), создаем пустой JSON объект
+                            json_data = {}
+
+                # Проверяем наличие массива с заданным именем
+                if array_name not in json_data:
+                    json_data[array_name] = []
+                if len(json_data) > 0:
+                    if type in json_data.keys():
+                        if len(json_data[type]) > 0:
+                            i = 0
+                            for arr in json_data[type]:
+                                if arr['guild'] == ctx.guild.id:
+                                    json_data[type].pop(i)
+                                    break
+                                i += 1
+                if delete:
+                    # Удаление элемента из массива, если delete=True
+                    # json_data[array_name] = [item for item in json_data[array_name] if item != data]
+                    if len(json_data) > 0:
+                        if type in json_data.keys():
+                            if len(json_data[type]) > 0:
+                                i = 0
+                                for arr in json_data[type]:
+                                    if arr['channel'] == channel.id:
+                                        json_data[type].pop(i)
+                                        break
+                                    i += 1
+                else:
+                    # Добавление элемента в массив, если delete=False
+                    json_data[array_name].append(data)
+                Data.interchats = json_data
+                # Записываем обновленные данные в файл
+                with open(file_path, 'w') as file:
+                    json.dump(json_data, file)
+
+            isThread = isinstance(channel, discord.Thread)
+            if isThread:
+                data = {'guild': ctx.guild.id, 'channel': channel.parent_id, 'thread': channel.id}
+            else:
+                data = {'guild': ctx.guild.id, 'channel': channel.id}
+            update_json(data, type, reset)
+            found = False
+            hooks = await ctx.channel.webhooks() if isinstance(channel,
+                                                               discord.TextChannel) else await ctx.channel.parent.webhooks()
+            hook_channel = ctx.channel if isinstance(channel, discord.TextChannel) else ctx.channel.parent
+            for hook in hooks:
+                if hook.user.id == self.bot.user.id:
+                    found = True
+            if not found:
+                await hook_channel.create_webhook(name="RTB hook")
+            await ctx.respond("Успешно!", ephemeral=True)
+            embed = discord.Embed(title=f"Обновление интерчата",
+                                  description=f"В канале {channel.name} {'установлен' if not reset else 'убран'} хаб межсерверного чата `{type}`!",
+                                  colour=0xffffff)
+            await ctx.respond(embed=embed)
+        else:
+            await ctx.respond(
+                "У Вас недостаточно прав для этого действия!!!\nНеобходима верификация пользователя (в боте, не в Discord) и право управления каналами/администратор",
+                ephemeral=True)
 
     @commands.Cog.listener("on_message")
     async def interchat_on_message(self, message: discord.Message):
