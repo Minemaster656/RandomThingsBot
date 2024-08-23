@@ -45,7 +45,7 @@ def schema(document, scheme):
 
             "muteroleid": None,
 
-            "mutes": None,
+            "mutes": {},
 
             "bumpcolor": None,
 
@@ -73,6 +73,8 @@ def schema(document, scheme):
                 "roles": [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}]},
             "voiceRoomCreatorChannels": [],
             "voiceRooms": [],
+            "prisonCategoryId": None,
+
 
         }
     if scheme == Schemes.character:
