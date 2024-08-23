@@ -140,7 +140,7 @@ async def on_command_error(ctx, error):
 async def set_settings(ctx, field: Option(str, description="Поле", required=True,
                                           choices=["SQL+commit", "eval", "Таблицы", "Баланс"]) = 0,
                        value: Option(str, description="Значение", required=True) = 0,
-                       ephemeral: Option(bool, description="Видно ли только вам?", required=False) = False,
+                       ephemeral: Option(bool, description="Видно ли только вам? По умолчанию - всем.", required=False) = False,
                        member: Option(discord.Member, description="Пользователь, на которого влияет команда",
                                       required=False) = None):
     """Настройки и приколы бота для админов БОТА."""

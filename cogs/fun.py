@@ -37,8 +37,8 @@ class fun(commands.Cog):
 
     @commands.slash_command(name="залго", description="сделать залго")
     async def makeZalgo(self, ctx, text: Option(str, description="Текст", required=True) = "a",
-                        intensity: Option(int, description="Интенсивность", required=False) = 5,
-                        ephemeral: Option(bool, description="Видно только Вам", required=False) = True):
+                        intensity: Option(int, description="Интенсивность. По умолчанию - 5.", required=False) = 5,
+                        ephemeral: Option(bool, description="Видно только Вам? По умолчанию - только вам.", required=False) = True):
 
         output = utils.zalgo_text(text, intensity)
         embed = discord.Embed(title=f"Zalgo {intensity}", description=f"{output}", colour=0xffffff)

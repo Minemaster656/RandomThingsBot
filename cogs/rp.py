@@ -534,7 +534,7 @@ class RP(commands.Cog):
 
     @commands.slash_command(name="персонаж", description="Открывает анкету персонажа по ID")
     async def inspectChar(self, ctx, id: Option(str, description="ID", required=True) = " ",
-                          ephemeral: Option(bool, description="Видно только вам?", required=False) = False):
+                          ephemeral: Option(bool, description="Видно только вам? По умолчанию - всем", required=False) = False):
         result = db.characters.find_one({"id": id})
         if not result:
 
@@ -548,7 +548,7 @@ class RP(commands.Cog):
                             description="Ищет зарегистрированных на пользователя персонажей.")
     async def searchChar(self, ctx,
                          member: Option(discord.Member, description="У кого искать персонажей", required=True) = 0,
-                         ephemeral: Option(bool, description="Видно ли только вам", required=False) = True):
+                         ephemeral: Option(bool, description="Видно ли только вам? По умолчанию - только вам.", required=False) = True):
 
         documents = db.characters.find({"owner": member.id}, {"name": 1, "id": 1})
 
