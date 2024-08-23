@@ -11,7 +11,7 @@ class Schemes(enum.Enum):
     user = 0
     character = 1
     logconfig = 2
-    server = 3
+    guid = 3
     AI_conversation = 4
 
 
@@ -34,11 +34,11 @@ def schema(document, scheme):
 
     # if scheme == Schemes.logconfig:
     #     fields = {"id":0}
-    if scheme == Schemes.server:
+    if scheme == Schemes.guid:
         '''status - обычный/партнёрский/сервер GDT'''
         fields = {
 
-            "serverid": None,
+            "id": None,
             "name": None, "icon": None,
 
             "muteroleid": None,
@@ -68,7 +68,9 @@ def schema(document, scheme):
             "status": 0, "pr_channel": 0,
             "presets": {
                 "channels": [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}],
-                "roles": [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}]}
+                "roles": [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}]},
+            "voiceRoomCreatorChannels": [],
+            "voiceRooms": [],
 
         }
     if scheme == Schemes.character:
@@ -115,40 +117,49 @@ def schema(document, scheme):
     return document
 
 
-def getGuild(ctx) -> dict:
-    doc = db.servers.find_one({"serverid": ctx.guild.id})
+def getGuild(ctx, extra_query=None) -> dict:
+    query = {"id": ctx.guild.id}
+    if extra_query:
+        query.update(extra_query)
+    doc = db.ds_guilds.find_one(query)
     new = False
     if not doc:
         doc = {}
-        doc["serverid"] = ctx.guild.id
+        doc["id"] = ctx.guild.id
         new = True
     doc["name"] = ctx.guild.name
     doc["icon"] = ctx.guild.icon.url if ctx.guild.icon else Data.discord_logo
     doc["ownerid"] = ctx.guild.owner.id
     doc["ownername"] = ctx.guild.owner.name
 
-    doc = schema(doc, Schemes.server)
+    doc = schema(doc, Schemes.guid)
     if new:
-        db.servers.insert_one(doc)
+        db.ds_guilds.insert_one(doc)
     return doc
 
 
-def getGuildByID(id: int) -> dict:
-    doc = db.servers.find_one({"serverid": id})
+def getGuildByID(id: int, extra_query=None) -> dict:
+    query = {"id": id}
+    if extra_query:
+        query.update(extra_query)
+    doc = db.ds_guilds.find_one(query)
     new = False
     if not doc:
         doc = {}
-        doc["serverid"] = id
+        doc["id"] = id
         new = True
 
-    doc = schema(doc, Schemes.server)
+    doc = schema(doc, Schemes.guid)
     if new:
-        db.servers.insert_one(doc)
+        db.ds_guilds.insert_one(doc)
     return doc
 
 
-def getUser(id, name) -> dict:
-    doc = db.users.find_one({"userid": id})
+def getUser(id, name, extra_query=None) -> dict:
+    query = {"userid": id}
+    if extra_query:
+        query.update(extra_query)
+    doc = db.users.find_one(query)
     new = False
     updated = False
     if not doc:

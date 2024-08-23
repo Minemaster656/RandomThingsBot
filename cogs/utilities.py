@@ -41,6 +41,7 @@ class Utilities(commands.Cog):
 
     @tasks.loop(seconds=5.0)
     async def loop(self):
+        # TODO: servers переименован в ds_guilds
         # # TODO: сохранение даты и списка в джсон
         # list = Apocalypse.genApocalypseItems()
         #

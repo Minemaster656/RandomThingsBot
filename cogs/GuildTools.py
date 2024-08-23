@@ -36,7 +36,7 @@ class ConfirmSavePreset(discord.ui.View):
             for role in interaction.guild.roles:
                 result[str(role.id)] = role.name
         doc['presets'][self.category][self.slot] = result
-        db.servers.update_one({"serverid": guildid}, {"$set": doc})
+        db.ds_guilds.update_one({"id": guildid}, {"$set": doc})
         self.value = True
         self.stop()
 

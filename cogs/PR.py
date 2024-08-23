@@ -78,7 +78,7 @@ class Pr(commands.Cog):
             new_invite = await channel.create_invite(max_age=0)
             invite_url = new_invite.url
 
-        doc = db.servers.find_one({"serverid": ctx.guild.id})
+        doc = db.ds_guilds.find_one({"id": ctx.guild.id})
 
         new = False
         if doc:
@@ -86,7 +86,7 @@ class Pr(commands.Cog):
         else:
             doc = {}
             new = True
-            doc["serverid"] = ctx.guild.id
+            doc["id"] = ctx.guild.id
 
         doc["bumpcolor"] = bumpcolor
         doc["name"] = ctx.guild.name
@@ -97,7 +97,7 @@ class Pr(commands.Cog):
         doc["ownername"] = ctx.guild.owner.name
         doc["partnershipState"] = 1
 
-        doc = d.schema(doc, d.Schemes.server)
+        doc = d.schema(doc, d.Schemes.guid)
         embed = discord.Embed(title=ctx.guild.name, description=doc["bumptext"], colour=bumpcolor)
         embed.set_thumbnail(url=doc["icon"])
         guildAgeCheck = self.check_server_age(ctx.guild, 7)
@@ -113,9 +113,9 @@ class Pr(commands.Cog):
                               "2. Используйте команду /бамп для отправки своего объявления. Лимит - 1 раз в 4 часа.",
                               embed=embed)
             if new:
-                db.servers.insert_one(doc)
+                db.ds_guilds.insert_one(doc)
             else:
-                db.servers.update_one({"serverid": ctx.guild.id}, {"$set": doc})
+                db.ds_guilds.update_one({"id": ctx.guild.id}, {"$set": doc})
         else:
             req = ""
             req += ("✅" if guildAgeCheck else "❌") + " Серверу должно быть минимум 7 дней.\n"
@@ -130,7 +130,7 @@ class Pr(commands.Cog):
     @commands.slash_command(name="бамп", description="Отправляет рекламу вашего сервера")
     async def bump(self, ctx):
 
-        doc = db.servers.find_one({"serverid": ctx.guild.id})
+        doc = db.ds_guilds.find_one({"id": ctx.guild.id})
         noDocMessage = not doc
         if not noDocMessage:
             btext = doc["bumptext"]
@@ -167,10 +167,10 @@ class Pr(commands.Cog):
             embed = discord.Embed(title=ctx.guild.name, description=doc["bumptext"], colour=doc["bumpcolor"])
             embed.set_thumbnail(url=doc["icon"])
             # records = result.count()
-            for server in db.servers.find(query):
+            for server in db.ds_guilds.find(query):
                 # server = records.next()
                 found = True
-                guild = self.bot.get_guild(server["serverid"])
+                guild = self.bot.get_guild(server["id"])
                 if guild is None:
                     found = False
                 # Поиск канала по ID
@@ -193,7 +193,7 @@ class Pr(commands.Cog):
     @commands.slash_command(name="рекламный-канал", description="Канал для рекламы партнёрки")
     async def set_adds_channel(self, ctx, channel: Option(discord.TextChannel, description="Канал", required=True) = 0):
         channelCheck = self.checkChannel(channel, ctx)
-        doc = db.servers.find_one({"serverid": ctx.guild.id})
+        doc = db.ds_guilds.find_one({"id": ctx.guild.id})
         new = not doc
         save = False
         if channelCheck[0] != False and channelCheck[1] != False:
@@ -210,7 +210,7 @@ class Pr(commands.Cog):
         if not doc:
             doc = {"partnershipState": 0, "bumptext": None}
         if doc["partnershipState"] == 0 or not doc["bumptext"]:
-            doc = d.schema(doc, d.Schemes.server)
+            doc = d.schema(doc, d.Schemes.guid)
             doc["ownerid"] = ctx.guild.owner.id
             doc["ownername"] = ctx.guild.owner.name
             doc["partnershipState"] = 1
@@ -223,13 +223,13 @@ class Pr(commands.Cog):
         if save:
             doc["pr_channel"] = channel.id
             if new:
-                db.servers.insert_one(doc)
+                db.ds_guids.insert_one(doc)
             else:
-                db.servers.update_one({"serverid": ctx.guild.id}, {"$set": doc})
+                db.ds_guilds.update_one({"id": ctx.guild.id}, {"$set": doc})
 
     @commands.slash_command(name="партнёрка-предпросмотр", description="Предпросмотр вашего сообщения для партнёрки")
     async def preview(self, ctx):
-        doc = db.servers.find_one({"serverid": ctx.guild.id})
+        doc = db.ds_guilds.find_one({"id": ctx.guild.id})
         if doc:
             embed = discord.Embed(title=ctx.guild.name, description=doc["bumptext"], colour=doc["bumpcolor"])
             embed.set_thumbnail(url=doc["icon"])
