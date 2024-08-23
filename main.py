@@ -135,7 +135,7 @@ async def on_command_error(ctx, error):
             print(error)
 
 
-@bot.slash_command(name="настройки-бота", description="Задать определённую настройку бота",
+@bot.slash_command(name="настройки-бота", description="Задать определённую настройку бота. 🚧 Только для админов бота.",
                    guilds=Data.BOT_INTERNAL_COMMANDS_GUILDS)
 async def set_settings(ctx, field: Option(str, description="Поле", required=True,
                                           choices=["SQL+commit", "eval", "Таблицы", "Баланс"]) = 0,
@@ -191,7 +191,7 @@ async def keyboard_layout_switcher(ctx, text):
     await ctx.respond(result, ephemeral=True)
 
 
-@bot.slash_command(name="разрешения", description="Редактирование разрешений пользователя", guilds=Data.BOT_INTERNAL_COMMANDS_GUILDS)
+@bot.slash_command(name="разрешения", description="Редактирование разрешений пользователя. 🚧 Только для админов бота.", guilds=Data.BOT_INTERNAL_COMMANDS_GUILDS)
 async def editMemberPermissions(ctx, permission: Option(str, description="Разрешение. ? для списка",
                                                         choises=Data.permissions_user,
                                                         required=True) = "none",
@@ -226,7 +226,7 @@ async def editMemberPermissions(ctx, permission: Option(str, description="Раз
         await ctx.respond(json.dumps(Data.permissions_user))
 
 
-@bot.slash_command(name="добавить-опыт", description="Даёт опыт пользователю", guilds=Data.BOT_INTERNAL_COMMANDS_GUILDS)
+@bot.slash_command(name="добавить-опыт", description="Даёт опыт пользователю. 🚧 Только для админов бота.", guilds=Data.BOT_INTERNAL_COMMANDS_GUILDS)
 async def addXP(ctx, user: Option(discord.Member, description="Пользователь", required=True) = 0,
                 value: Option(float, description="Количество. Отрицательное для уменьшения", required=True) = 0):
     if await Data.parsePermissionFromUser(ctx.author.id, "root"):

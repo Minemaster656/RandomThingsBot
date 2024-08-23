@@ -100,7 +100,7 @@ class ForDevelopement(commands.Cog):
             return
         await ctx.respond(embed=self.makeIdeaEmbed(random_document))
 
-    @commands.slash_command(name="рассмотреть-идею", description="Принимает идею", guilds=Data.BOT_INTERNAL_COMMANDS_GUILDS)
+    @commands.slash_command(name="рассмотреть-идею", description="Принимает идею. 🚧 Только для админов бота.", guilds=Data.BOT_INTERNAL_COMMANDS_GUILDS)
     async def checkIdea(self, ctx, hash: Option(str, description="Хэш идеи", required=True) = "",
                         xp: Option(float, description="Сколько опыта выдать?", required=True) = 25,
                         dest: Option(str, description="Одобрить или отклонить",
@@ -142,7 +142,7 @@ class ForDevelopement(commands.Cog):
             await ctx.respond(f"Идея {hash} не найдена!")
 
     @commands.slash_command(name="забанить-разбанить-пользователя",
-                            description="Банит или разбанивает пользователя в БОТЕ", guilds=Data.BOT_INTERNAL_COMMANDS_GUILDS)
+                            description="Банит или разбанивает пользователя в БОТЕ. 🚧 Только для админов бота.", guilds=Data.BOT_INTERNAL_COMMANDS_GUILDS)
     async def banOrUnbanUser(self, ctx, id: Option(str, description="ID пользователя", required=True) = "",
                              state: Option(str, description="",
                                            choices=["Разбанить", "Забанить команды и доступы", "Забанить в боте"],
