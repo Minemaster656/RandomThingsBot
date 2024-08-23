@@ -29,7 +29,9 @@ def schema(document, scheme):
                   "NSFW_LLM_memories": [], "NSFW_LLM_system_prompt": [], "triggers_achieved":{},
                   "call_AI_on_mention":True,
                   "password":None, "email":None, "discord_auth":True,
-                  "UUID":None}
+                  "UUID":None,
+                  "bio_gender":None
+                  }
         '''banned: 0 - нет бана, 1 - нет команд, 2 - опасный пользователь'''
 
     # if scheme == Schemes.logconfig:

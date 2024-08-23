@@ -282,7 +282,36 @@ class social(commands.Cog):
                                 {"$set": {"autoresponder-disturb": value if value != '-' else None}})
             await ctx.reply(
                 f"Автоответчик **небеспокоить** изменён на `{value if value != '-' else 'ОТСУТСТВИЕ ОТВЕТА'}`")
+        elif field == "пол":
+            gender = None if value == '-' else True if value == 'м' else False if value == 'ж' else None
+            db.users.update_one({"userid": ctx.author.id},
+                                {"$set": {"bio_gender": gender}})
+            await ctx.reply(
+                f"Запись о вашем поле изменена на `{'Мужской' if gender else 'Женский' if gender is False else 'Не установлено'}`")
+        elif field == "др" or field == "деньрождения":
+            day = None
+            month = None
+            year = None
 
+            parts = value.split('.')
+            try:
+                if len(parts) == 3:
+                    day = int(parts[0])
+                    month = int(parts[1])
+                    year = int(parts[2])
+
+                elif value == '-':
+                    day = 0
+                    month = 0
+                    year = 0
+                else:
+                    await ctx.reply("Введённая вами некорректная.")
+                    return
+                db.users.update_one({"userid": ctx.author.id},
+                                    {"$set": {"birthday_day": day, "birthday_month": month, "birthday_year": year}})
+                await ctx.reply(f"Ваш день рождения записан как `{value}`.")
+            except:
+                await ctx.reply("Введённая вами некорректная.")
 
         elif field == "помощь":
             embed = discord.Embed(title="Помощь по редактированию",
@@ -300,6 +329,13 @@ class social(commands.Cog):
                                   f"`автоответчик-небеспокоить` - строка для автоответчика, когда у вас стоит статус не беспокоить.\n"
                                   f"Что бы отключить конкретный автоответчик - ничего не вписывайте в качестве значения.",
                             inline=False)
+            embed.add_field(name="пол", value="`пол` - Указывает ваш (билогический) пол.\nВпишите `м` для мужского, `ж` для"
+                                              " женского. Если ваш пол - ковролин, ламинат, плитка, другие строительные "
+                                              "материалы, вы считаете что он не вписывается в то, что придумала природа "
+                                              "или вы просто не хотите его говорить или хотите сбросить - впришите `-` "
+                                              "(так же это будет \"не указано\", что идёт по умолчанию)", inline=False)
+            embed.add_field(name="День рождения",value="`деньрождения` или `др` Указыват ваш день рождения. Впишите в формате дд.мм.гггг вашу НАСТОЯЩУЮ дату рождения. "
+                                                       "Учтите, что возраст НЕ будет перерасчитан при дне рождения или установке. Для сброса впишите `-`.",inline=False)
             await ctx.reply(embed=embed)
         else:
             ctx.reply("Допустимые параметры:\n"
