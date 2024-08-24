@@ -74,7 +74,7 @@ def schema(document, scheme):
             "voiceRoomCreatorChannels": [],
             "voiceRooms": [],
             "prisonCategoryId": None,
-
+            "bans": {},
 
         }
     if scheme == Schemes.character:
