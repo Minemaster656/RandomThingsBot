@@ -248,6 +248,7 @@ class TTS(commands.Cog):
             return
         if len(message.content) == 0:
             if message.attachments:
+                print(message.attachments[0].filename)
                 if message.attachments[0].filename.endswith(".mp3"):# or message.attachments[0].filename.endswith(".wav"):
                     self.tts_channels[message.channel.id]["queue"].append(message)
 
