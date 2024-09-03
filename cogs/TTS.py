@@ -135,8 +135,10 @@ class TTS(commands.Cog):
 
 
         else:
+            print("empty message. looking for attachments")
             message: discord.Message = message
             if len(message.attachments) > 0:
+                print(len(message.attachments))
                 attachment = message.attachments[0]
                 if attachment.filename.endswith('.mp3'):
                     await attachment.save(attachment.filename)
