@@ -68,55 +68,6 @@ class TTS(commands.Cog):
         # print(TTS)
         # print(os.getcwd())
         # else:
-        TTS = libs.CachedTTS.CachedTTS(f"files/TTS", f"files/db/TTS.db")
-        ttss = {}
-        sequence = []
-        ttss["tts"] = await TTS.tts(message.content)
-        ttss["name_tts"] = await TTS.tts(message.author.display_name)
-        ttss["speaks_tts"] = await TTS.tts("говорит")
-        if message.reference:
-            ttss["reply_author_name_tts"] = await TTS.tts(message.reference.resolved.author.display_name)
-            ttss["reply_content_tts"] = await TTS.tts(message.reference.resolved.content)
-            ttss["reply_tts"] = await TTS.tts("в ответ на сообщение")
-            ttss["by_tts"] = await TTS.tts("от")
-
-            if await self.checkIsNameSpeaksPhraseRequired(message):
-                sequence.append(ttss["name_tts"])
-            sequence.append(ttss["reply_tts"])
-            sequence.append(ttss["reply_content_tts"])
-            sequence.append(ttss["by_tts"])
-            sequence.append(ttss["reply_author_name_tts"])
-            sequence.append(ttss["speaks_tts"])
-            sequence.append(ttss["tts"])
-        else:
-            if await self.checkIsNameSpeaksPhraseRequired(message):
-                sequence.append(ttss["name_tts"])
-                sequence.append(ttss["speaks_tts"])
-            sequence.append(ttss["tts"])
-        # TODO: сделать что бы оно не повторяло имя если недавно писало
-        # history = message.channel.history(limit=2)
-        # if history[1].author.id == message.author.id:
-        #     if message.created_at - history[1].created_at <= 60000:
-        #         sequence.remove("name_tts")
-        #         if not message.reference:
-        #             sequence.remove("speaks_tts")
-
-        # if not await self.checkIsNameSpeaksPhraseRequired(message):
-        #     try:
-        #         sequence.remove("name_tts")
-        #     except:
-        #         ...
-        #     if not message.reference:
-        #         try:
-        #             sequence.remove("speaks_tts")
-        #         except:
-        #             ...
-
-        for key in ttss.keys():
-            if ttss[key] is None:
-                self.tts_channels[message.channel.id]["vc"].play(discord.FFmpegPCMAudio(f"assets/tts_error.mp3"),
-                                                                 after=lambda e: ...)
-
         async def play_audio(vc, audio_files):
             for file in audio_files:
                 # print(file)
@@ -130,6 +81,68 @@ class TTS(commands.Cog):
                                                    options=f"-filter:a 'atempo={self.SPEED}'"), after=lambda e: ...)
                 while vc.is_playing():
                     await asyncio.sleep(0.01)
+        sequence = []
+        if message.content != "":
+            TTS = libs.CachedTTS.CachedTTS(f"files/TTS", f"files/db/TTS.db")
+            ttss = {}
+
+            ttss["tts"] = await TTS.tts(message.content)
+            ttss["name_tts"] = await TTS.tts(message.author.display_name)
+            ttss["speaks_tts"] = await TTS.tts("говорит")
+            if message.reference:
+                ttss["reply_author_name_tts"] = await TTS.tts(message.reference.resolved.author.display_name)
+                ttss["reply_content_tts"] = await TTS.tts(message.reference.resolved.content)
+                ttss["reply_tts"] = await TTS.tts("в ответ на сообщение")
+                ttss["by_tts"] = await TTS.tts("от")
+
+                if await self.checkIsNameSpeaksPhraseRequired(message):
+                    sequence.append(ttss["name_tts"])
+                sequence.append(ttss["reply_tts"])
+                sequence.append(ttss["reply_content_tts"])
+                sequence.append(ttss["by_tts"])
+                sequence.append(ttss["reply_author_name_tts"])
+                sequence.append(ttss["speaks_tts"])
+                sequence.append(ttss["tts"])
+            else:
+                if await self.checkIsNameSpeaksPhraseRequired(message):
+                    sequence.append(ttss["name_tts"])
+                    sequence.append(ttss["speaks_tts"])
+                sequence.append(ttss["tts"])
+            # TODO: сделать что бы оно не повторяло имя если недавно писало
+            # history = message.channel.history(limit=2)
+            # if history[1].author.id == message.author.id:
+            #     if message.created_at - history[1].created_at <= 60000:
+            #         sequence.remove("name_tts")
+            #         if not message.reference:
+            #             sequence.remove("speaks_tts")
+
+            # if not await self.checkIsNameSpeaksPhraseRequired(message):
+            #     try:
+            #         sequence.remove("name_tts")
+            #     except:
+            #         ...
+            #     if not message.reference:
+            #         try:
+            #             sequence.remove("speaks_tts")
+            #         except:
+            #             ...
+
+            for key in ttss.keys():
+                if ttss[key] is None:
+                    self.tts_channels[message.channel.id]["vc"].play(discord.FFmpegPCMAudio(f"assets/tts_error.mp3"),
+                                                                     after=lambda e: ...)
+
+
+        else:
+            if message.reference:
+                if message.reference.resolved.attachments:
+                    for attachment in message.reference.resolved.attachments:
+                        if attachment.filename.endswith(".mp3"):
+                            sequence.append(attachment)
+            if message.attachments:
+                for attachment in message.attachments:
+                    if attachment.filename.endswith(".mp3"):
+                        sequence.append(attachment)
 
         await play_audio(self.tts_channels[message.channel.id]["vc"], sequence)
 
@@ -234,6 +247,10 @@ class TTS(commands.Cog):
         if not message.guild.me.voice or not message.channel.id in self.tts_channels.keys():
             return
         if len(message.content) == 0:
+            if message.attachments:
+                if message.attachments[0].filename.endswith(".mp3"):# or message.attachments[0].filename.endswith(".wav"):
+                    self.tts_channels[message.channel.id]["queue"].append(message)
+
             return
         if message.author.id == self.bot.user.id:
             # print("ids are same")
