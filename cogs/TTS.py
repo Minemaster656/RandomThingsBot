@@ -246,13 +246,13 @@ class TTS(commands.Cog):
             return
         if not message.guild.me.voice or not message.channel.id in self.tts_channels.keys():
             return
-        if len(message.content) == 0:
-            if message.attachments:
-                print(message.attachments[0].filename)
-                if message.attachments[0].filename.endswith(".mp3"):# or message.attachments[0].filename.endswith(".wav"):
-                    self.tts_channels[message.channel.id]["queue"].append(message)
-
-            return
+        # if len(message.content) == 0:
+        #     if message.attachments:
+        #         print(message.attachments[0].filename)
+        #         if message.attachments[0].filename.endswith(".mp3"):# or message.attachments[0].filename.endswith(".wav"):
+        #             self.tts_channels[message.channel.id]["queue"].append(message)
+        #
+        #     return
         if message.author.id == self.bot.user.id:
             # print("ids are same")
             return
