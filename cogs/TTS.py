@@ -131,20 +131,19 @@ class TTS(commands.Cog):
                 if ttss[key] is None:
                     self.tts_channels[message.channel.id]["vc"].play(discord.FFmpegPCMAudio(f"assets/tts_error.mp3"),
                                                                      after=lambda e: ...)
+            await play_audio(self.tts_channels[message.channel.id]["vc"], sequence)
 
 
         else:
-            if message.reference:
-                if message.reference.resolved.attachments:
-                    for attachment in message.reference.resolved.attachments:
-                        if attachment.filename.endswith(".mp3"):
-                            sequence.append(attachment)
-            if message.attachments:
-                for attachment in message.attachments:
-                    if attachment.filename.endswith(".mp3"):
-                        sequence.append(attachment)
+            message: discord.Message = message
+            if len(message.attachments) > 0:
+                attachment = message.attachments[0]
+                if attachment.filename.endswith('.mp3'):
+                    await attachment.save(attachment.filename)
+                    self.tts_channels[message.channel.id]["vc"].play(discord.FFmpegPCMAudio(attachment.filename))
 
-        await play_audio(self.tts_channels[message.channel.id]["vc"], sequence)
+
+
 
     @commands.Cog.listener("on_voice_state_update")
     async def on_voice_state_update(self, member, before, after):
