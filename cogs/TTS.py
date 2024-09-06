@@ -259,6 +259,8 @@ class TTS(commands.Cog):
             return
         # print(self.tts_channels)
         # print(message.content)
+        if message.content == "":
+            return
         self.tts_channels[message.channel.id]["queue"].append(message)
         # print(self.tts_channels)
 
