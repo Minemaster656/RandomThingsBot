@@ -48,7 +48,7 @@ class TTS(commands.Cog):
 
         return True
 
-    async def TTSify(self, message):
+    async def TTSify(self, message:discord.Message):
         # if message.content.startswith(("$yt", "$youtube", "$ютуб", "$йт")):
         #
         #     if 'youtube.com' in message.content or 'youtu.be' in message.content:
@@ -86,12 +86,12 @@ class TTS(commands.Cog):
             TTS = libs.CachedTTS.CachedTTS(f"files/TTS", f"files/db/TTS.db")
             ttss = {}
 
-            ttss["tts"] = await TTS.tts(message.content)
+            ttss["tts"] = await TTS.tts(message.clean_content())
             ttss["name_tts"] = await TTS.tts(message.author.display_name)
             ttss["speaks_tts"] = await TTS.tts("говорит")
             if message.reference:
                 ttss["reply_author_name_tts"] = await TTS.tts(message.reference.resolved.author.display_name)
-                ttss["reply_content_tts"] = await TTS.tts(message.reference.resolved.content)
+                ttss["reply_content_tts"] = await TTS.tts(message.reference.resolved.clean_content())
                 ttss["reply_tts"] = await TTS.tts("в ответ на сообщение")
                 ttss["by_tts"] = await TTS.tts("от")
 
