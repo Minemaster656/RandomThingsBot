@@ -171,6 +171,7 @@ class TTS(commands.Cog):
                     continue
                 else:
                     try:
+                        print(TTS_client["queue"][0].content)
                         await self.TTSify(TTS_client["queue"][0])
                     except:
                         ...
