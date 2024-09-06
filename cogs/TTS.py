@@ -134,15 +134,15 @@ class TTS(commands.Cog):
             await play_audio(self.tts_channels[message.channel.id]["vc"], sequence)
 
 
-        else:
-            print("empty message. looking for attachments")
-            message: discord.Message = message
-            if len(message.attachments) > 0:
-                print(len(message.attachments))
-                attachment = message.attachments[0]
-                if attachment.filename.endswith('.mp3'):
-                    await attachment.save(attachment.filename)
-                    self.tts_channels[message.channel.id]["vc"].play(discord.FFmpegPCMAudio(attachment.filename))
+        # else:
+        #     print("empty message. looking for attachments")
+        #     message: discord.Message = message
+        #     if len(message.attachments) > 0:
+        #         print(len(message.attachments))
+        #         attachment = message.attachments[0]
+        #         if attachment.filename.endswith('.mp3'):
+        #             await attachment.save(attachment.filename)
+        #             self.tts_channels[message.channel.id]["vc"].play(discord.FFmpegPCMAudio(attachment.filename))
 
 
 
