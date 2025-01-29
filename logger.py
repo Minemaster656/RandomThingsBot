@@ -38,12 +38,30 @@ async def log_writer():
 logger = logging.getLogger("project_logger")
 logger.setLevel(logging.DEBUG)
 
+class ColorFormatter(logging.Formatter):
+    """Форматтер для логов с цветами"""
+
+    COLORS = {
+        "DEBUG": Fore.CYAN,
+        "INFO": Fore.GREEN,
+        "WARNING": Fore.YELLOW,
+        "ERROR": Fore.RED,
+        "CRITICAL": Fore.MAGENTA + Style.BRIGHT
+    }
+
+    def format(self, record):
+        log_color = self.COLORS.get(record.levelname, Fore.WHITE)
+        formatted_message = super().format(record)
+        return f"{log_color}{formatted_message}{Style.RESET_ALL}"
+
+# Формат для логов
 formatter = logging.Formatter(
     "[%(asctime)s] [%(levelname)s] %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
 )
 
 console_handler = logging.StreamHandler(sys.stdout)
-console_handler.setFormatter(formatter)
+console_handler.setFormatter(ColorFormatter("[%(asctime)s] [%(levelname)s] %(message)s"))
+
 
 file_handler = logging.FileHandler("project.log", encoding="utf-8")
 file_handler.setFormatter(formatter)
