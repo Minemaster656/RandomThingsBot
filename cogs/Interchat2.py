@@ -5,6 +5,7 @@ import re
 import time
 
 import Data
+import logger
 import utils
 
 # try:
@@ -83,7 +84,9 @@ class Interchat2(commands.Cog):
             #
             # with open('private/data.json', 'w') as file:
             #     json.dump(data, file)
-
+            await logger.log(
+                f"Making interchat. GUILD: {ctx.guild.name} {ctx.guild.id}, CHANNEL: {channel.name} {channel.id}, TYPE: {type}. Requested by: {ctx.author.name} {ctx.author.id}",
+                logger.LogLevel.INFO)
             def update_json(data, array_name, delete=False):
                 file_path = os.path.join('private', 'interchats.json')
 
@@ -152,7 +155,15 @@ class Interchat2(commands.Cog):
                                   description=f"В канале {channel.name} {'установлен' if not reset else 'убран'} хаб межсерверного чата `{type}`!",
                                   colour=0xffffff)
             await ctx.respond(embed=embed)
+            await logger.log(
+                f"Interchat created!. GUILD: {ctx.guild.name} {ctx.guild.id}, CHANNEL: {channel.name} {channel.id}, TYPE: {type}. Requested by: {ctx.author.name} {ctx.author.id}",
+                logger.LogLevel.INFO)
+
         else:
+            await logger.log(
+                f"Failed to create interchat - no permissions (author). GUILD: {ctx.guild.name} {ctx.guild.id}, CHANNEL: {channel.name} {channel.id}, TYPE: {type}. Requested by: {ctx.author.name} {ctx.author.id}",
+                logger.LogLevel.INFO)
+
             await ctx.respond(
                 "У Вас недостаточно прав для этого действия!!!\nНеобходима верификация пользователя (в боте, не в Discord) и право управления каналами/администратор",
                 ephemeral=True)

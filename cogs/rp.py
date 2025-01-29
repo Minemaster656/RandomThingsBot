@@ -25,6 +25,7 @@ import AIIO
 
 import Data
 import d
+import logger
 import utils
 
 from Data import db
@@ -520,17 +521,24 @@ class RP(commands.Cog):
                         await ctx.respond(f"Ой, вы не указали арт! Как же жаль! Ну ничего, это можно исправить!\n"
                                           f"Запустить генерацию запроса с помощью нейросети Кандинский (запустить генерацию заново можно будет через {Data.preffix}кандинский)?\n"
                                           f"Запрос: **`{appearances}`**", view=view)
+                    await logger.log(
+                        f"Registered character: {id} by {ctx.author.name} ({ctx.author.id}) for {owner.name} ({owner.id})")
 
                 else:
                     embed = discord.Embed(title="Превышение размера или неверная ссылка!",
                                           description=f"Ключ: {oversizeKey}",
                                           colour=Data.embedColors["Error"])
                     await ctx.respond(embed=embed)
+                    await logger.log(
+                        f"Character registration failed, oversize: {id} by {ctx.author.name} ({ctx.author.id}) for {owner.name} ({owner.id})")
             else:
                 embed = discord.Embed(title="Нет прав!",
                                       description="Необходимо право ``edit_characters`` или ``root`` для регистрации персонажа!",
                                       colour=Data.embedColors["Error"])
                 await ctx.respond(embed=embed)
+                await logger.log(
+                    f"Character registration failed, no permission: {id} by {ctx.author.name} ({ctx.author.id}) for {owner.name} ({owner.id})")
+
 
     @commands.slash_command(name="персонаж", description="Открывает анкету персонажа по ID")
     async def inspectChar(self, ctx, id: Option(str, description="ID", required=True) = " ",
