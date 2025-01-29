@@ -23,8 +23,10 @@ from private import coreData as core
 gigachat_temptoken = None
 
 openai = AsyncOpenAI(
-    api_key=private.coreData.API_KEYS["deepinfra"],
-    base_url="https://api.deepinfra.com/v1/openai",
+    # api_key=private.coreData.API_KEYS["deepinfra"],
+    api_key=private.coreData.API_KEYS["openrouter"],
+    # base_url="https://api.deepinfra.com/v1/openai",
+    base_url="https://openrouter.ai/api/v1",
 )
 
 
@@ -360,10 +362,11 @@ async def askBetterLLM(payload: list, max_tokens=512, model=DeepInfraLLMs.Mistra
     total_tokens = 0
     try:
         chat_completion = await openai.chat.completions.create(
-            model = _DeepInfraLLMsEnumToString(model),#"mistralai/Mistral-7B-Instruct-v0.3",
+            # model = "deepseek/deepseek-r1:free",#_DeepInfraLLMsEnumToString(model),#"mistralai/Mistral-7B-Instruct-v0.3",
             # model="mistralai/Mixtral-8x7B-Instruct-v0.1",
             # model="mistralai/Mistral-7B-Instruct-v0.1",
             # model="openchat/openchat_3.5",
+            model = "google/gemini-2.0-flash-thinking-exp-1219:free",
             messages=payload,
             max_tokens=max_tokens,
         )
