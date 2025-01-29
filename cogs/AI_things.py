@@ -17,6 +17,7 @@ from discord.ext import commands
 import AIIO
 import Data
 import d
+import logger
 import utils
 from Data import db
 
@@ -289,6 +290,8 @@ class AI_things(commands.Cog):
             tokenInfo = "\n" + f"||Использовано {response['total_tokens']} токен{'ов' if response['total_tokens'] % 100 in (11, 12, 13, 14, 15) else 'а' if response['total_tokens'] % 10 in (2, 3, 4) else '' if response['total_tokens'] % 10 == 1 else 'ов'}, суммарно за диалог {conversation['total_tokens']}||"
             output = response['result'] + tokenInfo
             parsed = utils.parseTagInStart(output, "DRAW")
+
+            await logger.log(f"Responded to {ctx.author.name} ({ctx.author.id}) using {response['total_tokens']} tokens on {response['model']}")
 
             if parsed[1] != "":
                 await self.runKandinsky(ctx, parsed[1], f"ИИ по просьбе <@{ctx.author.id}>")

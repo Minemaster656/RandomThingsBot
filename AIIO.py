@@ -15,6 +15,7 @@ import requests
 from openai import AsyncOpenAI
 
 import graphics.BASE64
+import logger
 import private.coreData
 from private import coreData as core
 
@@ -360,23 +361,28 @@ async def askBetterLLM(payload: list, max_tokens=512, model=DeepInfraLLMs.Mistra
     fail = False
     tokens = 0
     total_tokens = 0
+    model = None
     try:
         chat_completion = await openai.chat.completions.create(
             # model = "deepseek/deepseek-r1:free",#_DeepInfraLLMsEnumToString(model),#"mistralai/Mistral-7B-Instruct-v0.3",
             # model="mistralai/Mixtral-8x7B-Instruct-v0.1",
             # model="mistralai/Mistral-7B-Instruct-v0.1",
             # model="openchat/openchat_3.5",
-            model = "google/gemini-2.0-flash-thinking-exp-1219:free",
+            model = "openchat/openchat-7b:free",
             messages=payload,
             max_tokens=max_tokens,
         )
+        await logger.log(f"{str(chat_completion)}", logger.LogLevel.DEBUG)
         # print(chat_completion)
         result = chat_completion.choices[0].message.content
         total_tokens = chat_completion.usage.total_tokens
+        model = chat_completion.model
         # total_tokens = chat_completion.total_tokens
+        # await logger.log(f"Called LLM {model} using {total_tokens}")
 
     except Exception as e:
         # print(e)
+        await logger.log("Could not call LLM: " + str(e), logger.LogLevel.ERROR)
         fail = True
 
     payload.append({"role": "assistant", "content": result})
@@ -391,5 +397,5 @@ async def askBetterLLM(payload: list, max_tokens=512, model=DeepInfraLLMs.Mistra
     # data = fact_check.clean_json(rjson)
     # edata = fact_check.extract_info(data)
 
-    return {"result": result, "output": payload, "prompt_tokens": tokens, "total_tokens": total_tokens}
+    return {"result": result, "output": payload, "prompt_tokens": tokens, "total_tokens": total_tokens, "model":model}
 
