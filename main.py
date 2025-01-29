@@ -17,6 +17,7 @@ from discord import Option, Webhook, Forbidden
 # import Apocalypse
 # import HetTol
 import d
+import logger
 from tests_and_utils import dbClone
 import Data
 import utils
@@ -57,7 +58,7 @@ runtime = time.time()
 loopCounter = 0
 bot = commands.Bot(command_prefix=Data.preffix, intents=intents)
 bot.max_messages = 20000
-
+logger.log_sync("Starting...")
 
 @bot.event
 async def on_ready():
@@ -92,6 +93,7 @@ async def on_ready():
                            f"RTB:discord_bot запущен за {round(time.time() - startTimeCounter, 3)} секунд. Преффикс: {bot.command_prefix}\n",
 
                            threaded=True)
+    await logger.log("Bot started in " + str(round(time.time() - startTimeCounter, 3)) + " seconds.")
 
 
 async def noPermission(ctx, permissions):
