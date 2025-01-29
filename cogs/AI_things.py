@@ -431,7 +431,11 @@ class AI_things(commands.Cog):
 
                 await message.reply("Вам запрещено использовать этого бота!")
                 return
+            await logger.log(
+                f"User {message.author.name} {message.author.id} used AI on mention. In {message.guild.name} {message.guild.id} > {message.channel.name} {message.channel.id}"
+            )
             if message.author.id in self.cooldowns_history_LLM.keys():
+
                 if self.cooldowns_history_LLM[message.author.id]["timestamp"] + \
                         self.cooldowns_history_LLM[message.author.id]["ms"] > utils.get_utc_ms():
                     await message.reply(
