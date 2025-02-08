@@ -10,7 +10,8 @@ API_KEYS={
 "GigaChat":{"secret":"client secret", "auth":"auth string, окно client secret, строка 2",
             "clientID":"client id", "scope":"scope"},
     "deepinfra":"token",
-    "openrouter":"token"
+    "openrouter":"token",
+    "CablyAI":"cablyai.com token"
 }
 qdrant_url = "Qdrant url"
 qdrant_api_key = "API ключ Qdrant"

@@ -13,6 +13,8 @@ class Schemes(enum.Enum):
     logconfig = 2
     guid = 3
     AI_conversation = 4
+    location = 5
+    rp_message = 6
 
 
 def schema(document, scheme):
@@ -103,6 +105,33 @@ def schema(document, scheme):
                   "max_tokens": 512
                   }
         '''types: [user_conversation, user_conversation_nsfw]'''
+    if scheme == Schemes.location:
+        fields = {
+            "UUID": None,
+            "id":"",
+            "channel_paths":[], # "discord:guild id:channel id:thread id or 0",
+            "current_players": [], # character id or user id
+            "description": "",
+            "prompt": "",
+            "title": "",
+        }
+
+    if scheme == Schemes.rp_message:
+        fields = {
+            "UUID": None,
+            "message_id": 0, #discord message id
+            "location_id": "",
+            "content":"",
+            "author_id": 0,
+            "author_name": "",
+            "author_charid":"",
+            "related_memories": {}, #APLR id: list of str
+            "important_memories": {}, #APLR id: list of str
+            "chunks": [],
+            # "embeddingUUIDs":[],
+            "timestamp": 0, #UNIX timestamp
+        }
+
     fields_check = {}
     if not document:
         document = fields
