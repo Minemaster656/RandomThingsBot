@@ -363,6 +363,7 @@ def payload_to_cably_chat_history(payload):
     history = CABLY.ChatHistory(list)
     return history
 async def askBetterLLM(payload: list, max_tokens=512, model=DeepInfraLLMs.Mistral3_7B):
+    useCABLY = False
     '''payload structure:
         [{"role": "system", "content": "Hello world"},
         {"role": "user", "content": "Hello world"},
@@ -381,46 +382,64 @@ async def askBetterLLM(payload: list, max_tokens=512, model=DeepInfraLLMs.Mistra
     try:
 
         await logger.log(f"Payload: {payload}", logger.LogLevel.DEBUG)
-        history = payload_to_cably_chat_history(payload)
+        if useCABLY:
+            history = payload_to_cably_chat_history(payload)
 
-        models_priorities = [
-            CABLY.ChatModels.GPT4oMini,
-            CABLY.ChatModels.ClaudeHaiku,
-            CABLY.ChatModels.GPT4o,
-            CABLY.ChatModels.ClaudeSonnet,
-        ]
-        for model in models_priorities:
-            await logger.log(f"Trying {model}", logger.LogLevel.DEBUG)
+            models_priorities = [
+                CABLY.ChatModels.GPT4oMini,
+                CABLY.ChatModels.ClaudeHaiku,
+                CABLY.ChatModels.GPT4o,
+                CABLY.ChatModels.ClaudeSonnet,
+            ]
+            for model in models_priorities:
+                await logger.log(f"Trying {model}", logger.LogLevel.DEBUG)
 
-            chat_completion = await CABLY.chat_completion(model=model, messages=history)
-            await logger.log(f"{model} responded with {chat_completion.usage.total_tokens} tokens: {str(chat_completion.choices[0].message.content)}", logger.LogLevel.DEBUG)
-            content = chat_completion.choices[0].message.content
-            if chat_completion.usage.total_tokens > 2:
-                await logger.log(f"{model} responded with {chat_completion.usage.total_tokens} tokens: {str(content)}")
-                # await logger.log(f"{str(chat_completion)}", logger.LogLevel.DEBUG)
+                chat_completion = await CABLY.chat_completion(model=model, messages=history)
+                await logger.log(f"{model} responded with {chat_completion.usage.total_tokens} tokens: {str(chat_completion.choices[0].message.content)}", logger.LogLevel.DEBUG)
+                content = chat_completion.choices[0].message.content
+                if chat_completion.usage.total_tokens > 2:
+                    await logger.log(f"{model} responded with {chat_completion.usage.total_tokens} tokens: {str(content)}")
+                    # await logger.log(f"{str(chat_completion)}", logger.LogLevel.DEBUG)
+                    result = chat_completion.choices[0].message.content
+                    total_tokens = chat_completion.usage.total_tokens
+                    model = chat_completion.model
+                    break
+                await logger.log(f"{model} responded nothing with {chat_completion.usage.total_tokens} tokens: {str(content)}", logger.LogLevel.WARNING)
+
+            else:
+                chat_completion = await openai.chat.completions.create(
+                       # model = "deepseek/deepseek-r1:free",#_DeepInfraLLMsEnumToString(model),#"mistralai/Mistral-7B-Instruct-v0.3",
+                       # model="mistralai/Mixtral-8x7B-Instruct-v0.1",
+                       # model="mistralai/Mistral-7B-Instruct-v0.1",
+                       # model="openchat/openchat_3.5",
+                       # model="openchat/openchat-7b:free",
+                    model="google/gemini-2.0-flash-lite-preview-02-05:free",
+                    messages=payload,
+                    max_tokens=max_tokens,
+                )
+                await logger.log(f"{str(chat_completion)}", logger.LogLevel.DEBUG)
+                   # print(chat_completion)
                 result = chat_completion.choices[0].message.content
                 total_tokens = chat_completion.usage.total_tokens
                 model = chat_completion.model
-                break
-            await logger.log(f"{model} responded nothing with {chat_completion.usage.total_tokens} tokens: {str(content)}", logger.LogLevel.WARNING)
-
+                   # total_tokens = chat_completion.total_tokens
+                   # await logger.log(f"Called LLM {model} using {total_tokens}")
         else:
             chat_completion = await openai.chat.completions.create(
-                   # model = "deepseek/deepseek-r1:free",#_DeepInfraLLMsEnumToString(model),#"mistralai/Mistral-7B-Instruct-v0.3",
-                   # model="mistralai/Mixtral-8x7B-Instruct-v0.1",
-                   # model="mistralai/Mistral-7B-Instruct-v0.1",
-                   # model="openchat/openchat_3.5",
-                model = "openchat/openchat-7b:free",
+                # model = "deepseek/deepseek-r1:free",#_DeepInfraLLMsEnumToString(model),#"mistralai/Mistral-7B-Instruct-v0.3",
+                # model="mistralai/Mixtral-8x7B-Instruct-v0.1",
+                # model="mistralai/Mistral-7B-Instruct-v0.1",
+                # model="openchat/openchat_3.5",
+                # model="openchat/openchat-7b:free",
+                model="google/gemini-2.0-flash-lite-preview-02-05:free",
                 messages=payload,
                 max_tokens=max_tokens,
             )
             await logger.log(f"{str(chat_completion)}", logger.LogLevel.DEBUG)
-               # print(chat_completion)
+            # print(chat_completion)
             result = chat_completion.choices[0].message.content
             total_tokens = chat_completion.usage.total_tokens
             model = chat_completion.model
-               # total_tokens = chat_completion.total_tokens
-               # await logger.log(f"Called LLM {model} using {total_tokens}")
 
 
 

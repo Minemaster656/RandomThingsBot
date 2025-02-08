@@ -166,7 +166,7 @@ class AI_things(commands.Cog):
         await self.runKandinsky(ctx, prompt, f"<@{ctx.author.id}>")
 
     @commands.cooldown(1, 30, commands.BucketType.member)
-    @commands.command(aliases=["ллм", "ии"])
+    @commands.command(aliases=["ллм", "ии", "ЛЛМ", "llm", "LLM"])
     async def call_Mixtral(self, ctx: commands.Context, *, prompt: str):
         # async with ctx.typing():
         #     output = await AIIO.askBetterLLM([{"role": "system",
@@ -197,7 +197,8 @@ class AI_things(commands.Cog):
                                                                                        f"Учтите, что как и у любого ИИ, у этого тоже могут быть галлюцинации. Это значит, что он может \"нагло лгать вам в лицо\", придумывая факты и функции. Увы, единственный способ это исправить - использовать гораздо более продвинутые модели. Тем не менее в планах (или уже сделан) фактчекер для проверки достоверности ответов.\n"
                                                                                        f""
                                                                                        f"## Используемая модель:\n"
-                                                                                       f"[mistralai/Mistral-7B-Instruct-v0.3](https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.3)\n"
+                                                                                       # f"[mistralai/Mistral-7B-Instruct-v0.3](https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.3)\n"
+                                                                                       f"[google/gemini-2.0-flash-lite-preview-02-05:free](https://openrouter.ai/google/gemini-2.0-flash-lite-preview-02-05:free) и другие"
                                                                                        f"Приятного и удачного использования {Data.bot_name} и ИИ {Data.bot_AI_name} в нём!\n"
                                                                                        f""
                                   , colour=Data.getEmbedColor(Data.EmbedColor.Neutral))
