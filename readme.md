@@ -25,3 +25,6 @@ qdrant_port = 6333
 
 FactCheckExplorer ставится командой:
 pip install git+https://github.com/GONZOsint/factcheckexplorer.git
+
+# ЕСЛИ НЕ ЗАПУСКАЕТСЯ
+на винде понадобится тостер, на линуксе пакет audioop-lts (как минимум на питухоне 3.13.?)
