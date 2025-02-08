@@ -17,3 +17,4 @@ gTTS
 sqlalchemy
 qdrant_client
 aiosqlite
+audioop
