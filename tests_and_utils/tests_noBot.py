@@ -4,7 +4,7 @@ import perlin_noise
 # from PIL import Image, ImageOps
 import random
 
-import swearfilter
+# import swearfilter
 
 # import utils
 

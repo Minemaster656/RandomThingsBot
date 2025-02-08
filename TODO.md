@@ -57,5 +57,5 @@ fact_check.process()
   
 сделать поздравление с др  
 
-асинк ollama  
-асинк Qdrant  
+~~асинк ollama~~  
+~~асинк Qdrant~~  

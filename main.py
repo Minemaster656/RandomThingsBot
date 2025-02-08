@@ -18,10 +18,9 @@ from discord import Option, Webhook, Forbidden
 # import HetTol
 import d
 import logger
-from tests_and_utils import dbClone
+# from tests_and_utils import dbClone
 import Data
 import utils
-
 
 from private import coreData
 from Data import db
@@ -60,6 +59,7 @@ bot = commands.Bot(command_prefix=Data.preffix, intents=intents)
 bot.max_messages = 20000
 logger.log_sync("Starting...")
 
+
 @bot.event
 async def on_ready():
     total_members = sum(len(guild.members) for guild in bot.guilds)
@@ -93,7 +93,7 @@ async def on_ready():
                            f"RTB:discord_bot запущен за {round(time.time() - startTimeCounter, 3)} секунд. Преффикс: {bot.command_prefix}\n",
 
                            threaded=True)
-    await logger.log("Bot started in " + str(round(time.time() - startTimeCounter, 3)) + " seconds.")
+    await logger.log("Bot started in " + str(round(time.time() - startTimeCounter, 3)) + f" seconds as {bot.user} with preffix {bot.command_prefix} | {totalguilds} guilds, {total_members} members")
 
 
 async def noPermission(ctx, permissions):
@@ -142,7 +142,8 @@ async def on_command_error(ctx, error):
 async def set_settings(ctx, field: Option(str, description="Поле", required=True,
                                           choices=["SQL+commit", "eval", "Таблицы", "Баланс"]) = 0,
                        value: Option(str, description="Значение", required=True) = 0,
-                       ephemeral: Option(bool, description="Видно ли только вам? По умолчанию - всем.", required=False) = False,
+                       ephemeral: Option(bool, description="Видно ли только вам? По умолчанию - всем.",
+                                         required=False) = False,
                        member: Option(discord.Member, description="Пользователь, на которого влияет команда",
                                       required=False) = None):
     """Настройки и приколы бота для админов БОТА."""
@@ -158,7 +159,6 @@ async def set_settings(ctx, field: Option(str, description="Поле", required=
             # eval(value)
             embed = discord.Embed(title="Код не выполнен!", description=f"Код: {value}",
                                   color=Data.embedColors["Success"])
-
 
         await ctx.respond(embed=embed, ephemeral=ephemeral)
     else:
@@ -193,7 +193,8 @@ async def keyboard_layout_switcher(ctx, text):
     await ctx.respond(result, ephemeral=True)
 
 
-@bot.slash_command(name="разрешения", description="Редактирование разрешений пользователя. 🚧 Только для админов бота.", guilds=Data.BOT_INTERNAL_COMMANDS_GUILDS)
+@bot.slash_command(name="разрешения", description="Редактирование разрешений пользователя. 🚧 Только для админов бота.",
+                   guilds=Data.BOT_INTERNAL_COMMANDS_GUILDS)
 async def editMemberPermissions(ctx, permission: Option(str, description="Разрешение. ? для списка",
                                                         choises=Data.permissions_user,
                                                         required=True) = "none",
@@ -228,7 +229,8 @@ async def editMemberPermissions(ctx, permission: Option(str, description="Раз
         await ctx.respond(json.dumps(Data.permissions_user))
 
 
-@bot.slash_command(name="добавить-опыт", description="Даёт опыт пользователю. 🚧 Только для админов бота.", guilds=Data.BOT_INTERNAL_COMMANDS_GUILDS)
+@bot.slash_command(name="добавить-опыт", description="Даёт опыт пользователю. 🚧 Только для админов бота.",
+                   guilds=Data.BOT_INTERNAL_COMMANDS_GUILDS)
 async def addXP(ctx, user: Option(discord.Member, description="Пользователь", required=True) = 0,
                 value: Option(float, description="Количество. Отрицательное для уменьшения", required=True) = 0):
     if await Data.parsePermissionFromUser(ctx.author.id, "root"):
@@ -273,10 +275,6 @@ async def on_message(message):
         ...
 
 
-
-
-
-
 @bot.slash_command(name="отправить-жалобу-на-пользователя", description="Отправить жалобу на пользователя")
 async def report(ctx):
     await ctx.respond("Жалобы не принимаются, эта фича ещё в разработке ;(")
@@ -288,8 +286,6 @@ async def report(ctx):
 
 
 # TODO: обработчик захода на сервер
-
-
 
 
 async def statusLoop():

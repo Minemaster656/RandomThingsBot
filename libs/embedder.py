@@ -53,11 +53,11 @@ async def get_embedding(text: str, print_exceptions: bool = False) -> Union[list
             print(e)
         return None
 
-# # Пример использования
-# async def main():
-#     await init_db()
-#     embedding = await get_embedding("example text")
-#     print(embedding)
-#
-# # Запуск асинхронного main
-# asyncio.run(main())
+# Пример использования
+async def main():
+    await init_db()
+    embedding = await get_embedding("example text")
+    print(embedding)
+
+# Запуск асинхронного main
+asyncio.run(main())

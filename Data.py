@@ -1,12 +1,9 @@
 import enum
 import json
-import sqlite3
 
 import discord
-import pymongo
 from pymongo import MongoClient
 
-import INIT
 from private import coreData
 import os
 
