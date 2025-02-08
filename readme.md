@@ -9,8 +9,11 @@ API_KEYS={
 "kandinskiy3":[{"X-Key":"публичный ключ", "X-Secret":"секрет"}], #сейчас в боте используется 4 таких пары, если вдруг вы решили стырить этого бота, то вам в лицо кинет ошибку, если вы не оставите тут 4 ключа
 "GigaChat":{"secret":"client secret", "auth":"auth string, окно client secret, строка 2",
             "clientID":"client id", "scope":"scope"},
-"deepinfra":"token"
+    "deepinfra":"token",
+    "openrouter":"token"
 }
+qdrant_url = "Qdrant url"
+qdrant_api_key = "API ключ Qdrant"
 ```
 На данный момент из них используется только токен для Discord, название и URL базы данных, а так же API ключи. Замените URL базы данных если используете не локальную базу, а удалённый доступ.
 Спасибо Pavelg за мотивацию создать бота и самую различную помощь.
