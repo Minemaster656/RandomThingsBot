@@ -17,6 +17,7 @@ from openai import AsyncOpenAI
 import graphics.BASE64
 import logger
 import private.coreData
+from libs import CABLY
 from private import coreData as core
 
 # from factcheckexplorer.factcheckexplorer import FactCheckLib
@@ -345,7 +346,22 @@ def kandinskyOutputToFile(gen):
     else:
         return None
 
-
+def payload_to_cably_chat_history(payload):
+    list = []
+    roles = {
+        "assistant": CABLY.ChatRole.Assistant,
+        "user": CABLY.ChatRole.User,
+        "system": CABLY.ChatRole.System,
+    }
+    for msg in payload:
+        list.append(
+            CABLY.ChatMessage(
+                role=roles[msg["role"]],
+                content=msg["content"]
+            )
+        )
+    history = CABLY.ChatHistory(list)
+    return history
 async def askBetterLLM(payload: list, max_tokens=512, model=DeepInfraLLMs.Mistral3_7B):
     '''payload structure:
         [{"role": "system", "content": "Hello world"},
@@ -363,27 +379,76 @@ async def askBetterLLM(payload: list, max_tokens=512, model=DeepInfraLLMs.Mistra
     total_tokens = 0
     model = None
     try:
-        chat_completion = await openai.chat.completions.create(
-            # model = "deepseek/deepseek-r1:free",#_DeepInfraLLMsEnumToString(model),#"mistralai/Mistral-7B-Instruct-v0.3",
-            # model="mistralai/Mixtral-8x7B-Instruct-v0.1",
-            # model="mistralai/Mistral-7B-Instruct-v0.1",
-            # model="openchat/openchat_3.5",
-            model = "openchat/openchat-7b:free",
-            messages=payload,
-            max_tokens=max_tokens,
-        )
-        await logger.log(f"{str(chat_completion)}", logger.LogLevel.DEBUG)
-        # print(chat_completion)
-        result = chat_completion.choices[0].message.content
-        total_tokens = chat_completion.usage.total_tokens
-        model = chat_completion.model
-        # total_tokens = chat_completion.total_tokens
-        # await logger.log(f"Called LLM {model} using {total_tokens}")
+
+        await logger.log(f"Payload: {payload}", logger.LogLevel.DEBUG)
+        history = payload_to_cably_chat_history(payload)
+
+        models_priorities = [
+            CABLY.ChatModels.GPT4oMini,
+            CABLY.ChatModels.ClaudeHaiku,
+            CABLY.ChatModels.GPT4o,
+            CABLY.ChatModels.ClaudeSonnet,
+        ]
+        for model in models_priorities:
+            await logger.log(f"Trying {model}", logger.LogLevel.DEBUG)
+
+            chat_completion = await CABLY.chat_completion(model=model, messages=history)
+            await logger.log(f"{model} responded with {chat_completion.usage.total_tokens} tokens: {str(chat_completion.choices[0].message.content)}", logger.LogLevel.DEBUG)
+            content = chat_completion.choices[0].message.content
+            if chat_completion.usage.total_tokens > 2:
+                await logger.log(f"{model} responded with {chat_completion.usage.total_tokens} tokens: {str(content)}")
+                # await logger.log(f"{str(chat_completion)}", logger.LogLevel.DEBUG)
+                result = chat_completion.choices[0].message.content
+                total_tokens = chat_completion.usage.total_tokens
+                model = chat_completion.model
+                break
+            await logger.log(f"{model} responded nothing with {chat_completion.usage.total_tokens} tokens: {str(content)}", logger.LogLevel.WARNING)
+
+        else:
+            chat_completion = await openai.chat.completions.create(
+                   # model = "deepseek/deepseek-r1:free",#_DeepInfraLLMsEnumToString(model),#"mistralai/Mistral-7B-Instruct-v0.3",
+                   # model="mistralai/Mixtral-8x7B-Instruct-v0.1",
+                   # model="mistralai/Mistral-7B-Instruct-v0.1",
+                   # model="openchat/openchat_3.5",
+                model = "openchat/openchat-7b:free",
+                messages=payload,
+                max_tokens=max_tokens,
+            )
+            await logger.log(f"{str(chat_completion)}", logger.LogLevel.DEBUG)
+               # print(chat_completion)
+            result = chat_completion.choices[0].message.content
+            total_tokens = chat_completion.usage.total_tokens
+            model = chat_completion.model
+               # total_tokens = chat_completion.total_tokens
+               # await logger.log(f"Called LLM {model} using {total_tokens}")
+
+
 
     except Exception as e:
         # print(e)
-        await logger.log("Could not call LLM: " + str(e), logger.LogLevel.ERROR)
-        fail = True
+        await logger.log("Could not call CABLY: " + str(e), logger.LogLevel.ERROR)
+        try:
+            chat_completion = await openai.chat.completions.create(
+                # model = "deepseek/deepseek-r1:free",#_DeepInfraLLMsEnumToString(model),#"mistralai/Mistral-7B-Instruct-v0.3",
+                # model="mistralai/Mixtral-8x7B-Instruct-v0.1",
+                # model="mistralai/Mistral-7B-Instruct-v0.1",
+                # model="openchat/openchat_3.5",
+                # model="openchat/openchat-7b:free",
+                model="google/gemini-2.0-flash-lite-preview-02-05:free",
+                messages=payload,
+                max_tokens=max_tokens,
+            )
+            await logger.log(f"{str(chat_completion)}", logger.LogLevel.DEBUG)
+            # print(chat_completion)
+            result = chat_completion.choices[0].message.content
+            total_tokens = chat_completion.usage.total_tokens
+            model = chat_completion.model
+            # total_tokens = chat_completion.total_tokens
+            # await logger.log(f"Called LLM {model} using {total_tokens}")
+        except:
+            await logger.log("Could not call OpenRouter: " + str(e), logger.LogLevel.ERROR)
+
+            fail = True
 
     payload.append({"role": "assistant", "content": result})
     if fail:

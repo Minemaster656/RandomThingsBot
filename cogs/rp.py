@@ -430,6 +430,8 @@ class RP(commands.Cog):
                 #     f"layersFull: {(barPoints // 10)}, layersNotFull: {barPoints % 10} при barPoints: {barPoints}")
 
     def makeCharacterPage(self, doc):
+        isAIEnabled = bool(doc.get("outer_prompt", None))
+        isAPLR = bool(doc.get("self_prompt", None))
         embed = discord.Embed(title=f"Персонаж {utils.formatStringLength(doc['name'], 120)}",
                               description=f"{utils.formatStringLength(doc['bio'], 4000)}",
                               colour=Data.embedColors["Warp"])
@@ -453,6 +455,10 @@ class RP(commands.Cog):
         arts_extra = arts[1:]
 
         embed.set_thumbnail(url=thumb)
+        if isAIEnabled or isAPLR:
+            embed.add_field(name="Игра с ИИ",
+                            value=f"{'✅ Может играть с ИИ персонажами' if isAIEnabled else '❌ Не может играть с ИИ персонажами'}\n{'🤖 ПЕРСОНАЖ УПРАВЛЯЕТСЯ ИИ' if isAPLR else '😎 Реальный игрок'}",
+                            inline=False)
         return (embed, arts_extra)
 
     async def urls2files(self, urls):
@@ -539,10 +545,10 @@ class RP(commands.Cog):
                 await logger.log(
                     f"Character registration failed, no permission: {id} by {ctx.author.name} ({ctx.author.id}) for {owner.name} ({owner.id})")
 
-
     @commands.slash_command(name="персонаж", description="Открывает анкету персонажа по ID")
     async def inspectChar(self, ctx, id: Option(str, description="ID", required=True) = " ",
-                          ephemeral: Option(bool, description="Видно только вам? По умолчанию - всем", required=False) = False):
+                          ephemeral: Option(bool, description="Видно только вам? По умолчанию - всем",
+                                            required=False) = False):
         result = db.characters.find_one({"id": id})
         if not result:
 
@@ -556,9 +562,11 @@ class RP(commands.Cog):
                             description="Ищет зарегистрированных на пользователя персонажей.")
     async def searchChar(self, ctx,
                          member: Option(discord.Member, description="У кого искать персонажей", required=True) = 0,
-                         ephemeral: Option(bool, description="Видно ли только вам? По умолчанию - только вам.", required=False) = True):
-
-        documents = db.characters.find({"owner": member.id}, {"name": 1, "id": 1})
+                         ephemeral: Option(bool, description="Видно ли только вам? По умолчанию - только вам.",
+                                           required=False) = True):
+        if not member:
+            member = ctx.author
+        documents = db.characters.find({"owner": member.id}) #, {"name": 1, "id": 1}
 
         # result = []
         #
@@ -566,9 +574,12 @@ class RP(commands.Cog):
         #     result.append((doc["name"], doc["id"]))
 
         output = ""
-
         for doc in documents:
-            output += f"- **[{doc['name']}](https://glitchdev.ru/character/{doc['id']})** {'| (***__НА ПРОВЕРКЕ__***) ' if str(doc['id']).endswith('$temp') else ''}| **ID**: ``{doc['id']}``\n"
+            print(doc)
+            isAIEnabled = doc.get("outer_prompt")
+            isAPLR = doc.get("self_prompt")
+            # TODO: пометка главный ли перс
+            output += f"- **[{doc['name']}](https://glitchdev.ru/character/{doc['id']})** {'| (***__НА ПРОВЕРКЕ__***) ' if str(doc['id']).endswith('$temp') else ''}| **ID**: ``{doc['id']}`` | {' 👾 **может играть с ИИ персонажами**' if isAIEnabled else ''} {' 🤖 **Управляется ИИ**' if isAPLR else ''}\n"  # 🙄 *не может играть с ии-персонажами*
         if len(output) < 1:
             output = "Нет персонажей"
         embed = discord.Embed(title="Результаты поиска",

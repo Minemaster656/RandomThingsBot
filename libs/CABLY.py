@@ -312,8 +312,8 @@ class ChatChoice:
 def json_to_chat_completion(json_response: dict) -> ChatCompletion:
     # print(json_response)
     return ChatCompletion(
-        id=json_response["id"],
-        object=json_response["object"],
+        id=json_response.get("id","null"),
+        object=json_response.get("object"),
         created=json_response["created"],
         model=json_response["model"],
         choices=json_response["choices"],
