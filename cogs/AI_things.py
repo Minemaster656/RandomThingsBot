@@ -248,7 +248,13 @@ class AI_things(commands.Cog):
             if ctx.message.reference:
                 payload.append({"role": "user",
                                 "content": f"[ОТВЕТ НА СООБЩЕНИЕ ОТ {f'ДРУГОГО ПОЛЬЗОВАТЕЛЯ: {ctx.message.reference.resolved.author.name}' if ctx.message.reference.resolved.author.id != ctx.author.id else 'СЕБЯ'}. ТЕСТ СООБЩЕНИЯ:\n{ctx.message.reference.resolved.content}]"})
-            payload.append({"role": "user", "content": prompt})
+            content = str(prompt).replace(f"<{self.bot.user.id}>", Data.bot_AI_name)
+            for mention in ctx.message.mentions:
+                content = content.replace(f"<@{mention.id}>", mention.name)
+            for ch_mention in ctx.message.channel_mentions:
+                content = content.replace(f"<#{ch_mention.id}>", ch_mention.name)
+            print(content)
+            payload.append({"role": "user", "content": content})
 
             # print(payload)
             def calc_history_size(payload_history):
@@ -508,7 +514,13 @@ class AI_things(commands.Cog):
                     payload.append({"role": "user",
                                     "content": f"[ОТВЕТ НА СООБЩЕНИЕ ОТ {f'ДРУГОГО ПОЛЬЗОВАТЕЛЯ: {message.reference.resolved.author.name}' if message.reference.resolved.author.id != message.author.id else 'СЕБЯ'}. ТЕСТ СООБЩЕНИЯ:\n{message.reference.resolved.content}]"})
                     usedReply = True
-                payload.append({"role": "user", "content": str(message.content).replace(f"<{self.bot.user.id}>", Data.bot_AI_name)})
+                content = str(message.content).replace(f"<{self.bot.user.id}>", Data.bot_AI_name)
+                for mention in message.mentions:
+                    content = content.replace(f"<@{mention.id}>", mention.name)
+                for ch_mention in message.channel_mentions:
+                    content = content.replace(f"<#{ch_mention.id}>", ch_mention.name)
+                print(content)
+                payload.append({"role": "user", "content": content})
 
                 # print(payload)
                 def calc_history_size(payload_history):
