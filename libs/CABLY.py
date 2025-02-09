@@ -334,8 +334,12 @@ async def post_chat_completion_raw(messages: ChatHistory, model: ChatModels = Ch
     
     async with aiohttp.ClientSession() as session:
         async with session.post(url, headers=headers, json=payload) as response:
-            json_response = await response.json()
-            return json_response
+            try:
+                json_response = await response.json()
+
+                return json_response
+            except:
+                raise Exception(f"Failed to parse response: {response.text}")
 async def chat_completion(messages: ChatHistory, model: ChatModels = ChatModels.GPT4o) -> ChatCompletion:
     return json_to_chat_completion(await post_chat_completion_raw(messages, model))
 

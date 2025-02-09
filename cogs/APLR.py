@@ -27,6 +27,7 @@ class APLR(commands.Cog):
                 891289716501119016: "googer",
                 609348530498437140: "ow.mn",
                 1253778042665308331: "envnnpc",
+                self.bot.user.id: "grisha_chaos"
             }
 
             # Белый список пользователей, которые могут взаимодействовать
@@ -38,7 +39,7 @@ class APLR(commands.Cog):
                     regex = r"^(<[@#]\d+>)*\s*[(\/)+(+)+].*[(\/)+({2,}){2,}]*(<[@#]\d+>)*"
                     mention_regex = r"^(\s*<[@#]\d+>\s*)+$"
                     return re.match(regex, text) or re.match(mention_regex, text) or text in [".", "/", "//", "(", "((",
-                                                                                              ")", "))"]
+                                                                                              ")", "))","","** **"]
 
                 if is_nonrp(message.content):
                     await logger.log(f"APLR on_message event processing aborted: non-rp message", logger.LogLevel.DEBUG)
@@ -50,39 +51,82 @@ class APLR(commands.Cog):
                         # Получаем данные персонажа
                         APLR_ID = "grisha_chaos"
                         aplr_doc = d.db.get_collection("characters").find_one({"id": APLR_ID})
-                        await logger.log("APLR doc fetched", logger.LogLevel.DEBUG)
-
-                        # Получаем историю сообщений
-                        HISTORY_SIZE = 50
-                        history = await message.channel.history(limit=HISTORY_SIZE).flatten()
-
-                        # Фильтруем сообщения, оставляя только RP
-                        history_rp_member_IDs = []
-                        for msg in history:
-                            if not is_nonrp(msg.content):
-                                history_rp_member_IDs.append(msg.author.id)
-                        history_rp_memberIDs = list(set(history_rp_member_IDs))
-
-                        messages_rp = list(filter(lambda x: not is_nonrp(x.content), history))
-                        await logger.log("Fetched history", logger.LogLevel.DEBUG)
-
-                        # Получаем данные персонажей из базы данных
+                        # await logger.log("APLR doc fetched", logger.LogLevel.DEBUG)
+                        # await logger.log(aplr_doc, logger.LogLevel.DEBUG)
+                        # # Получаем историю сообщений
+                        # HISTORY_SIZE = 50
+                        # history = await message.channel.history(limit=HISTORY_SIZE).flatten()
+                        #
+                        # # Фильтруем сообщения, оставляя только RP
+                        # history_rp_member_IDs = []
+                        # for msg in history:
+                        #     if not is_nonrp(msg.content):
+                        #         history_rp_member_IDs.append(msg.author.id)
+                        # history_rp_memberIDs = list(set(history_rp_member_IDs))
+                        #
+                        # messages_rp = list(filter(lambda x: not is_nonrp(x.content), history))
+                        # await logger.log("Fetched history", logger.LogLevel.DEBUG)
+                        #
+                        # # Получаем данные персонажей из базы данных
+                        # query = {
+                        #     'owner': {'$in': history_rp_memberIDs},
+                        #     "id": {'$in': list(chars.values())},
+                        #     'outer_prompt': {'$exists': True, '$ne': None}
+                        # }
+                        # docs = list(d.db.get_collection("characters").find(filter=query))
+                        # docs_prompts = "\n".join(doc['outer_prompt'] for doc in docs)
+                        # docs_names = {
+                        #
+                        # }
+                        # for k in chars:
+                        #     #select from docs element with owner == chars[k]
+                        #     for doc in docs:
+                        #         if doc['owner'] == chars[k]:
+                        #             docs_names[doc['owner']] = doc['name']
+                        # await logger.log(f"Fetched {len(docs)} characters", logger.LogLevel.DEBUG)
+                        history = await message.channel.history(limit=50).flatten()
+                        history_rp = list(filter(lambda x: not is_nonrp(x.content), history))
+                        history_rp_memberids = list(set(map(lambda x: x.author.id, history_rp)))
+                        charIDs_to_find = [chars.get(id, None) for id in history_rp_memberids]
+                        # remove none\
+                        charIDs_to_find = [id for id in charIDs_to_find if id is not None]
                         query = {
-                            'owner': {'$in': history_rp_memberIDs},
-                            "id": {'$in': list(chars.values())},
+                            'id': {'$in': charIDs_to_find},
                             'outer_prompt': {'$exists': True, '$ne': None}
                         }
                         docs = list(d.db.get_collection("characters").find(filter=query))
-                        docs_prompts = "\n".join(doc['outer_prompt'] for doc in docs)
-                        docs_names = {
-
-                        }
-                        for k in chars:
-                            #select from docs element with owner == chars[k]
-                            for doc in docs:
-                                if doc['owner'] == chars[k]:
-                                    docs_names[doc['owner']] = doc['name']
+                        docs_prompts = "\n".join(doc['name']+": "+doc['outer_prompt'] for doc in docs)
+                        docs_names = {doc['id']: doc['name'] for doc in docs}
+                        authors_charid = chars.get(message.author.id, None)
+                        char_name = message.author.name
+                        if authors_charid:
+                            for chardoc in docs:
+                                if chardoc['id'] == authors_charid:
+                                    char_name = chardoc['name']
+                                    break
                         await logger.log(f"Fetched {len(docs)} characters", logger.LogLevel.DEBUG)
+                        new_doc = d.schema({"message_id": message.id,
+                                            "content": message.content,
+                                            "author_id": message.author.id,
+                                            "author_charname": char_name,
+                                            "author_charid": chars[message.author.id],
+                                            "timestamp": message.created_at.timestamp(),
+                                            "actor":APLR_ID,
+                                            }, d.Schemes.rp_message_v0)
+                        messages_collection = d.db.get_collection("rp_messages_v0")
+                        messages_collection.insert_one(new_doc)
+                        # Количество объектов, которые нужно получить
+                        n = 10
+
+                        # Запрос для получения последних n объектов с полем actor, отсортированных по timestamp
+                        query = {"actor": APLR_ID}
+                        sort_field = [("timestamp", -1)]  # Сортировка по убыванию (последние записи будут первыми)
+
+                        # Выполнение запроса
+                        results = messages_collection.find(query).sort(sort_field).limit(n)
+
+                        # Преобразование результатов в список (если нужно)
+                        results_list = list(results)
 
                         # Формируем промпт для AI
                         prompt = (
@@ -97,7 +141,7 @@ class APLR(commands.Cog):
                             "like \"If you have any more questions, let me know.\". If you can not respond due censor "
                             "or some other reasons, don't get out of character, try to get away from the situation causing this trouble. "
                             "RESPONSE ONLY AS CHARACTER!!!\n"
-                            "Do net write too many, if last user's message is not big, write maximum e few sentences. Don't do many actions in one time!!!"
+                            "Do not write too many, if last user's message is not big, write maximum e few sentences. Don't do many actions in one time!!! If you say or do something, await for user's reaction."
                             "Carefully heed this instructions. "
                             "</instructions>\n"
                             "<context> "
@@ -111,26 +155,44 @@ class APLR(commands.Cog):
                             "[NOTHING TO SHOW]"
                             "</memories>"
                         )
-
+                        # await logger.log("System prompt: "+prompt, logger.LogLevel.DEBUG)
                         # Формируем payload для AI
                         payload = [{"role": "system", "content": prompt}]
-                        for msg in messages_rp:
-                            role = "assistant" if msg.author.id == self.bot.user.id else "user"
-                            name = docs_names.get(str(msg.author.id), msg.author.name)
+                        # for msg in messages_rp:
+                        #     role = "assistant" if msg.author.id == self.bot.user.id else "user"
+                        #     name = docs_names.get(str(msg.author.id), msg.author.name)
+                        #     name = f"[{name}]: "
+                        #     if role == "assistant":
+                        #         name = ""
+                        #
+                        #     payload.append({"role": role, "content": name+msg.content})
+                        # payload.append({"role": "user", "content": message.content})
+
+                        # Получаем ответ от AI
+                        for _message in results_list:
+                            role = "assistant" if _message["author_id"] == self.bot.user.id else "user"
+                            name = _message["author_charname"]
                             name = f"[{name}]: "
                             if role == "assistant":
                                 name = ""
-
-                            payload.append({"role": role, "content": name+msg.content})
-                        payload.append({"role": "user", "content": message.content})
-
-                        # Получаем ответ от AI
+                            payload.append({"role": role, "content": name+_message["content"]})
                         response = await AIIO.askBetterLLM(payload)
                         await logger.log("Fetching AI response...", logger.LogLevel.DEBUG)
-                        await message.reply(response['result'])
+                        msg = await message.reply(response['result'])
+                        new_doc = d.schema({"message_id": msg.id,
+                                            "content": response['result'],
+                                            "author_id": msg.author.id,
+                                            "author_charname": "Гриша",
+                                            "author_charid": APLR_ID,
+                                            "timestamp": message.created_at.timestamp(),
+                                            "actor": APLR_ID,
+                                            }, d.Schemes.rp_message_v0)
+                        # messages_collection = d.db.get_collection("rp_messages_v0")
+                        messages_collection.insert_one(new_doc)
                         await logger.log(
                             f"APLR on_message event handled: {response['result']} using {response['total_tokens']} tokens on {response['model']}",
                             logger.LogLevel.DEBUG)
+
 
             else:
                 if message.author.id == self.bot.user.id:
