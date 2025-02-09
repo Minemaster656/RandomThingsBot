@@ -15,6 +15,7 @@ class Schemes(enum.Enum):
     AI_conversation = 4
     location = 5
     rp_message = 6
+    rp_message_v0 = 7
 
 
 def schema(document, scheme):
@@ -130,6 +131,17 @@ def schema(document, scheme):
             "chunks": [],
             # "embeddingUUIDs":[],
             "timestamp": 0, #UNIX timestamp
+        }
+    if scheme == Schemes.rp_message_v0:
+        fields = {
+            "UUID": None,
+            "message_id": 0, #discord message id
+            "content":"",
+            "author_id": 0,
+            "author_charname": "", #CHARACTER NAME
+            "author_charid":"",
+            "actor": "",
+            "timestamp": 0, #UNIX timestamp ms
         }
 
     fields_check = {}

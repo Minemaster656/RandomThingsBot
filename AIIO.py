@@ -364,6 +364,7 @@ def payload_to_cably_chat_history(payload):
     return history
 async def askBetterLLM(payload: list, max_tokens=512, model=DeepInfraLLMs.Mistral3_7B):
     useCABLY = False
+    openai_lib_model = 'google/gemini-2.0-flash-exp:free' # google/gemini-2.0-flash-lite-preview-02-05:free deepseek/deepseek-r1:free google/gemini-2.0-flash-exp:free openchat/openchat-7b:free
     '''payload structure:
         [{"role": "system", "content": "Hello world"},
         {"role": "user", "content": "Hello world"},
@@ -413,7 +414,8 @@ async def askBetterLLM(payload: list, max_tokens=512, model=DeepInfraLLMs.Mistra
                        # model="mistralai/Mistral-7B-Instruct-v0.1",
                        # model="openchat/openchat_3.5",
                        # model="openchat/openchat-7b:free",
-                    model="google/gemini-2.0-flash-lite-preview-02-05:free",
+                    # model="google/gemini-2.0-flash-lite-preview-02-05:free",
+                    model=openai_lib_model,
                     messages=payload,
                     max_tokens=max_tokens,
                 )
@@ -431,7 +433,8 @@ async def askBetterLLM(payload: list, max_tokens=512, model=DeepInfraLLMs.Mistra
                 # model="mistralai/Mistral-7B-Instruct-v0.1",
                 # model="openchat/openchat_3.5",
                 # model="openchat/openchat-7b:free",
-                model="google/gemini-2.0-flash-lite-preview-02-05:free",
+                # model="google/gemini-2.0-flash-lite-preview-02-05:free",
+                model=openai_lib_model,
                 messages=payload,
                 max_tokens=max_tokens,
             )
@@ -453,7 +456,8 @@ async def askBetterLLM(payload: list, max_tokens=512, model=DeepInfraLLMs.Mistra
                 # model="mistralai/Mistral-7B-Instruct-v0.1",
                 # model="openchat/openchat_3.5",
                 # model="openchat/openchat-7b:free",
-                model="google/gemini-2.0-flash-lite-preview-02-05:free",
+                # model="google/gemini-2.0-flash-lite-preview-02-05:free",
+                model=openai_lib_model,
                 messages=payload,
                 max_tokens=max_tokens,
             )
