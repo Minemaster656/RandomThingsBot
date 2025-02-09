@@ -115,6 +115,7 @@ async def noPermission(ctx, permissions):
 async def on_command_error(ctx, error):
     """Обработка ошибок"""
     none = "None"
+    # await logger.log("Something went wrong: " + str(error), logger.LogLevel.ERROR)
     if isinstance(error, commands.MissingPermissions):
         embed = discord.Embed(title="У Вас нет прав!", description="Нет разрешения!",
                               color=Data.embedColors["Error"])
