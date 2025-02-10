@@ -364,7 +364,7 @@ def payload_to_cably_chat_history(payload):
     return history
 async def askBetterLLM(payload: list, max_tokens=512, model=DeepInfraLLMs.Mistral3_7B):
     useCABLY = False
-    openai_lib_model = 'google/gemini-2.0-flash-exp:free' # google/gemini-2.0-flash-lite-preview-02-05:free deepseek/deepseek-r1:free google/gemini-2.0-flash-exp:free openchat/openchat-7b:free
+    openai_lib_model = 'google/gemini-2.0-flash-exp:free' # qwen/qwen-vl-plus:free google/gemini-2.0-flash-lite-preview-02-05:free deepseek/deepseek-r1:free google/gemini-2.0-flash-exp:free openchat/openchat-7b:free
     '''payload structure:
         [{"role": "system", "content": "Hello world"},
         {"role": "user", "content": "Hello world"},
