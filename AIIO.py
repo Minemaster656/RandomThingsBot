@@ -8,6 +8,7 @@ import json
 import random
 import time
 import uuid
+from collections import deque
 
 import aiohttp
 import discord
@@ -67,6 +68,21 @@ class Text2Imgs(enum.Enum):
 
 class KandinskyStyles(enum.Enum):
     DEFAULT = 0
+
+
+class ModelQueue:
+    def __init__(self, models):
+        self.queue = deque(models)
+
+    def get_next_model(self):
+        if not self.queue:
+            return None  # Or raise an exception if no models are available
+        model = self.queue.popleft()
+        self.queue.append(model)  # Rotate the queue
+        return model
+
+    def get_all_models(self):
+        return list(self.queue)
 
 
 async def askLLM(payload, model: LLMs, payload_cutoff, temptoken=gigachat_temptoken, max_tokens=512):
@@ -212,6 +228,7 @@ class Text2ImageAPI:
 
             attempts -= 1
             time.sleep(delay)
+        return None
 
 
 async def askT2I(prompt: str, model: Text2Imgs,
@@ -376,6 +393,13 @@ def payload_to_cably_chat_history(payload):
 async def askBetterLLM(payload: list, max_tokens=512, model=DeepInfraLLMs.Mistral3_7B):
     useCABLY = False
     openai_lib_model = 'qwen/qwen2.5-vl-72b-instruct:free'  # qwen/qwen2.5-vl-72b-instruct:free qwen/qwen-vl-plus:free google/gemini-2.0-flash-lite-preview-02-05:free deepseek/deepseek-r1:free google/gemini-2.0-flash-exp:free openchat/openchat-7b:free
+    openrouter_queue = [
+        "google/gemini-2.0-flash-exp:free",
+        "google/gemini-2.0-flash-lite-preview-02-05:free",
+        "qwen/qwen2.5-vl-72b-instruct:free"
+        "deepseek/deepseek-r1:free",
+        "openchat/openchat-7b:free",
+    ]
     '''payload structure:
         [{"role": "system", "content": "Hello world"},
         {"role": "user", "content": "Hello world"},
@@ -391,126 +415,94 @@ async def askBetterLLM(payload: list, max_tokens=512, model=DeepInfraLLMs.Mistra
     tokens = 0
     total_tokens = 0
     model = None
-    try:
 
+    cably_models = [
+        CABLY.ChatModels.GPT4o,
+        CABLY.ChatModels.ClaudeHaiku,
+        CABLY.ChatModels.GPT4oMini,
+        CABLY.ChatModels.ClaudeSonnet,
+    ]
+    cably_model_queue = ModelQueue(cably_models)
+
+
+    try:
         await logger.log(f"Processing LLM payload: {payload}", logger.LogLevel.INFO)
+
         if useCABLY:
             history = payload_to_cably_chat_history(payload)
+            while True:
+                cably_model = cably_model_queue.get_next_model()
+                if cably_model is None:
+                    await logger.log("No CABLY models available.", logger.LogLevel.WARNING)
+                    break  # No more models in the queue
 
-            models_priorities = [
-                CABLY.ChatModels.GPT4o,
-                CABLY.ChatModels.ClaudeHaiku,
+                await logger.log(f"Trying {cably_model} on CABLY", logger.LogLevel.INFO)
+                try:
+                    chat_completion = await CABLY.chat_completion(model=cably_model, messages=history)
+                    if chat_completion.usage.total_tokens > 2:
+                        result = chat_completion.choices[0].message.content
+                        total_tokens = chat_completion.usage.total_tokens
+                        model = chat_completion.model
+                        await logger.log(
+                            f"CABLY {cably_model} responded with {total_tokens} tokens: {result}",
+                            logger.LogLevel.INFO)
+                        break  # Successful response, exit the loop
+                    else:
+                        await logger.log(
+                            f"{cably_model} responded nothing with {chat_completion.usage.total_tokens} tokens",
+                            logger.LogLevel.WARNING)
+                except Exception as e:
+                    await logger.log(f"Error calling {cably_model}: {e}", logger.LogLevel.ERROR)
+                    # Model failed, try the next one
 
-                CABLY.ChatModels.GPT4oMini,
-                CABLY.ChatModels.ClaudeSonnet,
-            ]
-            for model in models_priorities:
-                await logger.log(f"Trying {model} on CABLY", logger.LogLevel.INFO)
+            else:  # If the loop completes without a successful response
+                for model in openrouter_queue:
+                    try:
+                        chat_completion = await openai.chat.completions.create(
+                            model=model,
+                            messages=payload,
+                            max_tokens=max_tokens,
+                        )
+                        if chat_completion.id == None:
+                            await logger.log(f"Could not call OpenRouter on model {model}", logger.LogLevel.ERROR)
+                            continue
+                        result = chat_completion.choices[0].message.content
+                        total_tokens = chat_completion.usage.total_tokens
+                        model = chat_completion.model
 
-                chat_completion = await CABLY.chat_completion(model=model, messages=history)
-                await logger.log(
-                    f"CABLY {model} responded with {chat_completion.usage.total_tokens} tokens: {str(chat_completion.choices[0].message.content)}",
-                    logger.LogLevel.DEBUG)
-                content = chat_completion.choices[0].message.content
-                if chat_completion.usage.total_tokens > 2:
-                    await logger.log(
-                        f"CABLY {model} responded with {chat_completion.usage.total_tokens} tokens: {str(content)}")
-                    # await logger.log(f"{str(chat_completion)}", logger.LogLevel.DEBUG)
+                        await logger.log(f"Called LLM {model} using {total_tokens}", logger.LogLevel.INFO)
+                        break
+                    except Exception as e:
+                        await logger.log(f"Could not call OpenRouter: {e}", logger.LogLevel.ERROR)
+                        fail = True
+        else:
+            for model in openrouter_queue:
+                try:
+                    chat_completion = await openai.chat.completions.create(
+                        model=model,
+                        messages=payload,
+                        max_tokens=max_tokens,
+                    )
+                    if chat_completion.id == None:
+                        await logger.log(f"Could not call OpenRouter on model {model}", logger.LogLevel.ERROR)
+
+                        continue
                     result = chat_completion.choices[0].message.content
                     total_tokens = chat_completion.usage.total_tokens
                     model = chat_completion.model
+
+                    await logger.log(f"Called LLM {model} using {total_tokens}", logger.LogLevel.INFO)
                     break
-                await logger.log(
-                    f"{model} responded nothing with {chat_completion.usage.total_tokens} tokens: {str(content)}",
-                    logger.LogLevel.WARNING)
-
-            else:
-                chat_completion = await openai.chat.completions.create(
-                    # model = "deepseek/deepseek-r1:free",#_DeepInfraLLMsEnumToString(model),#"mistralai/Mistral-7B-Instruct-v0.3",
-                    # model="mistralai/Mixtral-8x7B-Instruct-v0.1",
-                    # model="mistralai/Mistral-7B-Instruct-v0.1",
-                    # model="openchat/openchat_3.5",
-                    # model="openchat/openchat-7b:free",
-                    # model="google/gemini-2.0-flash-lite-preview-02-05:free",
-                    model=openai_lib_model,
-                    messages=payload,
-                    max_tokens=max_tokens,
-                )
-                # await logger.log(f"{openai_lib_model} returned {str(chat_completion)}", logger.LogLevel.DEBUG)
-                # print(chat_completion)
-
-                result = chat_completion.choices[0].message.content
-                await logger.log(f"Content: {result}", logger.LogLevel.DEBUG)
-
-                total_tokens = chat_completion.usage.total_tokens
-                model = chat_completion.model
-                await logger.log(f"Called LLM {model} using {total_tokens}")
-
-                # total_tokens = chat_completion.total_tokens
-                # await logger.log(f"Called LLM {model} using {total_tokens}")
-        else:
-            chat_completion = await openai.chat.completions.create(
-                # model = "deepseek/deepseek-r1:free",#_DeepInfraLLMsEnumToString(model),#"mistralai/Mistral-7B-Instruct-v0.3",
-                # model="mistralai/Mixtral-8x7B-Instruct-v0.1",
-                # model="mistralai/Mistral-7B-Instruct-v0.1",
-                # model="openchat/openchat_3.5",
-                # model="openchat/openchat-7b:free",
-                # model="google/gemini-2.0-flash-lite-preview-02-05:free",
-                model=openai_lib_model,
-                messages=payload,
-                max_tokens=max_tokens,
-            )
-            await logger.log(f"{str(chat_completion)}", logger.LogLevel.DEBUG)
-            # print(chat_completion)'
-
-            result = chat_completion.choices[0].message.content
-            await logger.log(f"Content: {result}", logger.LogLevel.DEBUG)
-            total_tokens = chat_completion.usage.total_tokens
-            model = chat_completion.model
-            await logger.log(f"Called LLM {model} using {total_tokens}")
-
-
+                except Exception as e:
+                    await logger.log(f"Could not call OpenRouter: {e}", logger.LogLevel.ERROR)
+                    fail = True
 
     except Exception as e:
-        # print(e)
-        await logger.log("Could not call CABLY: " + str(e), logger.LogLevel.ERROR)
-        try:
-            await logger.log(f"Processing LLM payload: {payload} with model {openai_lib_model}", logger.LogLevel.INFO)
-            chat_completion = await openai.chat.completions.create(
-                # model = "deepseek/deepseek-r1:free",#_DeepInfraLLMsEnumToString(model),#"mistralai/Mistral-7B-Instruct-v0.3",
-                # model="mistralai/Mixtral-8x7B-Instruct-v0.1",
-                # model="mistralai/Mistral-7B-Instruct-v0.1",
-                # model="openchat/openchat_3.5",
-                # model="openchat/openchat-7b:free",
-                # model="google/gemini-2.0-flash-lite-preview-02-05:free",
-                model=openai_lib_model,
-                messages=payload,
-                max_tokens=max_tokens,
-            )
-            await logger.log(f"{str(chat_completion)}", logger.LogLevel.DEBUG)
-            # print(chat_completion)
-            result = chat_completion.choices[0].message.content
-            await logger.log(f"Content: {result}", logger.LogLevel.DEBUG)
-
-            total_tokens = chat_completion.usage.total_tokens
-            model = chat_completion.model
-            await logger.log(f"Called LLM {model} using {total_tokens}")
-
-            # total_tokens = chat_completion.total_tokens
-            # await logger.log(f"Called LLM {model} using {total_tokens}")
-        except:
-            await logger.log("Could not call OpenRouter: " + str(e), logger.LogLevel.ERROR)
-
-            fail = True
+        await logger.log(f"An unexpected error occurred: {e}", logger.LogLevel.ERROR)
+        fail = True
 
     payload.append({"role": "assistant", "content": result})
     if fail:
         payload = payload[:-2]
-
-    # fact_check = FactCheckLib(query=result, language="ru", num_results=200)
-    #
-    # rjson = fact_check.fetch_data()
-    # data = fact_check.clean_json(rjson)
-    # edata = fact_check.extract_info(data)
 
     return {"result": result, "output": payload, "prompt_tokens": tokens, "total_tokens": total_tokens, "model": model}
