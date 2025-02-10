@@ -391,7 +391,7 @@ def payload_to_cably_chat_history(payload):
 
 
 async def askBetterLLM(payload: list, max_tokens=512, model=DeepInfraLLMs.Mistral3_7B):
-    useCABLY = False
+    useCABLY = True
     openai_lib_model = 'qwen/qwen2.5-vl-72b-instruct:free'  # qwen/qwen2.5-vl-72b-instruct:free qwen/qwen-vl-plus:free google/gemini-2.0-flash-lite-preview-02-05:free deepseek/deepseek-r1:free google/gemini-2.0-flash-exp:free openchat/openchat-7b:free
     openrouter_queue = [
         "google/gemini-2.0-flash-exp:free",
