@@ -390,20 +390,52 @@ def payload_to_cably_chat_history(payload):
     return history
 
 
+class LLMCallPriority(enum.Enum):
+    Quality = 1
+    Speed = 2
+    Reasoning = 3
+
 # noinspection PyUnreachableCode
-async def askBetterLLM(payload: list, max_tokens=512, model=DeepInfraLLMs.Mistral3_7B):
+async def askBetterLLM(payload: list, max_tokens=512, model=DeepInfraLLMs.Mistral3_7B,priority:LLMCallPriority=LLMCallPriority.Quality):
     useCABLY = False
     openai_lib_model = 'qwen/qwen2.5-vl-72b-instruct:free'  # qwen/qwen2.5-vl-72b-instruct:free qwen/qwen-vl-plus:free google/gemini-2.0-flash-lite-preview-02-05:free deepseek/deepseek-r1:free google/gemini-2.0-flash-exp:free openchat/openchat-7b:free
-    openrouter_queue = [
-        "deepseek/deepseek-chat:free",
-        # "deepseek/deepseek-r1:free",
-        # "deepseek/deepseek-r1:free",
-        "google/gemini-2.0-flash-exp:free",
-        "google/gemini-2.0-flash-lite-preview-02-05:free",
-        "qwen/qwen2.5-vl-72b-instruct:free"
-        # "deepseek/deepseek-r1:free",
-        "openchat/openchat-7b:free",
-    ]
+    openrouter_queues = {
+        LLMCallPriority.Quality: [
+            "deepseek/deepseek-chat:free",
+            "google/gemini-2.0-flash-exp:free",
+            "google/gemini-2.0-flash-lite-preview-02-05:free",
+            "qwen/qwen2.5-vl-72b-instruct:free"
+            "deepseek/deepseek-r1:free",
+            "openchat/openchat-7b:free",
+        ],
+        LLMCallPriority.Speed: [
+            "google/gemini-2.0-flash-exp:free",
+            "google/gemini-2.0-flash-lite-preview-02-05:free",
+            "deepseek/deepseek-chat:free",
+            "qwen/qwen2.5-vl-72b-instruct:free"
+            "deepseek/deepseek-r1:free",
+            "openchat/openchat-7b:free",
+        ],
+        LLMCallPriority.Reasoning: [
+            "deepseek/deepseek-r1:free",
+            "deepseek/deepseek-chat:free",
+            "google/gemini-2.0-flash-exp:free",
+            "google/gemini-2.0-flash-lite-preview-02-05:free",
+            "qwen/qwen2.5-vl-72b-instruct:free"
+            "openchat/openchat-7b:free",
+        ]
+    }
+    # openrouter_queue = [
+    #     "deepseek/deepseek-chat:free",
+    #     # "deepseek/deepseek-r1:free",
+    #     # "deepseek/deepseek-r1:free",
+    #     "google/gemini-2.0-flash-exp:free",
+    #     "google/gemini-2.0-flash-lite-preview-02-05:free",
+    #     "qwen/qwen2.5-vl-72b-instruct:free"
+    #     # "deepseek/deepseek-r1:free",
+    #     "openchat/openchat-7b:free",
+    # ]
+    openrouter_queue = openrouter_queues[priority]
     thinking_models = [
         "deepseek/deepseek-r1:free",
     ]

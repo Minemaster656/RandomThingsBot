@@ -34,3 +34,5 @@ def add_memory(agentID:str, vector:list, chunk:str, timestamp:str, location:str)
             }
         ],
     )
+def get_memories(agentID:str, chunk:str):
+    response = client.query_points()

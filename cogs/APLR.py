@@ -120,7 +120,7 @@ class APLR(commands.Cog):
                         messages_collection = d.db.get_collection("rp_messages_v0")
                         messages_collection.insert_one(new_doc)
                         # Количество объектов, которые нужно получить
-                        n = 20
+                        n = 50
 
                         # Запрос для получения последних n объектов с полем actor, отсортированных по timestamp
                         query = {"actor": APLR_ID}
@@ -194,7 +194,7 @@ class APLR(commands.Cog):
                                  f"Разметка (соблюдай её предельно осторожно, не выдумывай свою ни в коем случае): действия: **жирный**; мысли персонажа: ||спойлер||; если очень нужно сказать что-то другим пользователям (не персонажам) не от лица персонажа (не рекомендуется без причины): //комментарий в конце поста; для речи разметка не нужна.\n" \
                                  f"Не забудь пробелы и переносы строк.\n" \
                                  f"Вот описание твоего персонажа: {aplr_doc['self_prompt']}\n" \
-                                 f"Персонажа зовут {aplr_doc['name']}\n" \
+                                 f"Персонажа зовут {aplr_doc['name']} (не пиши свое имя в ответе, твое сообщение и так подписано)\n" \
                                  f"Отвечай на русском, не отвечай за других персонажей ни при каких обстоятельствах. Под твоим управлением ТОЛЬКО {aplr_doc['name']}. Не пиши слишком большие посты за раз.\n" \
                                  f"Вместе с тобой в игре участвуют под управлением других игроков следующие персонажи:\n" \
                                  f"{docs_prompts}\n" \
@@ -227,7 +227,7 @@ class APLR(commands.Cog):
                         # thinking = await AIIO.askBetterLLM(payload_thinking)
                         # await logger.log("AI throughtput for "+str(thinking['total_tokens'])+" tokens on "+thinking['model']+": "+thinking['result'], logger.LogLevel.DEBUG)
                         # payload.append({"role": "assistant", "content": "Это мои размышления, на которые нужно ориентироваться при моем ответе: \n"+thinking['result']})
-                        await logger.log("Payload: " + str(payload), logger.LogLevel.DEBUG)
+                        # await logger.log("Payload: " + str(payload), logger.LogLevel.DEBUG)
                         response = await AIIO.askBetterLLM(payload)
                         if response['result'] == "Something went terribly wrong.":
                             await message.reply(
@@ -287,7 +287,7 @@ class APLR(commands.Cog):
                         # messages_collection = d.db.get_collection("rp_messages_v0")
                         messages_collection.insert_one(new_doc)
                         await logger.log(
-                            f"APLR on_message event handled: {response['result']} using {response['total_tokens']} tokens on {response['model']}",
+                            f"APLR on_message event handled using {response['total_tokens']} tokens on {response['model']}", #: {response['result']}
                             logger.LogLevel.DEBUG)
 
 

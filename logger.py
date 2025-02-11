@@ -1,9 +1,11 @@
 import logging
 import asyncio
+import os
 import sys
 import enum
 from colorama import init, Fore, Style
 from platform import system
+import inspect
 if system() == 'Windows':
     init(autoreset=True)
 
@@ -76,21 +78,48 @@ logger.addHandler(queue_handler)
 loop = asyncio.new_event_loop()
 loop.create_task(log_writer())  # Запуск фонового логгера
 
+
+def extract_last_three_parts(file_path):
+    # Разделяем путь на части
+    parts = file_path.split(os.sep)
+
+    # Убираем пустые строки, которые могут появиться из-за ведущего или завершающего разделителя
+    parts = [part for part in parts if part]
+
+    # Возвращаем последние три части или меньше, если их недостаточно
+    return parts[-3:]
 # Функция для логирования
 async def log(message: str, level:LogLevel = LogLevel.INFO):
+    # Получаем
+    # текущий
+    # фрейм(кадр)
+    # выполнения
+    current_frame = inspect.currentframe()
+
+    # Получаем фрейм, который вызвал текущую функцию
+    caller_frame = current_frame.f_back
+
+    # Получаем имя файла, в котором была вызвана функция
+    filename = caller_frame.f_code.co_filename
+
+    # Получаем номер строки, на которой была вызвана функция
+    lineno = caller_frame.f_lineno
+
+    scripttext = f"[{str(os.sep).join(extract_last_three_parts(filename))}:{lineno}]"
+    output = f"{scripttext} {message}"
     """Асинхронное логирование"""
     if level == LogLevel.DEBUG:
-        logger.debug(message)
+        logger.debug(output)
     elif level == LogLevel.INFO:
-        logger.info(message)
+        logger.info(output)
     elif level == LogLevel.WARNING:
-        logger.warning(message)
+        logger.warning(output)
     elif level == LogLevel.ERROR:
-        logger.error(message)
+        logger.error(output)
     elif level == LogLevel.CRITICAL:
-        logger.critical(message)
+        logger.critical(output)
     else:
-        logger.info(f"UNKNOWN LEVEL: {message}")
+        logger.info(f"UNKNOWN LEVEL: {output}")
 
 def log_sync(message: str, level:LogLevel = LogLevel.INFO):
     """Синхронная функция для логирования (отправляет в event loop)"""
