@@ -262,7 +262,7 @@ def calc_levelByXP(xp):
     return (level, xp_current, xp_next)
 
 
-async def initWebhook(channel, bot_id):
+async def initWebhook(channel, bot_id) -> discord.Webhook:
     try:
         hooks = await channel.webhooks()
         hook = None

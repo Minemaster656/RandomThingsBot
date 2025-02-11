@@ -7,7 +7,7 @@ from discord import Option
 import AIIO
 import d
 import logger
-
+import utils
 
 
 class APLR(commands.Cog):
@@ -42,7 +42,7 @@ class APLR(commands.Cog):
                     regex = r"^(<[@#]\d+>)*\s*[(\/)+(+)+].*[(\/)+({2,}){2,}]*(<[@#]\d+>)*"
                     mention_regex = r"^(\s*<[@#]\d+>\s*)+$"
                     return re.match(regex, text) or re.match(mention_regex, text) or text in [".", "/", "//", "(", "((",
-                                                                                              ")", "))","","** **"]
+                                                                                              ")", "))", "", "** **"]
 
                 if is_nonrp(message.content):
                     # await logger.log(f"APLR on_message event processing aborted: non-rp message", logger.LogLevel.DEBUG)
@@ -99,7 +99,7 @@ class APLR(commands.Cog):
                             'outer_prompt': {'$exists': True, '$ne': None}
                         }
                         docs = list(d.db.get_collection("characters").find(filter=query))
-                        docs_prompts = "\n".join(doc['name']+": "+doc['outer_prompt'] for doc in docs)
+                        docs_prompts = "\n".join(doc['name'] + ": " + doc['outer_prompt'] for doc in docs)
                         docs_names = {doc['id']: doc['name'] for doc in docs}
                         authors_charid = chars.get(message.author.id, None)
                         char_name = message.author.name
@@ -115,7 +115,7 @@ class APLR(commands.Cog):
                                             "author_charname": char_name,
                                             "author_charid": chars[message.author.id],
                                             "timestamp": message.created_at.timestamp(),
-                                            "actor":APLR_ID,
+                                            "actor": APLR_ID,
                                             }, d.Schemes.rp_message_v0)
                         messages_collection = d.db.get_collection("rp_messages_v0")
                         messages_collection.insert_one(new_doc)
@@ -179,16 +179,28 @@ class APLR(commands.Cog):
                         #          f"{docs_prompts}\n" \
                         #          f"Вот для контекста некоторые твои воспоминания, вызванные событиями в игре:\n" \
                         #          f"[nothing to show]"
+                        think_prompt = f"Ты играешь в текстовую ролевую игру. Твой персонаж {aplr_doc['name']}\n" \
+                                       f"{aplr_doc['self_prompt']}\n" \
+                                       f"И посте можно использовать действия, речь и мысли от лица персонажа, а так же в случае необходимости спросить что-то у других игроков (не персонажей) от своего лица напрямую.\n" \
+                                       f"Сейчас твоя задача - продумать что ты будешь отвечать (не написать пост, а именно подумать). ВЕДИ ТОЛЬКО РАЗМЫШЛЕНИЕ ЧТО СТОИТ НАПИСАТЬ. АНАЛИЗИРУЙ И ДУМАЙ А НЕ ПИШИ СООБЩЕНИЕ ДЛЯ ИГРЫ. " \
+                                       f"Ниже представлен список персонажей в сессии, а в истории диалога будет представлена сама сессия с подписями.\n" \
+                                       f"НИ ПРИ КАКИХ ОБСТОЯТЕЛЬСТВАХ не играй за других персонажей, кроме {aplr_doc['name']}\n" \
+                                       f"Учти что в конечном посте (который будет написан но основе твоих размышлений) нельзя будет делать одновременно много всего или написать огромный пост.\n" \
+                                       f"Так же для контекста вот воспоминания, вызванные постами:\n" \
+                                       f"[nothing to show]\n" \
+                                       f"Вот персонажи в игре:\n" \
+                                       f"{docs_prompts}"
                         prompt = f"Ты - игрок текстовой ролевой игре.\n" \
                                  f"Разметка (соблюдай её предельно осторожно, не выдумывай свою ни в коем случае): действия: **жирный**; мысли персонажа: ||спойлер||; если очень нужно сказать что-то другим пользователям (не персонажам) не от лица персонажа (не рекомендуется без причины): //комментарий в конце поста; для речи разметка не нужна.\n" \
                                  f"Не забудь пробелы и переносы строк.\n" \
                                  f"Вот описание твоего персонажа: {aplr_doc['self_prompt']}\n" \
                                  f"Персонажа зовут {aplr_doc['name']}\n" \
-                                 f"Отвечай на русском, не отвечай за других персонажей. Не пиши слишком большие посты за раз.\n" \
-                                 f"" \
+                                 f"Отвечай на русском, не отвечай за других персонажей ни при каких обстоятельствах. Под твоим управлением ТОЛЬКО {aplr_doc['name']}. Не пиши слишком большие посты за раз.\n" \
                                  f"Вместе с тобой в игре участвуют под управлением других игроков следующие персонажи:\n" \
                                  f"{docs_prompts}\n" \
                                  f""
+                        # f"Последнее сообщение в истории - от тебя, это твои размышления (не от лица персонажа) для текущего ответа. их видишь только ты." \
+
                         # await logger.log("System prompt: "+prompt, logger.LogLevel.DEBUG)
                         # Формируем payload для AI
                         payload = [{"role": "system", "content": prompt}]
@@ -209,18 +221,65 @@ class APLR(commands.Cog):
                             name = f"[{name}]: "
                             if role == "assistant":
                                 name = ""
-                            payload.append({"role": role, "content": name+_message["content"]})
+                            payload.append({"role": role, "content": name + _message["content"]})
+                        payload_thinking = payload.copy()
+                        payload_thinking[0] = {"role": "system", "content": think_prompt}
+                        # thinking = await AIIO.askBetterLLM(payload_thinking)
+                        # await logger.log("AI throughtput for "+str(thinking['total_tokens'])+" tokens on "+thinking['model']+": "+thinking['result'], logger.LogLevel.DEBUG)
+                        # payload.append({"role": "assistant", "content": "Это мои размышления, на которые нужно ориентироваться при моем ответе: \n"+thinking['result']})
+                        await logger.log("Payload: " + str(payload), logger.LogLevel.DEBUG)
                         response = await AIIO.askBetterLLM(payload)
                         if response['result'] == "Something went terribly wrong.":
-                            await message.reply("// >>> ОЙ, кажется модуль запросов к ИИ навернулся и ни одна модель даже не ответила. какая жалось :( <<<")
+                            await message.reply(
+                                "// >>> ОЙ, кажется модуль запросов к ИИ навернулся и ни одна модель даже не ответила. какая жалось :( <<<")
                             return
                         await logger.log("Fetching AI response...", logger.LogLevel.DEBUG)
-                        msg = await message.reply(response['result'])
+                        # msg = await message.reply("### Размышление:\n-# "+thinking['result'].replace("\n", "\n-# ")+"\n\n------\n\n"+response['result'])
+                        webhook = None
+                        if type(message.channel) == discord.Thread:
+                            channel = message.channel.parent
+                        else:
+                            channel = message.channel
+                        for hook in await channel.webhooks():
+                            if hook.user.id == self.bot.user.id:
+                                webhook = hook
+                                break
+                        else:
+
+                            try:
+                                webhook = await channel.create_webhook(name="RTB hook")
+                            except:
+                                pass
+                        # msg = await message.reply(response['result'])
+                        # await webhook.send(response['result'])
+                        if len(response['result']) < 2:
+                            await message.reply("// >>> Модель ничерта не ответила. Не, серьезно, пустое сообщение! <<<")
+                            await logger.log("EMPTY AI response: " + response['result'], logger.LogLevel.ERROR)
+                            return
+                        # embed = discord.Embed(title="Что думает этот чертов бот",description="Системный промпт: \n" + prompt,colour=discord.Colour.random())
+                        embed = None
+                        if webhook:
+                            if type(message.channel) == discord.Thread:
+                                msg = await webhook.send(content=response['result'], username=aplr_doc['name'],
+                                               # avatar_url=avatar,
+                                               allowed_mentions=discord.AllowedMentions.none()
+                                               ,
+                                               # files=[await i.to_file() for i in message.attachments],
+                                               thread=discord.Object(message.channel.id), embed=embed,wait=True)
+                            else:
+                                msg = await webhook.send(content=response['result'], username=aplr_doc['name'],
+                                               # avatar_url=avatar,
+                                               allowed_mentions=discord.AllowedMentions.none()
+                                               ,
+                                               # files=[await i.to_file() for i in message.attachments],
+                                                embed=embed,wait=True)
+                        else:
+                            msg = await message.reply(content=response['result'], embed=embed)
 
                         new_doc = d.schema({"message_id": msg.id,
                                             "content": response['result'],
                                             "author_id": msg.author.id,
-                                            "author_charname": "Гриша",
+                                            "author_charname": aplr_doc['name'],
                                             "author_charid": APLR_ID,
                                             "timestamp": message.created_at.timestamp(),
                                             "actor": APLR_ID,
@@ -235,10 +294,12 @@ class APLR(commands.Cog):
             else:
                 if message.author.id == self.bot.user.id:
                     return
-                await message.reply(
-                    "//Мы фигню тестим, не мешай пж. Ну или если у тебя есть анкета в этом боте, попроси тебя сюда прописать.",
-                    delete_after=30)
+                # await message.reply(
+                #     "//Мы фигню тестим, не мешай пж. Ну или если у тебя есть анкета в этом боте, попроси тебя сюда прописать.",
+                #     delete_after=30)
         else:
             pass
+
+
 def setup(bot):
     bot.add_cog(APLR(bot))

@@ -390,15 +390,22 @@ def payload_to_cably_chat_history(payload):
     return history
 
 
+# noinspection PyUnreachableCode
 async def askBetterLLM(payload: list, max_tokens=512, model=DeepInfraLLMs.Mistral3_7B):
-    useCABLY = True
+    useCABLY = False
     openai_lib_model = 'qwen/qwen2.5-vl-72b-instruct:free'  # qwen/qwen2.5-vl-72b-instruct:free qwen/qwen-vl-plus:free google/gemini-2.0-flash-lite-preview-02-05:free deepseek/deepseek-r1:free google/gemini-2.0-flash-exp:free openchat/openchat-7b:free
     openrouter_queue = [
+        "deepseek/deepseek-chat:free",
+        # "deepseek/deepseek-r1:free",
+        # "deepseek/deepseek-r1:free",
         "google/gemini-2.0-flash-exp:free",
         "google/gemini-2.0-flash-lite-preview-02-05:free",
         "qwen/qwen2.5-vl-72b-instruct:free"
-        "deepseek/deepseek-r1:free",
+        # "deepseek/deepseek-r1:free",
         "openchat/openchat-7b:free",
+    ]
+    thinking_models = [
+        "deepseek/deepseek-r1:free",
     ]
     '''payload structure:
         [{"role": "system", "content": "Hello world"},
@@ -458,6 +465,8 @@ async def askBetterLLM(payload: list, max_tokens=512, model=DeepInfraLLMs.Mistra
             else:  # If the loop completes without a successful response
                 for model in openrouter_queue:
                     try:
+                        if model in thinking_models:
+                            payload[0]["content"] += "\nMake sure to add </think> at the end of the throught."
                         chat_completion = await openai.chat.completions.create(
                             model=model,
                             messages=payload,
@@ -466,7 +475,8 @@ async def askBetterLLM(payload: list, max_tokens=512, model=DeepInfraLLMs.Mistra
                         if chat_completion.id == None:
                             await logger.log(f"Could not call OpenRouter on model {model}", logger.LogLevel.ERROR)
                             continue
-                        result = chat_completion.choices[0].message.content
+                        print(chat_completion)
+                        result = chat_completion.choices[0].message.content.split("</think>")[-1]
                         total_tokens = chat_completion.usage.total_tokens
                         model = chat_completion.model
 
@@ -478,6 +488,9 @@ async def askBetterLLM(payload: list, max_tokens=512, model=DeepInfraLLMs.Mistra
         else:
             for model in openrouter_queue:
                 try:
+                    if model in thinking_models:
+                        payload[0]["content"] += "\nMake sure to add </think> at the end of the throught."
+
                     chat_completion = await openai.chat.completions.create(
                         model=model,
                         messages=payload,
@@ -487,7 +500,9 @@ async def askBetterLLM(payload: list, max_tokens=512, model=DeepInfraLLMs.Mistra
                         await logger.log(f"Could not call OpenRouter on model {model}", logger.LogLevel.ERROR)
 
                         continue
-                    result = chat_completion.choices[0].message.content
+                    print(chat_completion)
+
+                    result = chat_completion.choices[0].message.content.split("</think>")[-1]
                     total_tokens = chat_completion.usage.total_tokens
                     model = chat_completion.model
 
