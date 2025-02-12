@@ -142,6 +142,7 @@ def schema(document, scheme):
             "author_charid":"",
             "actor": "",
             "timestamp": 0, #UNIX timestamp ms
+            "chunks": {},
         }
 
     fields_check = {}

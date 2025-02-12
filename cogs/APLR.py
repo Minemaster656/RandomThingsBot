@@ -8,6 +8,7 @@ import AIIO
 import d
 import logger
 import utils
+from libs import chunker
 
 
 class APLR(commands.Cog):
@@ -257,7 +258,9 @@ class APLR(commands.Cog):
                             await logger.log("EMPTY AI response: " + response['result'], logger.LogLevel.ERROR)
                             return
                         # embed = discord.Embed(title="Что думает этот чертов бот",description="Системный промпт: \n" + prompt,colour=discord.Colour.random())
-                        embed = None
+                        chunks = await chunker.split_to_chunks(payload)
+                        embed = discord.Embed(title="Чанки [ДЕБАГ]",description=chunks,colour=discord.Colour.random())
+                        # embed = None
                         if webhook:
                             if type(message.channel) == discord.Thread:
                                 msg = await webhook.send(content=response['result'], username=aplr_doc['name'],

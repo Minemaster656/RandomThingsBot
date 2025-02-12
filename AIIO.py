@@ -400,7 +400,7 @@ async def askBetterLLM(payload: list, max_tokens=512, model=DeepInfraLLMs.Mistra
     useCABLY = False
     openai_lib_model = 'qwen/qwen2.5-vl-72b-instruct:free'  # qwen/qwen2.5-vl-72b-instruct:free qwen/qwen-vl-plus:free google/gemini-2.0-flash-lite-preview-02-05:free deepseek/deepseek-r1:free google/gemini-2.0-flash-exp:free openchat/openchat-7b:free
     openrouter_queues = {
-        LLMCallPriority.Quality: [
+        LLMCallPriority.Quality.value: [
             "deepseek/deepseek-chat:free",
             "google/gemini-2.0-flash-exp:free",
             "google/gemini-2.0-flash-lite-preview-02-05:free",
@@ -408,7 +408,7 @@ async def askBetterLLM(payload: list, max_tokens=512, model=DeepInfraLLMs.Mistra
             "deepseek/deepseek-r1:free",
             "openchat/openchat-7b:free",
         ],
-        LLMCallPriority.Speed: [
+        LLMCallPriority.Speed.value: [
             "google/gemini-2.0-flash-exp:free",
             "google/gemini-2.0-flash-lite-preview-02-05:free",
             "deepseek/deepseek-chat:free",
@@ -416,7 +416,7 @@ async def askBetterLLM(payload: list, max_tokens=512, model=DeepInfraLLMs.Mistra
             "deepseek/deepseek-r1:free",
             "openchat/openchat-7b:free",
         ],
-        LLMCallPriority.Reasoning: [
+        LLMCallPriority.Reasoning.value: [
             "deepseek/deepseek-r1:free",
             "deepseek/deepseek-chat:free",
             "google/gemini-2.0-flash-exp:free",
@@ -435,7 +435,9 @@ async def askBetterLLM(payload: list, max_tokens=512, model=DeepInfraLLMs.Mistra
     #     # "deepseek/deepseek-r1:free",
     #     "openchat/openchat-7b:free",
     # ]
-    openrouter_queue = openrouter_queues[priority]
+    print(openrouter_queues)
+    openrouter_queue = openrouter_queues[priority.value]
+    print(openrouter_queue)
     thinking_models = [
         "deepseek/deepseek-r1:free",
     ]
@@ -541,6 +543,7 @@ async def askBetterLLM(payload: list, max_tokens=512, model=DeepInfraLLMs.Mistra
                     await logger.log(f"Called LLM {model} using {total_tokens}", logger.LogLevel.INFO)
                     break
                 except Exception as e:
+                    print(openrouter_queue, model)
                     await logger.log(f"Could not call OpenRouter: {e}", logger.LogLevel.ERROR)
                     fail = True
 
