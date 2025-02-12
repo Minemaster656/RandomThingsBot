@@ -405,9 +405,9 @@ async def askBetterLLM(payload: list, max_tokens=512, model=DeepInfraLLMs.Mistra
             "deepseek/deepseek-chat:free",
             "google/gemini-2.0-flash-exp:free",
             "google/gemini-2.0-flash-lite-preview-02-05:free",
-            "qwen/qwen2.5-vl-72b-instruct:free"
+            # "qwen/qwen2.5-vl-72b-instruct:free"
             "deepseek/deepseek-r1:free",
-            "openchat/openchat-7b:free",
+            # "openchat/openchat-7b:free",
         ],
         LLMCallPriority.Speed.value: [
             "google/gemini-2.0-flash-exp:free",
