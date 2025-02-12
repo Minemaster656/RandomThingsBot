@@ -204,7 +204,7 @@ class APLR(commands.Cog):
                                  f"Отвечай на русском, не отвечай за других персонажей ни при каких обстоятельствах. Под твоим управлением ТОЛЬКО {aplr_doc['name']}. Не пиши слишком большие посты за раз.\n" \
                                  f"Вместе с тобой в игре участвуют под управлением других игроков следующие персонажи:\n" \
                                  f"{docs_prompts}\n\n" \
-                                 f"Для контекста под некоторыми сообщениями система дописала тебе связанные воспоминания. Они не являются частью оригинального поста."
+                                 f"Для контекста под некоторыми твоими старыми сообщениями система дописала тебе связанные воспоминания. Они не являются частью оригинального поста. Не пиши их в ответе."
                         # f"\n\n" \
                         # f"Текущая локация: {location_doc['title']}\n" \
                         # f"{location_doc['prompt']}\n"
@@ -235,7 +235,8 @@ class APLR(commands.Cog):
                             mems = "\n\n---\n# Связанные воспоминания:\n"
                             if memories and type(memories) == dict:
 
-                                for m in memories:
+                                for m in memories.values():
+                                    # print(m)
                                     mems += f"{m['chunk']}\n"
                             else:
                                 mems=""
@@ -302,7 +303,9 @@ class APLR(commands.Cog):
                                                          # files=[await i.to_file() for i in message.attachments],
                                                          , wait=True)
                         else:
-                            msg = await message.reply(content=response['result'], embed=embed)
+                            msg = await message.reply(content=response['result'])
+
+                        print(payload)
 
                         chunks = await chunker.split_to_chunks(payload)
                         mem_payload = {}
@@ -314,6 +317,8 @@ class APLR(commands.Cog):
                             mem = qdrant.get_memories_by_chunks_uuids(APLR_ID, list(mem_uuids.values()))
                         else:
                             mem = None
+
+                        await logger.log(f"Chunks generated: {chunks}\nMemories found: {mem}", logger.LogLevel.DEBUG)
 
                         new_doc = d.schema({"message_id": msg.id,
                                             "content": response['result'],
