@@ -18,9 +18,9 @@ async def split_to_chunks(context_payload:list):
 Пользователь, вероятно, разметил в * действие.
 В ответе дай ТОЛЬКО чанки. 1 строка = 1 чанк.
 Если несколько чанков логически связаны и несут мало полезной информации - склей их и отсей лишнее.
-ТОЛЬКО перед ОСОБО важными чанками добавь [!] - по этим чанкам будет поиск в памяти. Таких чанков не должно быть много лили может не быть вовсе
-Ориентируйся на пользу чанков в будущем - они будут подгружены только как воспоминания о прошлом. это так же значит, что в чанке должен быть контекст.
-Для контекста тебе дана часть истории, однако она уже обработана. Твоя цель только последнее сообщение пользователя.'''
+Не подписывай начало и конец чанков. Не оставляй только цитату в чанке!
+Ориентируйся на пользу чанков в будущем - они будут подгружены только как воспоминания о прошлом. это так же значит, что в чанке должен быть контекст. Учти, что чанки будут использованы по отдельности и у каждого контекст должен быть независимо понятен.
+Для контекста тебе дана часть истории, однако она уже обработана. Твоя цель только последнее сообщение пользователя. Перед ним добавлено несколько равно, с них начинается необработанное.'''
     # messages = ChatHistory([ChatMessage(ChatRole.System, system_prompt), ChatMessage(ChatRole.User, text)])
     # resp = None
     # for model in models_priority:
@@ -42,8 +42,12 @@ async def split_to_chunks(context_payload:list):
         "role": "system",
         "content": system_prompt
     })
-    print(payload)
-    response = await askBetterLLM(payload, priority=LLMCallPriority.Speed)
+    if len(payload) >= 3:
+        payload[-2]["content"] = "===== [SYSTEM_MARKER: UNPROCESSED DATA STARTS HERE] ====="+payload[-1]["content"]
+    # await logger.log(str(payload), logger.LogLevel.DEBUG)
+    response = await askBetterLLM(payload, priority=LLMCallPriority.Quality)
+    # await logger.log(str(response['result']), logger.LogLevel.DEBUG)
+
     return response['result'].split('\n')
 
 

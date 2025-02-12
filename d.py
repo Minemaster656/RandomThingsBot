@@ -115,6 +115,7 @@ def schema(document, scheme):
             "description": "",
             "prompt": "",
             "title": "",
+            "world_code": "" #letter.num3-flags: [e]arth-like, [t]emp, [T]est, [j]oke, [d]anger
         }
 
     if scheme == Schemes.rp_message:
@@ -141,8 +142,9 @@ def schema(document, scheme):
             "author_charname": "", #CHARACTER NAME
             "author_charid":"",
             "actor": "",
-            "timestamp": 0, #UNIX timestamp ms
-            "chunks": {},
+            "timestamp": 0, #UNIX timestamp sec
+            "chunks": {}, #chunk:uuid
+            "memories": {}, #uuid:payload
         }
 
     fields_check = {}

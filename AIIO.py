@@ -30,7 +30,7 @@ openai = AsyncOpenAI(
     api_key=private.coreData.API_KEYS["openrouter"],
     # base_url="https://api.deepinfra.com/v1/openai",
     base_url="https://openrouter.ai/api/v1",
-    max_retries=3
+    max_retries=10
 )
 
 
@@ -402,6 +402,7 @@ async def askBetterLLM(payload: list, max_tokens=512, model=DeepInfraLLMs.Mistra
     openrouter_queues = {
         LLMCallPriority.Quality.value: [
             "deepseek/deepseek-chat:free",
+            "deepseek/deepseek-chat:free",
             "google/gemini-2.0-flash-exp:free",
             "google/gemini-2.0-flash-lite-preview-02-05:free",
             "qwen/qwen2.5-vl-72b-instruct:free"
@@ -513,7 +514,11 @@ async def askBetterLLM(payload: list, max_tokens=512, model=DeepInfraLLMs.Mistra
                         result = chat_completion.choices[0].message.content.split("</think>")[-1]
                         total_tokens = chat_completion.usage.total_tokens
                         model = chat_completion.model
-
+                        if len(result) < 2:
+                            await logger.log(
+                                f"OpenRouter {model} responded nothing with {chat_completion.usage.total_tokens} tokens",
+                                logger.LogLevel.WARNING)
+                            continue
                         await logger.log(f"Called LLM {model} using {total_tokens}", logger.LogLevel.INFO)
                         break
                     except Exception as e:
@@ -541,6 +546,11 @@ async def askBetterLLM(payload: list, max_tokens=512, model=DeepInfraLLMs.Mistra
                     model = chat_completion.model
 
                     await logger.log(f"Called LLM {model} using {total_tokens}", logger.LogLevel.INFO)
+                    if len(result) < 2:
+                        await logger.log(
+                            f"OpenRouter {model} responded nothing with {chat_completion.usage.total_tokens} tokens",
+                            logger.LogLevel.WARNING)
+                        continue
                     break
                 except Exception as e:
                     print(openrouter_queue, model)

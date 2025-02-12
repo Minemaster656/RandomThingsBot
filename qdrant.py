@@ -17,21 +17,21 @@ if not client.collection_exists(collection_name):
         vectors_config={"size": 768, "distance": "Cosine"},  # Задаем размерность и метрику
     )
 
-def add_memories(agentID:str, payload:dict, timestamp:int, locationID:str):
+def add_memories(agentID:str, payload:dict, timestamp:float, locationID:str):
     """
 
     agentID is str id of agent that knows it (characterID:str)
-    Timestamp is UNIX ms timestamp (int)
+    Timestamp is UNIX sec timestamp (int)
     Payload is {chunk:str : vector:list of float by nomic-text-embeddings from embedder.
     LocationID is str id of location (locationID:str)
     ---
-    :returns: list of points uuids (str) wit the same order as payload
+    :returns: dict of points uuids (str): chunk_string : uuid
     """
     points = []
-    uuids = []
+    uuids = {}
     for chunk, vector in payload.items():
         UUID = str(uuid.uuid4())
-        uuids.append(UUID)
+        uuids[chunk]=UUID
         points.append({
             "id": UUID,
             "vector": vector,
@@ -42,10 +42,13 @@ def add_memories(agentID:str, payload:dict, timestamp:int, locationID:str):
                 "location": locationID
             }
         })
-    result = client.upsert(
-        collection_name=collection_name,
-        points=points
-    )
+    try:
+        result = client.upsert(
+            collection_name=collection_name,
+            points=points
+        )
+    except:
+        return None
     return uuids
 
 def get_memories_by_chunks_uuids(agentID:str, chunk_uuids:list,entries_per_chunk:int=3):
@@ -71,9 +74,14 @@ def get_memories_by_chunks_uuids(agentID:str, chunk_uuids:list,entries_per_chunk
         # Выполнение поиска
         search_result = client.query_points(
             collection_name=collection_name,
-            query_vector=vector,
+            query=vector,
             query_filter=query_filter,
             limit=entries_per_chunk
         )
-        for doc in search_result:
-            result[doc.id] = doc.payload["chunk"]
+        # print(search_result)
+
+        for doc in search_result.points:
+            print(doc)
+            result[doc.id] = doc.payload
+
+    return result

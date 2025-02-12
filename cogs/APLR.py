@@ -1,3 +1,4 @@
+import datetime
 import re
 
 import discord
@@ -7,8 +8,9 @@ from discord import Option
 import AIIO
 import d
 import logger
+import qdrant
 import utils
-from libs import chunker
+from libs import chunker, embedder
 
 
 class APLR(commands.Cog):
@@ -23,6 +25,7 @@ class APLR(commands.Cog):
     async def aplr_on_message(self, message: discord.Message):
         # APLR_ID = "grisha_chaos"
         APLR_ID = "alex_n_volkov"
+        LOCATION_ID = "test_meadow"
         # Проверяем, что сообщение пришло в нужный канал
         if message.channel.id == 1337796154498486374:
             # Словарь для соответствия ID пользователей и их ролей
@@ -180,6 +183,7 @@ class APLR(commands.Cog):
                         #          f"{docs_prompts}\n" \
                         #          f"Вот для контекста некоторые твои воспоминания, вызванные событиями в игре:\n" \
                         #          f"[nothing to show]"
+                        # location_doc = d.db.get_collection("location").find_one({"id": LOCATION_ID})
                         think_prompt = f"Ты играешь в текстовую ролевую игру. Твой персонаж {aplr_doc['name']}\n" \
                                        f"{aplr_doc['self_prompt']}\n" \
                                        f"И посте можно использовать действия, речь и мысли от лица персонажа, а так же в случае необходимости спросить что-то у других игроков (не персонажей) от своего лица напрямую.\n" \
@@ -191,6 +195,7 @@ class APLR(commands.Cog):
                                        f"[nothing to show]\n" \
                                        f"Вот персонажи в игре:\n" \
                                        f"{docs_prompts}"
+                        # print(location_doc)
                         prompt = f"Ты - игрок текстовой ролевой игре.\n" \
                                  f"Разметка (соблюдай её предельно осторожно, не выдумывай свою ни в коем случае): действия: **жирный**; мысли персонажа: ||спойлер||; если очень нужно сказать что-то другим пользователям (не персонажам) не от лица персонажа (не рекомендуется без причины): //комментарий в конце поста; для речи разметка не нужна.\n" \
                                  f"Не забудь пробелы и переносы строк.\n" \
@@ -198,8 +203,12 @@ class APLR(commands.Cog):
                                  f"Персонажа зовут {aplr_doc['name']} (не пиши свое имя в ответе, твое сообщение и так подписано)\n" \
                                  f"Отвечай на русском, не отвечай за других персонажей ни при каких обстоятельствах. Под твоим управлением ТОЛЬКО {aplr_doc['name']}. Не пиши слишком большие посты за раз.\n" \
                                  f"Вместе с тобой в игре участвуют под управлением других игроков следующие персонажи:\n" \
-                                 f"{docs_prompts}\n" \
-                                 f""
+                                 f"{docs_prompts}\n\n" \
+                                 f"Для контекста под некоторыми сообщениями система дописала тебе связанные воспоминания. Они не являются частью оригинального поста."
+                        # f"\n\n" \
+                        # f"Текущая локация: {location_doc['title']}\n" \
+                        # f"{location_doc['prompt']}\n"
+
                         # f"Последнее сообщение в истории - от тебя, это твои размышления (не от лица персонажа) для текущего ответа. их видишь только ты." \
 
                         # await logger.log("System prompt: "+prompt, logger.LogLevel.DEBUG)
@@ -222,7 +231,16 @@ class APLR(commands.Cog):
                             name = f"[{name}]: "
                             if role == "assistant":
                                 name = ""
-                            payload.append({"role": role, "content": name + _message["content"]})
+                            memories = _message.get("memories")
+                            mems = "\n\n---\n# Связанные воспоминания:\n"
+                            if memories and memories != {}:
+
+                                for m in memories:
+                                    mems += f"{m['chunk']}\n"
+                            else:
+                                mems=""
+
+                            payload.append({"role": role, "content": name + _message["content"] + "" + mems})
                         payload_thinking = payload.copy()
                         payload_thinking[0] = {"role": "system", "content": think_prompt}
                         # thinking = await AIIO.askBetterLLM(payload_thinking)
@@ -254,30 +272,48 @@ class APLR(commands.Cog):
                         # msg = await message.reply(response['result'])
                         # await webhook.send(response['result'])
                         if len(response['result']) < 2:
-                            await message.reply("// >>> Модель ничерта не ответила. Не, серьезно, пустое сообщение! <<<")
+                            await message.reply(
+                                "// >>> Модель ничерта не ответила. Не, серьезно, пустое сообщение! <<<")
                             await logger.log("EMPTY AI response: " + response['result'], logger.LogLevel.ERROR)
                             return
                         # embed = discord.Embed(title="Что думает этот чертов бот",description="Системный промпт: \n" + prompt,colour=discord.Colour.random())
-                        chunks = await chunker.split_to_chunks(payload)
-                        embed = discord.Embed(title="Чанки [ДЕБАГ]",description=chunks,colour=discord.Colour.random())
-                        # embed = None
+
+                        embed = None
+                        # embed = discord.Embed(title="Чанки [ДЕБАГ]", description="\n".join(chunks),
+                        #                       colour=discord.Colour.random())
+                        # TODO: gather chunks
+
+
+
                         if webhook:
                             if type(message.channel) == discord.Thread:
                                 msg = await webhook.send(content=response['result'], username=aplr_doc['name'],
-                                               # avatar_url=avatar,
-                                               allowed_mentions=discord.AllowedMentions.none()
-                                               ,
-                                               # files=[await i.to_file() for i in message.attachments],
-                                               thread=discord.Object(message.channel.id), embed=embed,wait=True)
+                                                         # avatar_url=avatar,
+                                                         allowed_mentions=discord.AllowedMentions.none()
+                                                         ,
+                                                         # files=[await i.to_file() for i in message.attachments],
+                                                         thread=discord.Object(message.channel.id),
+                                                         wait=True)
                             else:
                                 msg = await webhook.send(content=response['result'], username=aplr_doc['name'],
-                                               # avatar_url=avatar,
-                                               allowed_mentions=discord.AllowedMentions.none()
-                                               ,
-                                               # files=[await i.to_file() for i in message.attachments],
-                                                embed=embed,wait=True)
+                                                         # avatar_url=avatar,
+                                                         allowed_mentions=discord.AllowedMentions.none()
+
+                                                         # files=[await i.to_file() for i in message.attachments],
+                                                         , wait=True)
                         else:
                             msg = await message.reply(content=response['result'], embed=embed)
+
+                        chunks = await chunker.split_to_chunks(payload)
+                        mem_payload = {}
+                        for chunk in chunks:
+                            mem_payload[chunk] = await embedder.get_embedding(chunk)  # TODO: асинк
+                        mem_uuids = qdrant.add_memories(APLR_ID, mem_payload, datetime.datetime.now().timestamp(),
+                                                              LOCATION_ID)
+                        if mem_uuids:
+                            mem = qdrant.get_memories_by_chunks_uuids(APLR_ID, list(mem_uuids.values()))
+                        else:
+                            mem = None
 
                         new_doc = d.schema({"message_id": msg.id,
                                             "content": response['result'],
@@ -286,11 +322,16 @@ class APLR(commands.Cog):
                                             "author_charid": APLR_ID,
                                             "timestamp": message.created_at.timestamp(),
                                             "actor": APLR_ID,
+                                            "chunks":mem_uuids,
+                                            "memories":mem
                                             }, d.Schemes.rp_message_v0)
+
                         # messages_collection = d.db.get_collection("rp_messages_v0")
                         messages_collection.insert_one(new_doc)
+
                         await logger.log(
-                            f"APLR on_message event handled using {response['total_tokens']} tokens on {response['model']}", #: {response['result']}
+                            f"APLR on_message event handled using {response['total_tokens']} tokens on {response['model']}",
+                            #: {response['result']}
                             logger.LogLevel.DEBUG)
 
 
