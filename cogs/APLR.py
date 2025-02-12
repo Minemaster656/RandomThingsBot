@@ -233,7 +233,7 @@ class APLR(commands.Cog):
                                 name = ""
                             memories = _message.get("memories")
                             mems = "\n\n---\n# Связанные воспоминания:\n"
-                            if memories and memories != {}:
+                            if memories and type(memories) == dict:
 
                                 for m in memories:
                                     mems += f"{m['chunk']}\n"

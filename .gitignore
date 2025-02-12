@@ -5,3 +5,5 @@ private/
 venv
 files
 project.log
+nomic_embeds_cache_async.db
+libs/nomic_embeds_cache_async.db
