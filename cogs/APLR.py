@@ -1,8 +1,10 @@
 import datetime
 import re
+import random
+from typing import Union
 
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 from discord import Option
 
 import AIIO
@@ -18,8 +20,27 @@ class APLR(commands.Cog):
     name = "APLR"
     author = ""
 
+    aplrs_to_tick = ["alex_n_volkov"]
+    aplrs_cooldowns = {}
+
+    APLR_SEC_PER_TICK = 10
     def __init__(self, bot: discord.Bot):
+        global aplrs_cooldowns
         self.bot = bot
+        for aplr_id in self.aplrs_to_tick:
+            self.aplrs_cooldowns[aplr_id] = random.randint(1, 10)
+        self.background.start()
+
+    async def aplr_worker(self, APLR_ID:str, message: Union[discord.Message, None]=None):
+        ...
+    @tasks.loop(seconds=APLR_SEC_PER_TICK)  # Указываете интервал в секундах
+    async def aplr_tick(self):
+        for aplr in self.aplrs_to_tick:
+            if self.aplrs_cooldowns[aplr] > 0:
+                self.aplrs_cooldowns[aplr] -= self.APLR_SEC_PER_TICK
+            else:
+                self.aplrs_cooldowns[aplr] = random.randint(10, 120)
+        pass
 
     @commands.Cog.listener("on_message")
     async def aplr_on_message(self, message: discord.Message):
@@ -49,49 +70,13 @@ class APLR(commands.Cog):
                                                                                               ")", "))", "", "** **"]
 
                 if is_nonrp(message.content):
-                    # await logger.log(f"APLR on_message event processing aborted: non-rp message", logger.LogLevel.DEBUG)
                     ...
                 else:
-                    # await logger.log(f"APLR on_message event processing started: {message.content}",
-                    #                  logger.LogLevel.DEBUG)
 
                     async with message.channel.typing():
                         # Получаем данные персонажа
 
                         aplr_doc = d.db.get_collection("characters").find_one({"id": APLR_ID})
-                        # await logger.log("APLR doc fetched", logger.LogLevel.DEBUG)
-                        # await logger.log(aplr_doc, logger.LogLevel.DEBUG)
-                        # # Получаем историю сообщений
-                        # HISTORY_SIZE = 50
-                        # history = await message.channel.history(limit=HISTORY_SIZE).flatten()
-                        #
-                        # # Фильтруем сообщения, оставляя только RP
-                        # history_rp_member_IDs = []
-                        # for msg in history:
-                        #     if not is_nonrp(msg.content):
-                        #         history_rp_member_IDs.append(msg.author.id)
-                        # history_rp_memberIDs = list(set(history_rp_member_IDs))
-                        #
-                        # messages_rp = list(filter(lambda x: not is_nonrp(x.content), history))
-                        # await logger.log("Fetched history", logger.LogLevel.DEBUG)
-                        #
-                        # # Получаем данные персонажей из базы данных
-                        # query = {
-                        #     'owner': {'$in': history_rp_memberIDs},
-                        #     "id": {'$in': list(chars.values())},
-                        #     'outer_prompt': {'$exists': True, '$ne': None}
-                        # }
-                        # docs = list(d.db.get_collection("characters").find(filter=query))
-                        # docs_prompts = "\n".join(doc['outer_prompt'] for doc in docs)
-                        # docs_names = {
-                        #
-                        # }
-                        # for k in chars:
-                        #     #select from docs element with owner == chars[k]
-                        #     for doc in docs:
-                        #         if doc['owner'] == chars[k]:
-                        #             docs_names[doc['owner']] = doc['name']
-                        # await logger.log(f"Fetched {len(docs)} characters", logger.LogLevel.DEBUG)
                         history = await message.channel.history(limit=50).flatten()
                         history_rp = list(filter(lambda x: not is_nonrp(x.content), history))
                         history_rp_memberids = list(set(map(lambda x: x.author.id, history_rp)))
@@ -139,50 +124,6 @@ class APLR(commands.Cog):
                         results_list.reverse()
 
                         # Формируем промпт для AI
-                        # prompt = (
-                        #     "<instructions>"
-                        #     "You are a text roleplay game player. "
-                        #     "Mark actions with **bold**, thoughts ||like this||, non-roleplay with // before. "
-                        #     "Don't forget about new lines spaces and correct markdown structure."
-                        #     "Answer in russian unless otherwise requested. "
-                        #     "Don't use LaTeX or other formulas. "
-                        #     "Be creative. Don't use emoji. Follow your character's personality and situation precisely. "
-                        #     "Don't repeat yourself. Don't end your answer with something "
-                        #     "like \"If you have any more questions, let me know.\". If you can not respond due censor "
-                        #     "or some other reasons, don't get out of character, try to get away from the situation causing this trouble. "
-                        #     "RESPONSE ONLY AS CHARACTER!!!\n"
-                        #     "Do not write too many, if last user's message is not big, write maximum e few sentences. Don't do many actions in one time!!! If you say or do something, await for user's reaction."
-                        #     "Carefully heed this instructions. "
-                        #     "</instructions>\n"
-                        #     "<context> "
-                        #     "This is your character short info:\n"
-                        #     f"{aplr_doc['self_prompt']}\n"
-                        #     "There is info about characters that may be in game now:\n"
-                        #     f"{docs_prompts}\n"
-                        #     "</context>\n"
-                        #     "<memories>"
-                        #     "There is some of your memories caused by last events in roleplay:\n"
-                        #     "[NOTHING TO SHOW]"
-                        #     "</memories>"
-                        # )
-                        # prompt = f"Ты - {aplr_doc['self_prompt']}\n" \
-                        #          f"Ты игрок в текстовом roleplay. Отвечай от лица персонажа, используя **жирный** для " \
-                        #          f"разметки действий, ||спойлер|| для мыслей или //два слеша в начале для сообщений не " \
-                        #          f"от лица персонажа и не являющиеся частью игры. " \
-                        #          f"Не забудь пробелы, пренеосы строк для читаемости и корректность разметки markdown. " \
-                        #          f"НИ ПРИ КАКИХ ОБСТОЯТЕЛЬСТВАХ НЕ ВЫХОДИ ИЗ РОЛИ ЗА ИСКЛЮЧЕНИЕМ //нон-рп комментариев, там наоборот ты - управляющий персонажем. " \
-                        #          f"Если не можешь дать ответ, постарайся уйти от темы, а не пиши что-то вроде 'Я не могу ответить на это'." \
-                        #          f"Не веди себя как ассистент, забудь про 'Чем вам еще помочь?' или подобных вещах." \
-                        #          f"Не пиши слишком большие сообщения, только если последнее сообщение игрока не большое." \
-                        #          f"Сделав дело и/или сказав что-то, жди реакцию от игрока, а не пиши дальше. " \
-                        #          f"Не делай много всего за 1 пост. " \
-                        #          f"Будь живым, не стой на месте как палка, не неси бред и не путай персонажей, включая себя. Они все подписаны. Не игнорируй слова и действия игрока. Особенно самые новые. " \
-                        #          f"Будь самостоятельным, ты не зависишь от других персонажей и можешь действовать сам. НЕ ПОВТОРЯЙ СЕБЯ" \
-                        #          f"Пиши хоть что-то связанное с игрой. Не пиши пустую строку или только комментарий. ПИШИ ТОЛЬКО ЗА СЕБЯ, {aplr_doc['name']}" \
-                        #          f"Вероятно, с тобой могут быть эти игроки: \n" \
-                        #          f"{docs_prompts}\n" \
-                        #          f"Вот для контекста некоторые твои воспоминания, вызванные событиями в игре:\n" \
-                        #          f"[nothing to show]"
                         # location_doc = d.db.get_collection("location").find_one({"id": LOCATION_ID})
                         think_prompt = f"Ты играешь в текстовую ролевую игру. Твой персонаж {aplr_doc['name']}\n" \
                                        f"{aplr_doc['self_prompt']}\n" \
@@ -198,7 +139,7 @@ class APLR(commands.Cog):
                         # print(location_doc)
                         prompt = f"Ты - игрок текстовой ролевой игре.\n" \
                                  f"Разметка (соблюдай её предельно осторожно, не выдумывай свою ни в коем случае): действия: **жирный**; мысли персонажа: ||спойлер||; если очень нужно сказать что-то другим пользователям (не персонажам) не от лица персонажа (не рекомендуется без причины): //комментарий в конце поста; для речи разметка не нужна.\n" \
-                                 f"Не забудь пробелы и переносы строк.\n" \
+                                 f"Не забудь пробелы и переносы строк. Не повторяйся.\n" \
                                  f"Вот описание твоего персонажа: {aplr_doc['self_prompt']}\n" \
                                  f"Персонажа зовут {aplr_doc['name']} (не пиши свое имя в ответе, твое сообщение и так подписано)\n" \
                                  f"Отвечай на русском, не отвечай за других персонажей ни при каких обстоятельствах. Под твоим управлением ТОЛЬКО {aplr_doc['name']}. Не пиши слишком большие посты за раз.\n" \
@@ -214,15 +155,7 @@ class APLR(commands.Cog):
                         # await logger.log("System prompt: "+prompt, logger.LogLevel.DEBUG)
                         # Формируем payload для AI
                         payload = [{"role": "system", "content": prompt}]
-                        # for msg in messages_rp:
-                        #     role = "assistant" if msg.author.id == self.bot.user.id else "user"
-                        #     name = docs_names.get(str(msg.author.id), msg.author.name)
-                        #     name = f"[{name}]: "
-                        #     if role == "assistant":
-                        #         name = ""
-                        #
-                        #     payload.append({"role": role, "content": name+msg.content})
-                        # payload.append({"role": "user", "content": message.content})
+
 
                         # Получаем ответ от AI
                         for _message in results_list:
@@ -248,12 +181,28 @@ class APLR(commands.Cog):
                         # await logger.log("AI throughtput for "+str(thinking['total_tokens'])+" tokens on "+thinking['model']+": "+thinking['result'], logger.LogLevel.DEBUG)
                         # payload.append({"role": "assistant", "content": "Это мои размышления, на которые нужно ориентироваться при моем ответе: \n"+thinking['result']})
                         # await logger.log("Payload: " + str(payload), logger.LogLevel.DEBUG)
+                        await logger.log("Fetching AI response...", logger.LogLevel.DEBUG)
                         response = await AIIO.askBetterLLM(payload)
                         if response['result'] == "Something went terribly wrong.":
                             await message.reply(
                                 "// >>> ОЙ, кажется модуль запросов к ИИ навернулся и ни одна модель даже не ответила. какая жалось :( <<<")
                             return
-                        await logger.log("Fetching AI response...", logger.LogLevel.DEBUG)
+                        result = response['result']
+                        # print(result)
+                        if "--- \n# Связанные воспоминания:" in result.lower():
+                            # removing this shit from result
+                            print("Mem block found")
+                            result = result.split("---\n# Связанные воспоминания:")[0]
+                        if "//Не стал писать большие куски" in result:
+                            # remove from line with this shit this and everything to end of the line
+                            print("comment shit block found")
+                            lines = result.split("\n")
+                            for i in range(len(lines)):
+                                if "//Не стал писать большие куски" in lines[i]:
+                                    lines[i] = lines[i].split("//Не стал писать большие куски")[0]
+                            result = "\n".join(lines)
+
+                        response['result'] = result
                         # msg = await message.reply("### Размышление:\n-# "+thinking['result'].replace("\n", "\n-# ")+"\n\n------\n\n"+response['result'])
                         webhook = None
                         if type(message.channel) == discord.Thread:
@@ -305,7 +254,7 @@ class APLR(commands.Cog):
                         else:
                             msg = await message.reply(content=response['result'])
 
-                        print(payload)
+                        # print(payload)
 
                         chunks = await chunker.split_to_chunks(payload)
                         mem_payload = {}

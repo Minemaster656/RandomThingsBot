@@ -30,7 +30,8 @@ openai = AsyncOpenAI(
     api_key=private.coreData.API_KEYS["openrouter"],
     # base_url="https://api.deepinfra.com/v1/openai",
     base_url="https://openrouter.ai/api/v1",
-    max_retries=10
+    max_retries=10,
+
 )
 
 
@@ -506,6 +507,7 @@ async def askBetterLLM(payload: list, max_tokens=512, model=DeepInfraLLMs.Mistra
                             model=model,
                             messages=payload,
                             max_tokens=max_tokens,
+                            presence_penalty = 1.1
                         )
                         if chat_completion.id == None:
                             await logger.log(f"Could not call OpenRouter on model {model}", logger.LogLevel.ERROR)
