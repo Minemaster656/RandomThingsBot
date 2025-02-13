@@ -49,6 +49,7 @@ intents.reactions = True
 intents.members = True
 intents.presences = True
 # intents.guilds = True
+intents.guilds = True
 # intents.channels = True
 # intents.threads = True
 
