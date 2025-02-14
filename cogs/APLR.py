@@ -29,6 +29,8 @@ class APLR(commands.Cog):
     aplr_target_thread = None
     AFTER_HUMAN_TICK_CONTINUE_TIME_SEC = 60
 
+    AI_CALL_PRIORITY = AIIO.LLMCallPriority.Quality
+
     def __init__(self, bot: discord.Bot):
         global aplrs_cooldowns
         self.aplr_target_thread = None
@@ -42,7 +44,10 @@ class APLR(commands.Cog):
         self.aplrs_locks[APLR_ID] = True
         try:
             channel = self.aplr_target_thread
-            print(channel, type(channel), channel.parent)
+            if message:
+                if message.channel.id != 1337796154498486374:
+                    return
+            # print(channel, type(channel), channel.parent)
             # APLR_ID = "grisha_chaos"
             # APLR_ID = "alex_n_volkov"
             LOCATION_ID = "test_meadow"
@@ -59,13 +64,13 @@ class APLR(commands.Cog):
                 chars = {
                     891289716501119016: "googer",
                     609348530498437140: "ow.mn",
-                    1253778042665308331: "envnnpc",
+                    # 1253778042665308331: "envnnpc",
                     # self.bot.user.id: APLR_ID,
                     629999906429337600: "michaclown",
                 }
 
                 # Белый список пользователей, которые могут взаимодействовать
-                whitelist = [891289716501119016, 609348530498437140, 1253778042665308331, 629999906429337600]
+                whitelist = [891289716501119016, 609348530498437140, 629999906429337600] # 1253778042665308331
 
                 def is_nonrp(text: str):
                     regex = r"^(<[@#]\d+>)*\s*[(\/)+(+)+].*[(\/)+({2,}){2,}]*(<[@#]\d+>)*"
@@ -125,7 +130,7 @@ class APLR(commands.Cog):
                                             }, d.Schemes.rp_message_v0)
                         messages_collection.insert_one(new_doc)
                     # Количество объектов, которые нужно получить
-                    n = 50
+                    n = 30
 
                     # Запрос для получения последних n объектов с полем actor, отсортированных по timestamp
                     query = {"actor": APLR_ID}
@@ -206,7 +211,7 @@ class APLR(commands.Cog):
                     # payload.append({"role": "assistant", "content": "Это мои размышления, на которые нужно ориентироваться при моем ответе: \n"+thinking['result']})
                     # await logger.log("Payload: " + str(payload), logger.LogLevel.DEBUG)
                     await logger.log("Fetching AI response...", logger.LogLevel.DEBUG)
-                    response = await AIIO.askBetterLLM(payload)
+                    response = await AIIO.askBetterLLM(payload, priority=self.AI_CALL_PRIORITY)
                     if response['result'] == "Something went terribly wrong.":
                         if not message:
                             await channel.send(
@@ -338,7 +343,7 @@ class APLR(commands.Cog):
             self.aplr_target_thread = await guild.fetch_channel(1337796154498486374)
 
         for aplr in self.aplrs_to_tick:
-            print(aplr, self.aplrs_cooldowns[aplr], self.aplrs_locks[aplr])
+            # print(aplr, self.aplrs_cooldowns[aplr], self.aplrs_locks[aplr])
             if self.aplrs_cooldowns[aplr] > 0 and not self.aplrs_locks[aplr]:
                 self.aplrs_cooldowns[aplr] -= self.APLR_SEC_PER_TICK
             else:

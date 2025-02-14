@@ -7,6 +7,7 @@ import io
 import json
 import random
 import time
+import traceback
 import uuid
 from collections import deque
 
@@ -420,11 +421,15 @@ async def askBetterLLM(payload: list, max_tokens=512, model=DeepInfraLLMs.Mistra
         ],
         LLMCallPriority.Reasoning.value: [
             "deepseek/deepseek-r1:free",
+            "deepseek/deepseek-r1:free",
+            "deepseek/deepseek-r1:free",
+            "deepseek/deepseek-r1:free",
+            "deepseek/deepseek-r1:free",
             "deepseek/deepseek-chat:free",
             "google/gemini-2.0-flash-exp:free",
             "google/gemini-2.0-flash-lite-preview-02-05:free",
-            "qwen/qwen2.5-vl-72b-instruct:free"
-            "openchat/openchat-7b:free",
+            # "qwen/qwen2.5-vl-72b-instruct:free"
+            # "openchat/openchat-7b:free",
         ]
     }
     # openrouter_queue = [
@@ -501,8 +506,8 @@ async def askBetterLLM(payload: list, max_tokens=512, model=DeepInfraLLMs.Mistra
             else:  # If the loop completes without a successful response
                 for model in openrouter_queue:
                     try:
-                        if model in thinking_models:
-                            payload[0]["content"] += "\nMake sure to add </think> at the end of the throught."
+                        # if model in thinking_models:
+                        #     payload[0]["content"] += "\nMake sure to add </think> at the end of the throught."
                         chat_completion = await openai.chat.completions.create(
                             model=model,
                             messages=payload,
@@ -512,8 +517,8 @@ async def askBetterLLM(payload: list, max_tokens=512, model=DeepInfraLLMs.Mistra
                         if chat_completion.id == None:
                             await logger.log(f"Could not call OpenRouter on model {model}", logger.LogLevel.ERROR)
                             continue
-                        print(chat_completion)
-                        result = chat_completion.choices[0].message.content.split("</think>")[-1]
+                        # print(chat_completion)
+                        result = chat_completion.choices[0].message.content#.split("</think>")[-1]
                         total_tokens = chat_completion.usage.total_tokens
                         model = chat_completion.model
                         if len(result) < 2:
@@ -522,15 +527,17 @@ async def askBetterLLM(payload: list, max_tokens=512, model=DeepInfraLLMs.Mistra
                                 logger.LogLevel.WARNING)
                             continue
                         await logger.log(f"Called LLM {model} using {total_tokens}", logger.LogLevel.INFO)
+                        print(chat_completion)
                         break
                     except Exception as e:
                         await logger.log(f"Could not call OpenRouter: {e}", logger.LogLevel.ERROR)
+                        traceback.print_exc()
                         fail = True
         else:
             for model in openrouter_queue:
                 try:
-                    if model in thinking_models:
-                        payload[0]["content"] += "\nMake sure to add </think> at the end of the throught."
+                    # if model in thinking_models:
+                    #     payload[0]["content"] += "\nMake sure to add </think> at the end of the throught."
 
                     chat_completion = await openai.chat.completions.create(
                         model=model,
@@ -543,7 +550,7 @@ async def askBetterLLM(payload: list, max_tokens=512, model=DeepInfraLLMs.Mistra
                         continue
                     print(chat_completion)
 
-                    result = chat_completion.choices[0].message.content.split("</think>")[-1]
+                    result = chat_completion.choices[0].message.content#.split("</think>")[-1]
                     total_tokens = chat_completion.usage.total_tokens
                     model = chat_completion.model
 
