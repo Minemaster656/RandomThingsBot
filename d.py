@@ -16,6 +16,7 @@ class Schemes(enum.Enum):
     location = 5
     rp_message = 6
     rp_message_v0 = 7
+    WPG_city = 8
 
 
 def schema(document, scheme):
@@ -29,11 +30,11 @@ def schema(document, scheme):
                   "premium_end": 0, "total_reminders": 0, "inventory": {},
                   "birthday_day": 0, "birthday_month": 0, "birthday_year": 0, "activity_changes": [],
                   "access_token": None, "access_token_expires": 0, "LLM_memories": [], "LLM_system_prompt": "",
-                  "NSFW_LLM_memories": [], "NSFW_LLM_system_prompt": [], "triggers_achieved":{},
-                  "call_AI_on_mention":True,
-                  "password":None, "email":None, "discord_auth":True,
-                  "UUID":None,
-                  "bio_gender":None
+                  "NSFW_LLM_memories": [], "NSFW_LLM_system_prompt": [], "triggers_achieved": {},
+                  "call_AI_on_mention": True,
+                  "password": None, "email": None, "discord_auth": True,
+                  "UUID": None,
+                  "bio_gender": None
                   }
         '''banned: 0 - нет бана, 1 - нет команд, 2 - опасный пользователь'''
 
@@ -102,49 +103,80 @@ def schema(document, scheme):
                   "total_messages": 0,
                   "last_tokens": 0,
                   "total_tokens": 0,
-                  "NSFW":False,
+                  "NSFW": False,
                   "max_tokens": 512
                   }
         '''types: [user_conversation, user_conversation_nsfw]'''
     if scheme == Schemes.location:
         fields = {
             "UUID": None,
-            "id":"",
-            "channel_paths":[], # "discord:guild id:channel id:thread id or 0",
-            "current_players": [], # character id or user id
+            "id": "",
+            "channel_paths": [],  # "discord:guild id:channel id:thread id or 0",
+            "current_players": [],  # character id or user id
             "description": "",
             "prompt": "",
             "title": "",
-            "world_code": "" #letter.num3-flags: [e]arth-like, [t]emp, [T]est, [j]oke, [d]anger
+            "world_code": ""  # letter.num3-flags: [e]arth-like, [t]emp, [T]est, [j]oke, [d]anger
         }
 
     if scheme == Schemes.rp_message:
         fields = {
             "UUID": None,
-            "message_id": 0, #discord message id
+            "message_id": 0,  # discord message id
             "location_id": "",
-            "content":"",
+            "content": "",
             "author_id": 0,
             "author_name": "",
-            "author_charid":"",
-            "related_memories": {}, #APLR id: list of str
-            "important_memories": {}, #APLR id: list of str
+            "author_charid": "",
+            "related_memories": {},  # APLR id: list of str
+            "important_memories": {},  # APLR id: list of str
             "chunks": [],
             # "embeddingUUIDs":[],
-            "timestamp": 0, #UNIX timestamp
+            "timestamp": 0,  # UNIX timestamp
         }
     if scheme == Schemes.rp_message_v0:
         fields = {
             "UUID": None,
-            "message_id": 0, #discord message id
-            "content":"",
+            "message_id": 0,  # discord message id
+            "content": "",
             "author_id": 0,
-            "author_charname": "", #CHARACTER NAME
-            "author_charid":"",
+            "author_charname": "",  # CHARACTER NAME
+            "author_charid": "",
             "actor": "",
-            "timestamp": 0, #UNIX timestamp sec
-            "chunks": {}, #chunk:uuid
-            "memories": {}, #uuid:payload
+            "timestamp": 0,  # UNIX timestamp sec
+            "chunks": {},  # chunk:uuid
+            "memories": {},  # uuid:payload
+        }
+    if scheme == Schemes.WPG_city:
+        fields = {
+            # system
+            "UUID": None,
+            "owner_id": 0,  # discord user id
+            "city_name": "",
+            "created_timestamp": 0,  # UNIX sec
+            "edited_timestamp": 0,  # UNIX sec
+
+            # resources
+            "wood": 0,
+            "food": 0,
+            "iron": 0,
+            "coal": 0,
+            "oil": 0,
+
+            # people
+            "workers": 0,
+            "engineers": 0,
+            "children": 0,
+            "doctors": 0,
+            "unemployed": 0,
+            "sick": 0,
+            "dead": 0,
+
+            # stats
+            "hate": 10,  # на свержение
+            "hope": 90,  # БУНД!!!
+            "outposts": 0,
+
         }
 
     fields_check = {}
@@ -246,7 +278,5 @@ def makeBasicConversation(userid, username):
     doc["username"] = username
     doc["model"] = "mistralai/Mistral-7B-Instruct-v0.3"
     doc["tokens_cutoff"] = 3000
-
-
 
     return doc

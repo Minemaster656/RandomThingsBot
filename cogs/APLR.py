@@ -31,6 +31,8 @@ class APLR(commands.Cog):
 
     AI_CALL_PRIORITY = AIIO.LLMCallPriority.Quality
 
+    DO_TICK = False
+
     def __init__(self, bot: discord.Bot):
         global aplrs_cooldowns
         self.aplr_target_thread = None
@@ -337,6 +339,8 @@ class APLR(commands.Cog):
 
     @tasks.loop(seconds=APLR_SEC_PER_TICK)  # Указываете интервал в секундах
     async def aplr_tick(self):
+        if not self.DO_TICK:
+            return
         if not self.aplr_target_thread:
             # 1229513291206889586 > 1236366749658775676 > 1337796154498486374
             guild = await self.bot.fetch_guild(1229513291206889586)

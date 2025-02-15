@@ -489,6 +489,8 @@ def get_utc_ms() -> int:
 # def cut_differences_in_strings(str1, str2):
 #     '''return tuple: 0th is difference in 1st string, 1st is difference in 2nd string'''
 #     return (difflib.ndiff(str1, str2), difflib.ndiff(str2, str1))
+def unix_sec2ds_timestamp_number(unix_sec):
+    return math.floor(unix_sec)
 if __name__ == '__main__':
     ...
 
