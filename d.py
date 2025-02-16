@@ -172,6 +172,28 @@ def schema(document, scheme):
             "sick": 0,
             "dead": 0,
 
+            # buildings
+            "house_count": 0,
+            "house_level": 0,
+            "hospital_count": 0,
+            "hospital_level": 0,
+            "workshop_count": 0,
+            "workshop_level": 0,
+            "police_count": 0,
+            "police_level": 0,
+            "church_count": 0,
+            "church_level": 0,
+            "government_house_level": 0,
+            "coalmine_count": 0,
+            # "coalmine_level": 0,
+            "hunter_hut_count": 0,
+            "steel_factory_count": 0,
+            "oil_derrick_count": 0,
+            "sawmill_count": 0,
+
+            # people
+            "people_count": 0,
+
             # stats
             "hate": 10,  # на свержение
             "hope": 90,  # БУНД!!!

@@ -110,10 +110,32 @@ class WPG(commands.Cog):
             "hate": "🔻 Недовольство",  # на свержение
             "hope": "🔷 Надежда",  # БУНД!!!
             "outposts": "🏕️ Аванпосты",
+
+            # buildings
+            "house_count": "🏠 Количество домов",
+            "house_level": "🔹 Уровень домов",
+            "hospital_count": "🏥 Количество больниц",
+            "hospital_level": "🔹 Уровень больниц",
+            "workshop_count": "🏫 Количество мастерских",
+            "workshop_level": "🔹 Уровень мастерских",
+            "police_count": "🏛 Количество зданий порядка",
+            "police_level": "🔹 Уровень зданий охраны",
+            "church_count": "💒 Количество церквей",
+            "church_level": "🔹 Уровень церквей",
+            "government_house_level": "🏢🔹 Уровень здания правительства",
+            "coalmine_count": " ⛏️⚫ Количество угольных шахт",
+            # "coalmine_level": 0,
+            "hunter_hut_count": "🏹 Количество охотничьих хижин",
+            "steel_factory_count": "⛏️◽ Количество сталелитейных заводов",
+            "oil_derrick_count": "🗼 Количество нефтяных вышек",
+            "sawmill_count": "🪓 Количество лесопилок",
         }
         fields_queue = ["# Ресурсы", "wood", "food", "iron", "coal", "oil",
                         "# Люди", "workers", "engineers", "children", "doctors", "unemployed", "dead", "sick",
-                        "# Статистика", "hate", "hope", "outposts"]
+                        "# Статистика", "hate", "hope", "outposts", "# Здания", "house_count", "house_level",
+                        "hospital_count", "hospital_level", "workshop_count", "workshop_level", "police_count",
+                        "police_level", "church_count", "church_level", "government_house_level", "coalmine_count",
+                        "hunter_hut_count", "steel_factory_count", "oil_derrick_count", "sawmill_count"]
         title += f"\nПоследнее изменение: <t:{utils.unix_sec2ds_timestamp_number(city['edited_timestamp'])}:R>\n"
         for field in fields_queue:
             if field.startswith("#"):
@@ -121,7 +143,8 @@ class WPG(commands.Cog):
             elif field in city:
                 title += f"{captures[field]}: {city[field]}\n"
         await ctx.respond(title, ephemeral=False)
-        await log(f"{ctx.author.name} ({ctx.author.id}) (GUILD: {ctx.guild.id}) посмотрел город {city_name}", LogLevel.INFO)
+        await log(f"{ctx.author.name} ({ctx.author.id}) (GUILD: {ctx.guild.id}) посмотрел город {city_name}",
+                  LogLevel.INFO)
 
     @wpg_commands.command(name="удалить-город", description="Удаляет город из базы данных")
     async def delete_city(self, ctx: discord.ApplicationContext,
@@ -145,34 +168,33 @@ class WPG(commands.Cog):
                           name: Option(str, description="Название города", required=True),
                           new_name: Option(str, description="Новое название", required=True)):
         await ctx.respond("Эта команда временно недоступна!", ephemeral=True)
-        await log(f"{ctx.author.name} ({ctx.author.id}) (GUILD: {ctx.guild.id}) переименовал бы город {name} в {new_name}, но увы и ах, эта команда еще не существует", LogLevel.WARNING)
+        await log(
+            f"{ctx.author.name} ({ctx.author.id}) (GUILD: {ctx.guild.id}) переименовал бы город {name} в {new_name}, но увы и ах, эта команда еще не существует",
+            LogLevel.WARNING)
 
     @wpg_commands.command(name="передать-город", description="Передает город другому игроку")
     async def transfer_city(self, ctx: discord.ApplicationContext,
                             name: Option(str, description="Название города", required=True),
                             new_owner: Option(discord.Member, description="Новое название", required=True)):
         await ctx.respond("Эта команда временно недоступна!", ephemeral=True)
-        await log(f"{ctx.author.name} ({ctx.author.id}) (GUILD: {ctx.guild.id}) передал бы город {name} другому игроку {new_owner}, но увы и ах, эта команда еще не существует", LogLevel.WARNING)
-
-    @wpg_commands.command(name="изменить-статы", description="Изменяет статы города")
-    async def edit_city_stats(self, ctx: discord.ApplicationContext,
-                              name: Option(str, description="Название города", required=True),
-                              field: Option(str, description="Поле", choices=["wood", "food", "iron", "coal", "oil",
-                                                                              "workers", "engineers", "children",
-                                                                              "doctors", "unemployed", "dead", "sick",
-                                                                              "hate", "hope", "outposts"],
-                                            required=True), value: Option(int, description="Значение", required=True),
-                              mode: Option(str, description="Режим", choices=["+", "-", "="], required=True)):
+        await log(
+            f"{ctx.author.name} ({ctx.author.id}) (GUILD: {ctx.guild.id}) передал бы город {name} другому игроку {new_owner}, но увы и ах, эта команда еще не существует",
+            LogLevel.WARNING)
+    async def edit_stat(self, ctx, name, field, value, mode):
         # await ctx.respond("Эта команда временно недоступна!", ephemeral=True)
         if not ctx.author.id in self.wpg_masters:
             await ctx.respond("Вы не можете этого сделать.", ephemeral=True)
-            await log(f"{ctx.author.name} ({ctx.author.id}) (GUILD: {ctx.guild.id}) пытался изменить статы города {name}, но у него недостаточно прав!", LogLevel.WARNING)
+            await log(
+                f"{ctx.author.name} ({ctx.author.id}) (GUILD: {ctx.guild.id}) пытался изменить статы города {name}, но у него недостаточно прав!",
+                LogLevel.WARNING)
             return
         collection = d.db.get_collection("wpg_cities")
         city = collection.find_one({"city_name": name})
         if not city:
             await ctx.respond("Города с таким названием нет!", ephemeral=True)
-            await log(f"{ctx.author.name} ({ctx.author.id}) (GUILD: {ctx.guild.id}) пытался изменить статы города {name}, но такого города нет!", LogLevel.WARNING)
+            await log(
+                f"{ctx.author.name} ({ctx.author.id}) (GUILD: {ctx.guild.id}) пытался изменить статы города {name}, но такого города нет!",
+                LogLevel.WARNING)
             return
         city = d.schema(city, d.Schemes.WPG_city)
         starting_value = city[field]
@@ -187,7 +209,9 @@ class WPG(commands.Cog):
         await ctx.respond(
             f"Статы города **{name}** изменены: {field} {mode} {value} ({starting_value} -> {city[field]})",
             ephemeral=False)
-        await log(f"{ctx.author.name} ({ctx.author.id}) (GUILD: {ctx.guild.id}) изменил статы города {name}: {field} {mode} {value} ({starting_value} -> {city[field]})", LogLevel.INFO)
+        await log(
+            f"{ctx.author.name} ({ctx.author.id}) (GUILD: {ctx.guild.id}) изменил статы города {name}: {field} {mode} {value} ({starting_value} -> {city[field]})",
+            LogLevel.INFO)
 
     @wpg_commands.command(name="мои-города", description="Выводит список ваших городов")
     async def my_cities(self, ctx: discord.ApplicationContext):
@@ -195,13 +219,53 @@ class WPG(commands.Cog):
         cities = collection.find({"owner_id": ctx.author.id})
         if not cities:
             await ctx.respond("У вас нет городов!", ephemeral=True)
-            await log(f"{ctx.author.name} ({ctx.author.id}) (GUILD: {ctx.guild.id}) пытался вывести список городов, но у него нет городов!", LogLevel.WARNING)
+            await log(
+                f"{ctx.author.name} ({ctx.author.id}) (GUILD: {ctx.guild.id}) пытался вывести список городов, но у него нет городов!",
+                LogLevel.WARNING)
             return
         message = "Ваши города:\n"
         for city in cities:
             message += f"{city['city_name']} основан <t:{utils.unix_sec2ds_timestamp_number(city['created_timestamp'])}:R>\n"
         await ctx.respond(message, ephemeral=True)
-        await log(f"{ctx.author.name} ({ctx.author.id}) (GUILD: {ctx.guild.id}) запросил список своих городов", LogLevel.INFO)
+        await log(f"{ctx.author.name} ({ctx.author.id}) (GUILD: {ctx.guild.id}) запросил список своих городов",
+                  LogLevel.INFO)
+    @wpg_commands.command(name="изменить-статы", description="Изменяет статы города")
+    async def edit_city_stats(self, ctx: discord.ApplicationContext,
+                              name: Option(str, description="Название города", required=True),
+                              field: Option(str, description="Поле", choices=["wood", "food", "iron", "coal", "oil",
+                                                                              "workers", "engineers", "children",
+                                                                              "doctors", "unemployed", "dead", "sick",
+                                                                              "hate", "hope", "outposts"],
+                                            required=True), value: Option(int, description="Значение", required=True),
+                              mode: Option(str, description="Режим", choices=["+", "-", "="], required=True)):
+        #, "house_count",
+                                                                              # "house_level",
+                                                                              # "hospital_count", "hospital_level",
+                                                                              # "workshop_count", "workshop_level",
+                                                                              # "police_count",
+                                                                              # "police_level", "church_count",
+                                                                              # "church_level", "government_house_level",
+                                                                              # "coalmine_count",
+                                                                              # "hunter_hut_count", "steel_factory_count",
+                                                                              # "oil_derrick_count", "sawmill_count"
+        await self.edit_stat(ctx, name, field, value, mode)
+
+    @wpg_commands.command(name="изменить-здания", description="Изменяет статы города (ЗДАНИЯ edition)")
+    async def edit_city_stats(self, ctx: discord.ApplicationContext,
+                              name: Option(str, description="Название города", required=True),
+                              field: Option(str, description="Поле", choices=["house_count",
+                                                                              "house_level",
+                                                                              "hospital_count", "hospital_level",
+                                                                              "workshop_count", "workshop_level",
+                                                                              "police_count",
+                                                                              "police_level", "church_count",
+                                                                              "church_level", "government_house_level",
+                                                                              "coalmine_count",
+                                                                              "hunter_hut_count", "steel_factory_count",
+                                                                              "oil_derrick_count", "sawmill_count"],
+                                            required=True), value: Option(int, description="Значение", required=True),
+                              mode: Option(str, description="Режим", choices=["+", "-", "="], required=True)):
+        await self.edit_stat(ctx, name, field, value, mode)
 
     @wpg_commands.command(name="города-пользователя", description="Выводит список городов пользователя")
     async def user_cities(self, ctx: discord.ApplicationContext,
@@ -210,13 +274,14 @@ class WPG(commands.Cog):
         cities = collection.find({"owner_id": user.id})
         if not cities:
             await ctx.respond("Пользователь не имеет городов!", ephemeral=True)
-            await log(f"Пользователь {user.name} ({user.id}) (GUILD: {ctx.guild.id}) пытался вывести список городов {user.name} ({user.id}), но у него нет городов!", LogLevel.WARNING)
+            await log(
+                f"Пользователь {user.name} ({user.id}) (GUILD: {ctx.guild.id}) пытался вывести список городов {user.name} ({user.id}), но у него нет городов!",
+                LogLevel.WARNING)
             return
         message = f"Города пользователя {user.mention}:\n"
         for city in cities:
             message += f"{city['city_name']} основан <t:{utils.unix_sec2ds_timestamp_number(city['created_timestamp'])}:R>\n"
         await ctx.respond(message, ephemeral=False)
-
 
         await log(
             f"Пользователь {user.name} ({user.id}) (GUILD: {ctx.guild.id}) запросил список городов {user.name} ({user.id})",
