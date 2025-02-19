@@ -56,7 +56,7 @@ intents.guilds = True
 # Задаём префикс и интенты
 runtime = time.time()
 loopCounter = 0
-bot = commands.Bot(command_prefix=Data.preffix, intents=intents)
+bot = commands.Bot(command_prefix=Data.preffix, intents=intents, trust_env=True)
 bot.max_messages = 20000
 
 logger.log_sync("Starting...")
