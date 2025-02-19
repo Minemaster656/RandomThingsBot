@@ -95,7 +95,8 @@ async def on_ready():
                            f"RTB:discord_bot запущен за {round(time.time() - startTimeCounter, 3)} секунд. Преффикс: {bot.command_prefix}\n",
 
                            threaded=True)
-    await logger.log("Bot started in " + str(round(time.time() - startTimeCounter, 3)) + f" seconds as {bot.user} with preffix {bot.command_prefix} | {totalguilds} guilds, {total_members} members")
+    await logger.log("Bot started in " + str(round(time.time() - startTimeCounter,
+                                                   3)) + f" seconds as {bot.user} with preffix {bot.command_prefix} | {totalguilds} guilds, {total_members} members")
 
 
 async def noPermission(ctx, permissions):
@@ -316,10 +317,16 @@ async def statusLoop():
 # # voice:.idea/1696530559952.wav
 
 def main():
+    files = list(os.listdir("./cogs"))
+    # removing everything excluding .py
+    files = list(filter(lambda f: f.endswith(".py"), files))
+    print(f'Files to load: {files}')
+    i = 0
     for f in os.listdir("./cogs"):
         if f.endswith("py"):
+            i += 1
             bot.load_extension("cogs." + f[:-3])
-            print(f"Cog loaded: {f}")
+            print(f"Cog loaded: {f} ({i} / {len(files)})")
     bot.run(token)
 
 
