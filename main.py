@@ -319,6 +319,7 @@ def main():
     for f in os.listdir("./cogs"):
         if f.endswith("py"):
             bot.load_extension("cogs." + f[:-3])
+            print(f"Cog loaded: {f}")
     bot.run(token)
 
 
