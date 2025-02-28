@@ -43,20 +43,22 @@ if platform.system() == 'Windows':
         import win10toast
     toaster = win10toast.ToastNotifier()
 startTimeCounter = time.time()
-intents = discord.Intents.default()  # Подключаем "Разрешения"
-intents.message_content = True
-intents.reactions = True
-intents.members = True
-intents.presences = True
+# intents = discord.Intents.default()  # Подключаем "Разрешения"
+# intents.message_content = True
+# intents.reactions = True
+# intents.members = True
+# intents.presences = True
+# # intents.guilds = True
 # intents.guilds = True
-intents.guilds = True
-# intents.channels = True
-# intents.threads = True
+# # intents.channels = True
+# # intents.threads = True
+
+intents = discord.Intents.all()
 
 # Задаём префикс и интенты
 runtime = time.time()
 loopCounter = 0
-bot = commands.Bot(command_prefix=Data.preffix, intents=intents, trust_env=True)
+bot = commands.Bot(command_prefix=Data.preffix, intents=intents, trust_env=True, proxy="socks5://localhost:12334")
 bot.max_messages = 20000
 
 logger.log_sync("Starting...")
